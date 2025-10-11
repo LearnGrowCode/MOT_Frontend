@@ -9,6 +9,7 @@ export default function RootLayout() {
     return (
         <ThemeProvider value={NAV_THEME[colorScheme as "light" | "dark"]}>
             <Stack />
+            
             <PortalHost name='root' />
         </ThemeProvider>
     );

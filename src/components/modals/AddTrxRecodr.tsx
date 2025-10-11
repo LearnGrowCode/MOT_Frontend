@@ -1,27 +1,31 @@
 import React, { useState } from "react";
-import { View, Text, Modal, Pressable, ScrollView, Alert } from "react-native";
+import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
-import PrimaryButton from "../button/PrimaryButton";
-import { PaymentRecord } from "../../type/interface";
 
-interface AddRecordProps {
+interface AddTrxRecodrProps {
     visible: boolean;
     onClose: () => void;
-    onAddRecord: (record: Omit<PaymentRecord, "id">) => void;
+    onAddTransaction: (transaction: {
+        payer: string;
+        amount: number;
+        purpose: string;
+        date: string;
+        type: "income" | "expense";
+    }) => void;
 }
 
-export default function AddRecord({
+export default function AddTrxRecodr({
     visible,
     onClose,
-    onAddRecord,
-}: AddRecordProps) {
+    onAddTransaction,
+}: AddTrxRecodrProps) {
     const [formData, setFormData] = useState({
-        name: "",
-        phone: "",
+        payer: "",
         amount: "",
-        borrowedDate: "",
         purpose: "",
+        date: "",
+        type: "income" as "income" | "expense",
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -35,11 +39,10 @@ export default function AddRecord({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.name.trim()) newErrors.name = "Payer name is required";
+        if (!formData.payer.trim()) newErrors.payer = "Payer name is required";
         if (!formData.amount.trim()) newErrors.amount = "Amount is required";
-        if (!formData.borrowedDate.trim())
-            newErrors.borrowedDate = "Borrowed date is required";
         if (!formData.purpose.trim()) newErrors.purpose = "Purpose is required";
+        if (!formData.date.trim()) newErrors.date = "Date is required";
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -48,22 +51,20 @@ export default function AddRecord({
     const handleSubmit = () => {
         if (!validateForm()) return;
 
-        const newRecord: Omit<PaymentRecord, "id"> = {
-            name: formData.name.trim(),
+        onAddTransaction({
+            payer: formData.payer.trim(),
             amount: parseFloat(formData.amount) || 0,
-            borrowedDate: formData.borrowedDate,
-            category: formData.purpose,
-            status: "unpaid",
-            remaining: parseFloat(formData.amount) || 0,
-        };
+            purpose: formData.purpose.trim(),
+            date: formData.date,
+            type: formData.type,
+        });
 
-        onAddRecord(newRecord);
         setFormData({
-            name: "",
-            phone: "",
+            payer: "",
             amount: "",
-            borrowedDate: "",
             purpose: "",
+            date: "",
+            type: "income",
         });
         setErrors({});
         onClose();
@@ -91,7 +92,7 @@ export default function AddRecord({
                 <Card className='w-full max-w-md max-h-[90%]'>
                     <CardHeader className='flex-row items-center justify-between'>
                         <CardTitle className='text-lg font-semibold'>
-                            Add New Record
+                            Add Transaction Record
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
                             <Text className='text-xl font-bold text-gray-500'>
@@ -102,20 +103,71 @@ export default function AddRecord({
 
                     <ScrollView showsVerticalScrollIndicator={true}>
                         <CardContent className='space-y-4'>
-                            {/* Payer's Name */}
+                            {/* Transaction Type */}
+                            <View>
+                                <Text className='mb-2 text-sm text-gray-600'>
+                                    Transaction Type
+                                </Text>
+                                <View className='flex-row space-x-2'>
+                                    <Pressable
+                                        onPress={() =>
+                                            handleInputChange("type", "income")
+                                        }
+                                        className={`flex-1 py-3 px-4 rounded-md border ${
+                                            formData.type === "income"
+                                                ? "bg-green-100 border-green-500"
+                                                : "bg-gray-50 border-gray-300"
+                                        }`}
+                                    >
+                                        <Text
+                                            className={`text-center font-medium ${
+                                                formData.type === "income"
+                                                    ? "text-green-700"
+                                                    : "text-gray-600"
+                                            }`}
+                                        >
+                                            Income
+                                        </Text>
+                                    </Pressable>
+                                    <Pressable
+                                        onPress={() =>
+                                            handleInputChange("type", "expense")
+                                        }
+                                        className={`flex-1 py-3 px-4 rounded-md border ${
+                                            formData.type === "expense"
+                                                ? "bg-red-100 border-red-500"
+                                                : "bg-gray-50 border-gray-300"
+                                        }`}
+                                    >
+                                        <Text
+                                            className={`text-center font-medium ${
+                                                formData.type === "expense"
+                                                    ? "text-red-700"
+                                                    : "text-gray-600"
+                                            }`}
+                                        >
+                                            Expense
+                                        </Text>
+                                    </Pressable>
+                                </View>
+                            </View>
+
+                            {/* Payer/Receiver Name */}
                             <View>
                                 <Text className='mb-1 text-sm text-gray-600'>
-                                    Payer's Name
+                                    {formData.type === "income"
+                                        ? "Received From"
+                                        : "Paid To"}
                                 </Text>
                                 <View className='flex-row items-center'>
                                     <Input
-                                        placeholder="Enter payer's name"
-                                        value={formData.name}
+                                        placeholder={`Enter ${formData.type === "income" ? "payer" : "receiver"} name`}
+                                        value={formData.payer}
                                         onChangeText={(value) =>
-                                            handleInputChange("name", value)
+                                            handleInputChange("payer", value)
                                         }
                                         className='flex-1'
-                                        error={errors.name}
+                                        error={errors.payer}
                                     />
                                     <View className='ml-2 p-2 bg-gray-100 rounded-md'>
                                         <Text className='text-gray-600'>
@@ -125,49 +177,10 @@ export default function AddRecord({
                                 </View>
                             </View>
 
-                            {/* Phone Number */}
-                            <View>
-                                <View className='flex-row items-center mb-1'>
-                                    <Text className='text-sm text-gray-600'>
-                                        Phone Number
-                                    </Text>
-                                    <Text className='ml-1 text-xs text-gray-400'>
-                                        eg. +91 XXXXXXXXXX
-                                    </Text>
-                                </View>
-                                <Input
-                                    placeholder='Phone Number'
-                                    value={formData.phone}
-                                    onChangeText={(value) =>
-                                        handleInputChange("phone", value)
-                                    }
-                                    keyboardType='phone-pad'
-                                    error={errors.phone}
-                                />
-                            </View>
-
-                            {/* Payer Icon */}
-                            <View>
-                                <Text className='mb-2 text-sm text-gray-600'>
-                                    Payer Icon
-                                </Text>
-                                <Pressable className='flex-row items-center p-3 border border-gray-300 rounded-md bg-gray-50'>
-                                    <View className='w-12 h-12 bg-gray-200 rounded-full items-center justify-center'>
-                                        <Text className='text-gray-500'>
-                                            📷
-                                        </Text>
-                                    </View>
-                                    <Text className='ml-3 text-sm text-gray-600'>
-                                        Click on the icon to choose from
-                                        available options
-                                    </Text>
-                                </Pressable>
-                            </View>
-
-                            {/* Amount to Collect */}
+                            {/* Amount */}
                             <View>
                                 <Text className='mb-1 text-sm text-gray-600'>
-                                    Amount to Collect
+                                    Amount
                                 </Text>
                                 <View className='flex-row items-center'>
                                     <Text className='text-lg font-semibold mr-2'>
@@ -192,23 +205,20 @@ export default function AddRecord({
                                 </Text>
                             </View>
 
-                            {/* Borrowed Date */}
+                            {/* Date */}
                             <View>
                                 <Text className='mb-1 text-sm text-gray-600'>
-                                    Borrowed Date (MM/DD/YYYY)
+                                    Date (MM/DD/YYYY)
                                 </Text>
                                 <View className='flex-row items-center'>
                                     <Input
                                         placeholder='MM/DD/YYYY'
-                                        value={formData.borrowedDate}
+                                        value={formData.date}
                                         onChangeText={(value) =>
-                                            handleInputChange(
-                                                "borrowedDate",
-                                                value
-                                            )
+                                            handleInputChange("date", value)
                                         }
                                         className='flex-1'
-                                        error={errors.borrowedDate}
+                                        error={errors.date}
                                     />
                                     <View className='ml-2 p-2 bg-gray-100 rounded-md'>
                                         <Text className='text-gray-600'>
@@ -263,7 +273,7 @@ export default function AddRecord({
                             className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
                         >
                             <Text className='text-white font-medium'>
-                                Add Record
+                                Add Transaction
                             </Text>
                         </Pressable>
                     </View>
