@@ -1,3 +1,4 @@
+import { PortalHost } from "@rn-primitives/portal";
 import { Drawer } from "expo-router/drawer";
 
 export default function AuthLayout() {
@@ -12,6 +13,7 @@ export default function AuthLayout() {
                 drawerInactiveTintColor: "#9ca3af",
             }}
         >
+            <PortalHost name='root' />
             <Drawer.Screen
                 name='index'
                 options={{
@@ -31,15 +33,15 @@ export default function AuthLayout() {
                 }}
             />
             <Drawer.Screen
-                name='to-collect/index'
+                name='collect-book/index'
                 options={{
-                    title: "To Collect",
+                    title: "Collect Book",
                 }}
             />
             <Drawer.Screen
-                name='to-pay/index'
+                name='pay-book/index'
                 options={{
-                    title: "To Pay",
+                    title: "Pay Book",
                 }}
             />
         </Drawer>

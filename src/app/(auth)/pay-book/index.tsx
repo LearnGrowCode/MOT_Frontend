@@ -1,39 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, Alert } from "react-native";
-import { Card, CardContent } from "@/components/ui/card";
+import { View, Text, ScrollView, Alert } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
-import Avatar from "@/components/ui/Avatar";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
 import AddRecord from "@/components/modals/AddRecord";
 import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
-
-// Mock data for demonstration
-const mockPaymentRecords: PaymentRecord[] = [
-    {
-        id: "1",
-        name: "John Doe",
-        amount: 150.0,
-        borrowedDate: "2024-01-15",
-        category: "Personal loan",
-        status: "unpaid",
-        remaining: 150.0,
-        avatar: null,
-    },
-    {
-        id: "2",
-        name: "Sarah Wilson",
-        amount: 75.5,
-        borrowedDate: "2024-02-01",
-        category: "Dinner",
-        status: "unpaid",
-        remaining: 75.5,
-        avatar: null,
-    },
-];
+import { Link } from "expo-router";
+import { toPayData } from "@/dummyData/constant";
+import GreetingCard from "@/components/cards/GreetingCard";
+import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
+import { BanknoteArrowDownIcon } from "lucide-react-native";
 
 export default function ToPayScreen() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -51,12 +30,8 @@ export default function ToPayScreen() {
     );
 
     // Payment records state
-    const [paymentRecords, setPaymentRecords] =
-        useState<PaymentRecord[]>(mockPaymentRecords);
-
-    const totalAmount = paymentRecords.reduce(
-        (sum, record) => sum + record.remaining,
-        0
+    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>(
+        toPayData.userPaymentRecords as unknown as PaymentRecord[]
     );
 
     const handleMarkPayment = (recordId: string) => {
@@ -136,72 +111,61 @@ export default function ToPayScreen() {
     return (
         <View className='flex-1 bg-white'>
             <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-                {/* Header with greeting */}
-                <View className='px-6 pt-12 pb-4'>
-                    <View className='flex-row items-center mb-2'>
-                        <Avatar
-                            name='Akshay'
-                            size='lg'
-                            showStatus={true}
-                            statusColor='green'
-                            className='mr-3'
-                        />
-                        <View>
-                            <Text className='text-2xl font-bold text-gray-900'>
-                                Hi, Akshay
-                            </Text>
-                            <Text className='text-gray-600'>
-                                Let&apos;s see how much you owe
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Amount to Pay Summary */}
-                <View className='px-6 mb-6'>
-                    <Card className='bg-gray-50 border-0'>
-                        <CardContent className='p-4'>
-                            <Text className='text-sm font-medium text-gray-600 mb-2'>
-                                AMOUNT TO PAY
-                            </Text>
-                            <Text className='text-3xl font-bold text-gray-900 mb-1'>
-                                ₹{totalAmount.toFixed(0)}
-                            </Text>
-                            <Text className='text-sm text-gray-600'>
-                                Total amount you owe to all people
-                            </Text>
-                        </CardContent>
-                    </Card>
+                <View className='px-6 space-y-8 py-6'>
+                    <GreetingCard
+                        userName={toPayData.userName}
+                        userAvatar={toPayData.userAvatar}
+                        greet={toPayData.userGreeting}
+                        subGreet={toPayData.userGreetingMessage}
+                    />
+                    {/* Amount to Pay Summary */}
+                    <AmountSummaryCard
+                        amount={toPayData.userAmountToPay}
+                        message={toPayData.userAmountToPayMessage}
+                    />
                 </View>
 
                 {/* Payment Records Section */}
                 <View className='px-6'>
                     <View className='flex-row items-center justify-between mb-4'>
                         <Text className='text-lg font-bold text-gray-900'>
-                            Payment Records
+                            Payment Entries
                         </Text>
-                        <Pressable
-                            onPress={handleAddRecord}
+                        <Link
+                            href='/(auth)/collect-book'
+                            asChild
                             className='bg-blue-600 px-4 py-2 rounded-lg flex-row items-center'
                         >
-                            <Text className='text-white text-sm font-medium mr-1'>
-                                +
-                            </Text>
-                            <Text className='text-white text-sm font-medium'>
-                                Add Record
-                            </Text>
-                        </Pressable>
+                            <View className='flex-row items-center gap-2'>
+                                <BanknoteArrowDownIcon
+                                    size={16}
+                                    color='white'
+                                />
+                                <Text className='text-white text-sm font-medium '>
+                                    Collect Book
+                                </Text>
+                            </View>
+                        </Link>
                     </View>
 
                     <SearchAndFilter
-                        searchQuery={searchQuery}
-                        onSearchChange={setSearchQuery}
-                        filterStatus={filterStatus}
-                        onFilterChange={setFilterStatus}
-                        sortBy={sortBy}
-                        onSortChange={setSortBy}
-                        totalRecords={paymentRecords.length}
-                        filteredRecords={paymentRecords.length}
+                        searchQuery={""}
+                        onSearchChange={(query) => {
+                            console.log(query);
+                        }}
+                        filterStatus='all'
+                        onFilterChange={(status) => {
+                            console.log(status);
+                        }}
+                        sortBy={"name_asc"}
+                        onSortChange={(sort) => {
+                            console.log(sort);
+                        }}
+                        totalRecords={0}
+                        filteredRecords={0}
+                        onSearch={() => {
+                            console.log("search");
+                        }}
                     />
 
                     {/* Payment Record Cards */}

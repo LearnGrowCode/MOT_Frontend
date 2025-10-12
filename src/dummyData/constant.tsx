@@ -1,0 +1,31 @@
+export const toPayData = {
+    userName: "Akshay",
+    userAvatar: "https://via.placeholder.com/150",
+    userStatus: "online",
+    userGreeting: "Hi, Akshay",
+    userGreetingMessage: "Let's see how much you owe",
+    userAmountToPay: 1200,
+    userAmountToPayMessage: "Total amount you owe to all people",
+    userPaymentRecords: [
+        {
+            id: 1,
+            name: "John Doe",
+            amount: 100,
+            borrowedDate: "2024-01-15",
+            category: "Personal loan",
+            status: "unpaid",
+            remaining: 100,
+            avatar: "https://via.placeholder.com/150",
+        },
+        {
+            id: 2,
+            name: "Sarah Wilson",
+            amount: 75.5,
+            borrowedDate: "2024-02-01",
+            category: "Dinner",
+            status: "unpaid",
+            remaining: 75.5,
+            avatar: "https://via.placeholder.com/150",
+        },
+    ],
+};
