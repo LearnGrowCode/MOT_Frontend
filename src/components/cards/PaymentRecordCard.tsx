@@ -49,12 +49,12 @@ export default function PaymentRecordCard({
     };
     return (
         <Card
-            className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)}`}
+            className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)} p-2`}
         >
-            <CardContent>
+            <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between mb-4'>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl items-center justify-center mr-4 relative'>
+                        <View className='w-12 h-12 bg-blue-100 border border-blue-200 rounded-xl items-center justify-center mr-4 relative'>
                             <Text className='text-blue-700 text-base font-semibold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
@@ -92,7 +92,7 @@ export default function PaymentRecordCard({
                         <DropdownMenu>
                             <DropdownMenuTrigger>
                                 <Pressable className='p-2'>
-                                    <MoreVertical size={20} color="#666" />
+                                    <MoreVertical size={20} color='#666' />
                                 </Pressable>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
@@ -175,9 +175,9 @@ export default function PaymentRecordCard({
 
                 {record.status !== "paid" && (
                     <PrimaryButton
-                        title='Mark Payment'
+                        title='Add Payment Record'
                         onPress={() => onMarkPayment(record.id)}
-                        className='bg-blue-600 shadow-sm shadow-blue-200'
+                        className='bg-blue-600 shadow-sm shadow-blue-200 rounded-lg  py-2 font-thin'
                     />
                 )}
             </CardContent>

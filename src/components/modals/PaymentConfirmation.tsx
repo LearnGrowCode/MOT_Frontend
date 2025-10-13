@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import { View, Text, Modal, Pressable } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { PaymentRecord } from "../../type/interface";
@@ -42,7 +42,8 @@ export default function PaymentConfirmation({
         <Modal
             visible={visible}
             animationType='slide'
-            transparent={true}
+            transparent
+            presentationStyle='overFullScreen'
             onRequestClose={onClose}
         >
             <View className='flex-1 bg-black/50 justify-center items-center px-4'>

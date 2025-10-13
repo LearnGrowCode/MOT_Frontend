@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { ListFilter, LucideIcon, Search, SortAsc } from "lucide-react-native";
-import { Icon } from "@/components/ui/icon";
 import { Option } from "@/type/interface";
 
 interface SearchAndFilterProps {
@@ -99,34 +98,16 @@ export default function SearchAndFilter({
                         gap: 8,
                     }}
                 >
-                    {FILTER_OPTIONS.map(
-                        (filterOption: {
-                            type: FilterType;
-                            options: Option[];
-                            icon: LucideIcon;
-                        }) => {
-                            const IconComponent = filterOption.icon;
-                            return (
-                                <Pressable
-                                    key={filterOption.type}
-                                    onPress={() => setShowFilterAndSort(true)}
-                                    className='bg-white border border-gray-200 rounded-lg px-4 py-2 flex-row items-center gap-2'
-                                >
-                                    <Icon
-                                        as={IconComponent}
-                                        className='text-gray-700'
-                                    />
-                                    <Text className='text-sm text-gray-700'>
-                                        {(
-                                            searchandfilter[
-                                                filterOption.type as keyof typeof searchandfilter
-                                            ] as Option
-                                        )?.label ?? ""}
-                                    </Text>
-                                </Pressable>
-                            );
-                        }
-                    )}
+                    <Pressable
+                        key={'filter-and-sort'}
+                        onPress={() => setShowFilterAndSort(true)}
+                        className='bg-white border border-gray-200 rounded-lg px-4 py-2 flex-row items-center gap-2'
+                    >
+                        <ListFilter size={24} color='#000' />
+                        <Text className='text-sm text-gray-700'>
+                            Filter and sort
+                        </Text>
+                    </Pressable>
                 </ScrollView>
 
                 <Text className='text-sm font-medium text-gray-500'>

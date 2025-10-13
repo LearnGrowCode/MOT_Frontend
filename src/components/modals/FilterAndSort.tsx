@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView, Dimensions } from "react-native";
+import Modal from "react-native-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
     Accordion,
@@ -7,6 +8,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../ui/accordion";
+import { X } from "lucide-react-native";
 interface FilterAndSortProps {
     visible: boolean;
     onClose: () => void;
@@ -38,6 +40,7 @@ const FILTER_OPTIONS = [
             { id: "date_desc", label: "Newest First" },
         ],
     },
+
     {
         id: "status",
         label: "Status",
@@ -55,14 +58,9 @@ export default function FilterAndSort({
     onClose,
     onFilterAndSort,
 }: FilterAndSortProps) {
-    const [expandedOption, setExpandedOption] = useState<string | null>(null);
     const [selectedFilters, setSelectedFilters] = useState<
         Record<string, string>
     >({});
-
-    const handleOptionClick = (optionId: string) => {
-        setExpandedOption(expandedOption === optionId ? null : optionId);
-    };
 
     const handleSubOptionSelect = (optionId: string, subOptionId: string) => {
         setSelectedFilters((prev) => ({
@@ -78,48 +76,66 @@ export default function FilterAndSort({
 
     return (
         <Modal
-            visible={visible}
-            animationType='slide'
-            transparent={true}
-            onRequestClose={onClose}
+            isVisible={visible}
+            onBackdropPress={onClose} // close when tapping outside
+            onSwipeComplete={onClose} // close when swiped down
+            swipeDirection='down' // 👇 enables swipe-down to close
+            animationIn='slideInUp'
+            animationOut='slideOutDown'
+            hideModalContentWhileAnimating={false}
+            propagateSwipe={true}
+            style={{
+                width: "100%",
+                margin: 0,
+                padding: 0,
+                justifyContent: "flex-end",
+                backgroundColor: "transparent",
+            }}
         >
-            <View className='flex-1 justify-end items-center'>
-                <Card className='w-full max-h-[90%] rounded-t-2xl bg-white'>
+            <View className='items-stretch'>
+                <Card className=' w-full rounded-t-2xl bg-white'>
                     <CardHeader className='flex-row items-center justify-between'>
-                        <CardTitle className='text-lg font-semibold'>
+                        <CardTitle className='text-lg font-bold'>
                             Filter & Sort
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-gray-500'>
-                                ×
-                            </Text>
+                            <X size={24} color='#000' strokeWidth={2} />
                         </Pressable>
                     </CardHeader>
 
-                    <ScrollView showsVerticalScrollIndicator={true}>
-                        <CardContent className='space-y-4'>
-                            <View className='flex flex-col gap-2'>
-                                <Text className='text-base font-medium'>
-                                    Filter
-                                </Text>
-                                {FILTER_OPTIONS.filter(
-                                    (option) => option.id === "status"
-                                ).map((option) => (
-                                    <View
-                                        key={option.id}
-                                        role='group'
-                                        className='flex flex-row flex-wrap gap-2'
-                                    >
-                                        {option.subOptions.map((subOption) => (
-                                            <Pressable
-                                                key={subOption.id}
-                                                onPress={() =>
-                                                    handleSubOptionSelect(
-                                                        option.id,
-                                                        subOption.id
-                                                    )
-                                                }
-                                                className={`
+                    <View
+                        style={{
+                            maxHeight: Dimensions.get("window").height * 0.8,
+                        }}
+                    >
+                        <ScrollView
+                            showsVerticalScrollIndicator
+                            contentContainerStyle={{ paddingBottom: 8 }}
+                        >
+                            <CardContent className='flex flex-col justify-between gap-4'>
+                                <View className='flex flex-col gap-2'>
+                                    <Text className='text-lg font-semibold text-gray-800'>
+                                        Filter
+                                    </Text>
+                                    {FILTER_OPTIONS.filter(
+                                        (option) => option.id === "status"
+                                    ).map((option) => (
+                                        <View
+                                            key={option.id}
+                                            role='group'
+                                            className='flex flex-row flex-wrap gap-2'
+                                        >
+                                            {option.subOptions.map(
+                                                (subOption) => (
+                                                    <Pressable
+                                                        key={subOption.id}
+                                                        onPress={() =>
+                                                            handleSubOptionSelect(
+                                                                option.id,
+                                                                subOption.id
+                                                            )
+                                                        }
+                                                        className={`
                                                     py-1.5 px-3
                                                     rounded-full
                                                     border
@@ -132,10 +148,10 @@ export default function FilterAndSort({
                                                             ? "bg-blue-50 border-blue-200"
                                                             : "bg-white border-gray-200"
                                                     }
-                                                `}
-                                            >
-                                                <Text
-                                                    className={`
+                                                    `}
+                                                    >
+                                                        <Text
+                                                            className={`
                                                         text-sm
                                                         ${
                                                             selectedFilters[
@@ -144,76 +160,96 @@ export default function FilterAndSort({
                                                                 ? "text-blue-600 font-medium"
                                                                 : "text-gray-600"
                                                         }
-                                                    `}
-                                                >
-                                                    {subOption.label}
-                                                </Text>
-                                            </Pressable>
-                                        ))}
-                                    </View>
-                                ))}
-                            </View>
-                            <Text className='text-base font-medium'>Sort</Text>
-                            <Accordion type='single' collapsible>
-                                {FILTER_OPTIONS.filter(
-                                    (option) => option.id !== "status"
-                                ).map((option) => (
-                                    <AccordionItem
-                                        key={option.id}
-                                        value={option.id}
-                                    >
-                                        <AccordionTrigger>
-                                            <Text className='text-base font-medium'>
-                                                {option.label}
-                                            </Text>
-                                        </AccordionTrigger>
-                                        <AccordionContent>
-                                            <View className='flex flex-row flex-wrap gap-2'>
-                                                {option.subOptions.map(
-                                                    (subOption) => (
-                                                        <Pressable
-                                                            key={subOption.id}
-                                                            onPress={() =>
-                                                                handleSubOptionSelect(
-                                                                    option.id,
-                                                                    subOption.id
-                                                                )
-                                                            }
-                                                            className={`
+                                                        `}
+                                                        >
+                                                            {subOption.label}
+                                                        </Text>
+                                                    </Pressable>
+                                                )
+                                            )}
+                                        </View>
+                                    ))}
+                                </View>
+                                <View className=''>
+                                    <Text className='text-lg font-semibold text-gray-800'>
+                                        Sort
+                                    </Text>
+                                    <Accordion type='single' collapsible>
+                                        {FILTER_OPTIONS.filter(
+                                            (option) => option.id !== "status"
+                                        ).map((option) => (
+                                            <AccordionItem
+                                                key={option.id}
+                                                value={option.id}
+                                            >
+                                                <AccordionTrigger>
+                                                    <Text className='text-base font-medium'>
+                                                        {option.label}
+                                                    </Text>
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                    <View className='flex flex-row flex-wrap gap-2 '>
+                                                        {option.subOptions.map(
+                                                            (subOption) => (
+                                                                <Pressable
+                                                                    key={
+                                                                        subOption.id
+                                                                    }
+                                                                    onPress={() =>
+                                                                        handleSubOptionSelect(
+                                                                            option.id,
+                                                                            subOption.id
+                                                                        )
+                                                                    }
+                                                                    className={`
                                                                 py-2 px-4
                                                                 rounded-lg
                                                                 border
                                                                 transition-all
                                                                 active:scale-95
-                                                                ${selectedFilters[option.id] === subOption.id 
-                                                                    ? "bg-blue-50 border-blue-200" 
-                                                                    : "bg-white border-gray-200"
+                                                                ${
+                                                                    selectedFilters[
+                                                                        option
+                                                                            .id
+                                                                    ] ===
+                                                                    subOption.id
+                                                                        ? "bg-blue-50 border-blue-200"
+                                                                        : "bg-white border-gray-200"
                                                                 }
                                                             `}
-                                                        >
-                                                            <Text
-                                                                className={`
+                                                                >
+                                                                    <Text
+                                                                        className={`
                                                                     text-sm
-                                                                    ${selectedFilters[option.id] === subOption.id
-                                                                        ? "text-blue-600 font-medium"
-                                                                        : "text-gray-600"
+                                                                    ${
+                                                                        selectedFilters[
+                                                                            option
+                                                                                .id
+                                                                        ] ===
+                                                                        subOption.id
+                                                                            ? "text-blue-600 font-medium"
+                                                                            : "text-gray-600"
                                                                     }
                                                                 `}
-                                                            >
-                                                                {subOption.label}
-                                                            </Text>
-                                                        </Pressable>
-                                                    )
-                                                )}
-                                            </View>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                        </CardContent>
-                    </ScrollView>
+                                                                    >
+                                                                        {
+                                                                            subOption.label
+                                                                        }
+                                                                    </Text>
+                                                                </Pressable>
+                                                            )
+                                                        )}
+                                                    </View>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </View>
+                            </CardContent>
+                        </ScrollView>
+                    </View>
 
-                    <View className='flex-row space-x-3 p-6 pt-4'>
+                    <View className='flex-row gap-3 p-6 pt-4'>
                         <Pressable
                             onPress={onClose}
                             className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
