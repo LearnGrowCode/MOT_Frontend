@@ -16,7 +16,23 @@ export interface PaymentRecord {
     amount: number;
     borrowedDate: string;
     category: string;
-    status: "unpaid" | "paid" | "partial";
+    status: Status;
     remaining: number;
     avatar?: string | null;
+    trx_history?: TransactionRecord[];
+}
+
+export type Status = "unpaid" | "paid" | "partial" | "overdue";
+
+export interface TransactionRecord {
+    id: string;
+    amount: number;
+    date: string;
+    type: "income" | "expense";
+    purpose: string;
+}
+
+export interface Option {
+    label: string;
+    value: string;
 }

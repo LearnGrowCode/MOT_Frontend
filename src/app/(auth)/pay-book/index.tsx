@@ -13,6 +13,7 @@ import { toPayData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
+import FilterAndSort from "@/components/modals/FilterAndSort";
 
 export default function ToPayScreen() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +26,7 @@ export default function ToPayScreen() {
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showPaymentConfirmation, setShowPaymentConfirmation] =
         useState(false);
+    const [showFilterAndSort, setShowFilterAndSort] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
         null
     );
@@ -39,22 +41,6 @@ export default function ToPayScreen() {
         if (record) {
             setSelectedRecord(record);
             setShowPaymentConfirmation(true);
-        }
-    };
-
-    const handleOptionsPress = (recordId: string) => {
-        const record = paymentRecords.find((r) => r.id === recordId);
-        if (record) {
-            setSelectedRecord(record);
-            Alert.alert("Options", "What would you like to do?", [
-                { text: "Edit", onPress: () => setShowEditRecord(true) },
-                {
-                    text: "Delete",
-                    onPress: () => setShowDeleteRecord(true),
-                    style: "destructive",
-                },
-                { text: "Cancel", style: "cancel" },
-            ]);
         }
     };
 
@@ -108,10 +94,14 @@ export default function ToPayScreen() {
         setSelectedRecord(null);
     };
 
+    const handleFilterAndSort = (filters: any) => {
+        console.log(filters);
+    };
+
     return (
         <View className='flex-1 bg-white'>
             <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-                <View className='px-6 space-y-8 py-6'>
+                <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
                         userName={toPayData.userName}
                         userAvatar={toPayData.userAvatar}
@@ -150,38 +140,26 @@ export default function ToPayScreen() {
 
                     <SearchAndFilter
                         searchQuery={""}
-                        onSearchChange={(query) => {
-                            console.log(query);
-                        }}
-                        filterStatus='all'
-                        onFilterChange={(status) => {
-                            console.log(status);
-                        }}
-                        sortBy={"name_asc"}
-                        onSortChange={(sort) => {
-                            console.log(sort);
-                        }}
                         totalRecords={0}
                         filteredRecords={0}
                         onSearch={() => {
                             console.log("search");
                         }}
+                        setShowFilterAndSort={setShowFilterAndSort}
                     />
 
                     {/* Payment Record Cards */}
-                    <View className='space-y-3'>
+                    <View className='flex gap-3 w-full'>
                         {paymentRecords.map((record) => (
                             <PaymentRecordCard
                                 key={record.id}
                                 record={record}
                                 onMarkPayment={handleMarkPayment}
-                                onOptionsPress={handleOptionsPress}
                             />
                         ))}
                     </View>
                 </View>
             </ScrollView>
-
             {/* Floating Action Button */}
             <FloatingActionButton
                 onPress={handleAddRecord}
@@ -190,33 +168,34 @@ export default function ToPayScreen() {
                 color='blue'
                 position='bottom-right'
             />
-
             {/* Modals */}
             <AddRecord
                 visible={showAddRecord}
                 onClose={() => setShowAddRecord(false)}
                 onAddRecord={handleAddNewRecord}
             />
-
             <EditRecord
                 visible={showEditRecord}
                 onClose={() => setShowEditRecord(false)}
                 onSaveRecord={handleSaveRecord}
                 record={selectedRecord}
             />
-
             <DeleteRecord
                 visible={showDeleteRecord}
                 onClose={() => setShowDeleteRecord(false)}
                 onDeleteRecord={handleDeleteRecord}
                 record={selectedRecord}
             />
-
             <PaymentConfirmation
                 visible={showPaymentConfirmation}
                 onClose={() => setShowPaymentConfirmation(false)}
                 onConfirmPayment={handleConfirmPayment}
                 record={selectedRecord}
+            />
+            <FilterAndSort
+                visible={showFilterAndSort}
+                onClose={() => setShowFilterAndSort(false)}
+                onFilterAndSort={handleFilterAndSort}
             />
         </View>
     );

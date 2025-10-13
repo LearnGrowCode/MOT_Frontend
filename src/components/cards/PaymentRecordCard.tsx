@@ -1,125 +1,175 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, FlatList } from "react-native";
 import { Card, CardContent } from "@/components/ui/card";
 import PrimaryButton from "@/components/button/PrimaryButton";
 import { PaymentRecord } from "@/type/interface";
+import {
+    formatDate,
+    getStatusColor,
+    getStatusText,
+    getTimeAgo,
+    formatCurrency,
+} from "@/utils/utils";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { MoreVertical } from "lucide-react-native";
 
 interface PaymentRecordCardProps {
     record: PaymentRecord;
     onMarkPayment: (recordId: string) => void;
-    onOptionsPress: (recordId: string) => void;
 }
 
 export default function PaymentRecordCard({
     record,
     onMarkPayment,
-    onOptionsPress,
 }: PaymentRecordCardProps) {
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        });
-    };
-
-    const getTimeAgo = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - date.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays < 30) {
-            return `${diffDays} days ago`;
-        } else if (diffDays < 365) {
-            const months = Math.floor(diffDays / 30);
-            return `${months} month${months > 1 ? "s" : ""} ago`;
-        } else {
-            const years = Math.floor(diffDays / 365);
-            return `${years} year${years > 1 ? "s" : ""} ago`;
-        }
-    };
-
-    const getStatusColor = (status: string) => {
+    const getCardColorClasses = (status: PaymentRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-orange-100 text-orange-700";
+                return "bg-orange-50 border-orange-200";
             case "paid":
-                return "bg-green-100 text-green-700";
+                return "bg-green-50 border-green-200";
             case "partial":
-                return "bg-yellow-100 text-yellow-700";
+                return "bg-yellow-50 border-yellow-200";
+            case "overdue":
+                return "bg-red-50 border-red-200";
             default:
-                return "bg-gray-100 text-gray-700";
+                return "bg-gray-50 border-gray-200";
         }
     };
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case "unpaid":
-                return "⏰ Unpaid";
-            case "paid":
-                return "✅ Paid";
-            case "partial":
-                return "🔄 Partial";
-            default:
-                return "❓ Unknown";
-        }
-    };
-
     return (
-        <Card className='bg-yellow-50 border-0'>
-            <CardContent className='p-4'>
-                <View className='flex-row items-start justify-between mb-3'>
+        <Card
+            className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)}`}
+        >
+            <CardContent>
+                <View className='flex-row items-start justify-between mb-4'>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-10 h-10 bg-yellow-200 rounded-full items-center justify-center mr-3 relative'>
-                            <Text className='text-gray-600 text-sm font-medium'>
+                        <View className='w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl items-center justify-center mr-4 relative'>
+                            <Text className='text-blue-700 text-base font-semibold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
-                            <View className='absolute -bottom-1 -right-1 w-4 h-4 bg-orange-400 rounded-full items-center justify-center'>
-                                <Text className='text-white text-xs'>⏰</Text>
-                            </View>
+                            {record.status === "unpaid" && (
+                                <View className='absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center border-2 border-white'>
+                                    <Text className='text-white text-xs'>
+                                        ⏰
+                                    </Text>
+                                </View>
+                            )}
                         </View>
                         <View className='flex-1'>
-                            <Text className='text-base font-bold text-gray-900'>
+                            <Text className='text-base font-semibold text-gray-900 mb-1'>
                                 {record.name}
                             </Text>
-                            <Text className='text-lg font-bold text-gray-900'>
-                                ₹{record.amount.toFixed(2)}
-                            </Text>
-                            <Text className='text-sm text-gray-600'>
-                                Borrowed on {formatDate(record.borrowedDate)}
+                            <Text className='text-xl font-bold text-gray-900'>
+                                {formatCurrency(
+                                    record.amount,
+                                    "INR",
+                                    "en-IN",
+                                    0
+                                )}
                             </Text>
                         </View>
                     </View>
 
-                    <View className='items-end'>
+                    <View className='items-end flex-row gap-2'>
                         <View
-                            className={`px-2 py-1 rounded-full mb-1 ${getStatusColor(record.status)}`}
+                            className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
-                            <Text className='text-xs font-medium'>
+                            <Text className='text-xs font-semibold'>
                                 {getStatusText(record.status)}
                             </Text>
                         </View>
-                        <Pressable onPress={() => onOptionsPress(record.id)}>
-                            <Text className='text-gray-400 text-lg'>⋮</Text>
-                        </Pressable>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <Pressable className='p-2'>
+                                    <MoreVertical size={20} color="#666" />
+                                </Pressable>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onPress={() => {}}>
+                                    <Text>Edit</Text>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onPress={() => {}}>
+                                    <Text>Delete</Text>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </View>
                 </View>
 
-                <Text className='text-sm text-gray-600 mb-2'>
-                    {record.category}
-                </Text>
+                {/* Category line to reflect simple text like in the screenshot */}
+                <View className='mb-3'>
+                    <Text className='text-sm text-gray-700'>
+                        {record.category}
+                    </Text>
+                </View>
+                {record.trx_history && record.trx_history.length > 0 && (
+                    <Accordion type='single' collapsible>
+                        <AccordionItem value='transaction-history'>
+                            <AccordionTrigger className='border-b-2 rounded-none border-gray-200  p-3 flex-row justify-between items-center'>
+                                <View className='flex-row items-center gap-2'>
+                                    <Text className='text-sm font-semibold text-gray-900'>
+                                        Payment History
+                                    </Text>
+                                    <View className='bg-gray-100 px-2 py-0.5 rounded-full'>
+                                        <Text className='text-xs text-gray-700'>
+                                            {record.trx_history.length}
+                                        </Text>
+                                    </View>
+                                </View>
+                            </AccordionTrigger>
+                            <AccordionContent className='bg-gray-50 rounded-b-xl'>
+                                <FlatList
+                                    data={record.trx_history}
+                                    renderItem={({ item }) => (
+                                        <View className='flex-row justify-between items-center p-3 border-b border-gray-100'>
+                                            <View className='flex-row items-center gap-2'>
+                                                <View>
+                                                    <Text className='text-sm font-medium text-gray-700'>
+                                                        {formatDate(item.date)}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <Text className='text-sm font-semibold text-gray-700'>
+                                                {formatCurrency(
+                                                    item.amount,
+                                                    "INR",
+                                                    "en-IN",
+                                                    2
+                                                )}
+                                            </Text>
+                                        </View>
+                                    )}
+                                    ItemSeparatorComponent={() => (
+                                        <View className='h-[1px] bg-gray-100' />
+                                    )}
+                                />
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                )}
 
-                <View className='flex-row items-center justify-between mb-3'>
+                {/* Footer row: time ago and remaining amount */}
+                <View className='flex-row items-center justify-between mt-3 mb-4'>
                     <View className='flex-row items-center'>
-                        <Text className='text-gray-400 mr-1'>📅</Text>
+                        <Text className='text-gray-400 mr-2'>⏰</Text>
                         <Text className='text-sm text-gray-600'>
                             {getTimeAgo(record.borrowedDate)}
                         </Text>
                     </View>
-                    <Text className='text-sm text-gray-600'>
-                        Remaining: ₹{record.remaining.toFixed(2)}
+                    <Text className='text-sm font-medium text-gray-700'>
+                        Remaining:{" "}
+                        {formatCurrency(record.remaining, "INR", "en-IN", 2)}
                     </Text>
                 </View>
 
@@ -127,7 +177,7 @@ export default function PaymentRecordCard({
                     <PrimaryButton
                         title='Mark Payment'
                         onPress={() => onMarkPayment(record.id)}
-                        className='bg-blue-600'
+                        className='bg-blue-600 shadow-sm shadow-blue-200'
                     />
                 )}
             </CardContent>

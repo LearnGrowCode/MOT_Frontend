@@ -87,8 +87,8 @@ export default function AddRecord({
             transparent={true}
             onRequestClose={onClose}
         >
-            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md max-h-[90%]'>
+            <View className='flex-1 justify-end  items-center'>
+                <Card className='w-full  max-h-[90%] rounded-t-2xl bg-white '>
                     <CardHeader className='flex-row items-center justify-between'>
                         <CardTitle className='text-lg font-semibold'>
                             Add New Record
@@ -105,7 +105,7 @@ export default function AddRecord({
                             {/* Payer's Name */}
                             <View>
                                 <Text className='mb-1 text-sm text-gray-600'>
-                                    Payer's Name
+                                    Payer&apos;s Name
                                 </Text>
                                 <View className='flex-row items-center'>
                                     <Input
