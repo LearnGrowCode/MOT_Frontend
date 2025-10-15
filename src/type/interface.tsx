@@ -4,6 +4,10 @@ export interface SignUpFormData {
     password: string;
     confirmPassword: string;
 }
+export enum RecordType {
+    COLLECT = "collect",
+    PAY = "pay",
+}
 
 export interface SignInFormData {
     email: string;

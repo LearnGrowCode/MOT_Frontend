@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, FlatList } from "react-native";
 import { Card, CardContent } from "@/components/ui/card";
 import PrimaryButton from "@/components/button/PrimaryButton";
@@ -23,16 +23,24 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { MoreVertical } from "lucide-react-native";
+import Option from "../modals/Option";
 
 interface PaymentRecordCardProps {
     record: PaymentRecord;
     onMarkPayment: (recordId: string) => void;
+    onOption: (recordId: string) => void;
 }
 
 export default function PaymentRecordCard({
     record,
     onMarkPayment,
+    onOption,
 }: PaymentRecordCardProps) {
+    const [showOption, setShowOption] = useState(false);
+    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
+        null
+    );
     const getCardColorClasses = (status: PaymentRecord["status"]) => {
         switch (status) {
             case "unpaid":
@@ -47,12 +55,24 @@ export default function PaymentRecordCard({
                 return "bg-gray-50 border-gray-200";
         }
     };
+    const handleEdit = () => {
+        setShowOption(false);
+        setShowDeleteRecord(true);
+        setShowOption(false);
+        setSelectedRecord(null);
+    };
+
+    const handleDelete = () => {
+        setShowOption(false);
+        setSelectedRecord(null);
+        // Add your delete logic here
+    };
     return (
         <Card
             className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)} p-2`}
         >
             <CardContent className='p-2'>
-                <View className='flex-row items-start justify-between mb-4'>
+                <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
                         <View className='w-12 h-12 bg-blue-100 border border-blue-200 rounded-xl items-center justify-center mr-4 relative'>
                             <Text className='text-blue-700 text-base font-semibold'>
@@ -81,7 +101,12 @@ export default function PaymentRecordCard({
                         </View>
                     </View>
 
-                    <View className='items-end flex-row gap-2'>
+                    <View className='items-end flex gap-2'>
+                        <MoreVertical
+                            size={20}
+                            color='#666'
+                            onPress={() => onOption(record.id)}
+                        />
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
@@ -89,26 +114,18 @@ export default function PaymentRecordCard({
                                 {getStatusText(record.status)}
                             </Text>
                         </View>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <Pressable className='p-2'>
-                                    <MoreVertical size={20} color='#666' />
-                                </Pressable>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onPress={() => {}}>
-                                    <Text>Edit</Text>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onPress={() => {}}>
-                                    <Text>Delete</Text>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Option
+                            visible={showOption}
+                            onClose={() => setShowOption(false)}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            record={selectedRecord}
+                        />
                     </View>
                 </View>
 
                 {/* Category line to reflect simple text like in the screenshot */}
-                <View className='mb-3'>
+                <View>
                     <Text className='text-sm text-gray-700'>
                         {record.category}
                     </Text>
@@ -116,7 +133,7 @@ export default function PaymentRecordCard({
                 {record.trx_history && record.trx_history.length > 0 && (
                     <Accordion type='single' collapsible>
                         <AccordionItem value='transaction-history'>
-                            <AccordionTrigger className='border-b-2 rounded-none border-gray-200  p-3 flex-row justify-between items-center'>
+                            <AccordionTrigger className='border-b-1 rounded-none border-gray-200  p-3 flex-row justify-between items-center'>
                                 <View className='flex-row items-center gap-2'>
                                     <Text className='text-sm font-semibold text-gray-900'>
                                         Payment History
@@ -128,7 +145,7 @@ export default function PaymentRecordCard({
                                     </View>
                                 </View>
                             </AccordionTrigger>
-                            <AccordionContent className='bg-gray-50 rounded-b-xl'>
+                            <AccordionContent className='bg-white pb-0'>
                                 <FlatList
                                     data={record.trx_history}
                                     renderItem={({ item }) => (

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
-import AddRecord from "@/components/modals/AddRecord";
+
 import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
@@ -14,19 +14,19 @@ import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
+import Option from "@/components/modals/Option";
 
 export default function ToPayScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [sortBy, setSortBy] = useState("newest");
 
-    // Modal states
-    const [showAddRecord, setShowAddRecord] = useState(false);
     const [showEditRecord, setShowEditRecord] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showPaymentConfirmation, setShowPaymentConfirmation] =
         useState(false);
     const [showFilterAndSort, setShowFilterAndSort] = useState(false);
+    const [showOption, setShowOption] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
         null
     );
@@ -42,20 +42,6 @@ export default function ToPayScreen() {
             setSelectedRecord(record);
             setShowPaymentConfirmation(true);
         }
-    };
-
-    const handleAddRecord = () => {
-        setShowAddRecord(true);
-    };
-
-    // Modal handlers
-    const handleAddNewRecord = (newRecord: Omit<PaymentRecord, "id">) => {
-        const record: PaymentRecord = {
-            ...newRecord,
-            id: Date.now().toString(), // Simple ID generation
-        };
-        setPaymentRecords((prev) => [...prev, record]);
-        setShowAddRecord(false);
     };
 
     const handleSaveRecord = (updatedRecord: PaymentRecord) => {
@@ -98,6 +84,23 @@ export default function ToPayScreen() {
         console.log(filters);
     };
 
+    const handleEdit = () => {
+        setShowOption(false);
+        setShowEditRecord(true);
+        setShowOption(false);
+        setSelectedRecord(null);
+    };
+    const handleDelete = () => {
+        setShowDeleteRecord(true);
+        setShowOption(false);
+        setSelectedRecord(null);
+    };
+    const handleOption = (recordId: string) => {
+        setShowOption(true);
+        setSelectedRecord(
+            paymentRecords.find((r) => r.id === recordId) as PaymentRecord
+        );
+    };
     return (
         <View className='flex-1 bg-white'>
             <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
@@ -155,25 +158,23 @@ export default function ToPayScreen() {
                                 key={record.id}
                                 record={record}
                                 onMarkPayment={handleMarkPayment}
+                                onOption={handleOption}
                             />
                         ))}
                     </View>
                 </View>
             </ScrollView>
             {/* Floating Action Button */}
-            <FloatingActionButton
-                onPress={handleAddRecord}
-                icon='+'
-                size='md'
-                color='blue'
-                position='bottom-right'
-            />
-            {/* Modals */}
-            <AddRecord
-                visible={showAddRecord}
-                onClose={() => setShowAddRecord(false)}
-                onAddRecord={handleAddNewRecord}
-            />
+            <Link href='/(auth)/pay-book/add-record' asChild>
+                <FloatingActionButton
+                    onPress={() => {}}
+                    icon='+'
+                    size='md'
+                    color='blue'
+                    position='bottom-right'
+                />
+            </Link>
+
             <EditRecord
                 visible={showEditRecord}
                 onClose={() => setShowEditRecord(false)}
@@ -196,6 +197,13 @@ export default function ToPayScreen() {
                 visible={showFilterAndSort}
                 onClose={() => setShowFilterAndSort(false)}
                 onFilterAndSort={handleFilterAndSort}
+            />
+            <Option
+                visible={showOption}
+                onClose={() => setShowOption(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                record={selectedRecord}
             />
         </View>
     );
