@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import Modal from "react-native-modal";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card"; 
 import { PaymentRecord } from "../../type/interface";
 import BottomModal from "../ui/BottomModal";
 import { formatCurrency } from "@/utils/utils";

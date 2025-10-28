@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 
 export default function AuthIndexScreen() {
     return (
-        <View className='flex-1 items-center justify-center bg-white'>
+        <View className='flex-1 items-center justify-start bg-white'>
             <Text className='text-2xl font-bold text-blue-500'>
                 Welcome to MOT
             </Text>

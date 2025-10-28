@@ -102,7 +102,7 @@ export default function ToPayScreen() {
         );
     };
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1'>
             <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
                 <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
@@ -167,7 +167,6 @@ export default function ToPayScreen() {
             {/* Floating Action Button */}
             <Link href='/(auth)/pay-book/add-record' asChild>
                 <FloatingActionButton
-                    onPress={() => {}}
                     icon='+'
                     size='md'
                     color='blue'

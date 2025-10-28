@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { cn } from "@/lib/utils";
 
 interface FloatingActionButtonProps {
-    onPress: () => void;
+    onPress?: () => void;
     icon?: string;
     size?: "sm" | "md" | "lg";
     color?: "blue" | "green" | "red" | "purple";
@@ -77,7 +77,7 @@ export default function FloatingActionButton({
 
     return (
         <Pressable
-            onPress={onPress}
+            onPress={onPress || (() => {})}
             className={cn(
                 getPositionClasses(),
                 getSizeClasses(),

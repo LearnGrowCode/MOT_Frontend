@@ -5,11 +5,12 @@ export default function PayBookLayout() {
         <Stack
             screenOptions={{
                 animation: "slide_from_right",
+                headerShown: false,
             }}
         >
             <Stack.Screen name='index' options={{ title: "Pay Book" }} />
             <Stack.Screen
-                name='add-record/index'
+                name='add-record'
                 options={{
                     title: "Add Record",
                     animation: "slide_from_right",

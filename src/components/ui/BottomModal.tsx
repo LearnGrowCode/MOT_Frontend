@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Dimensions, Pressable } from "react-native";
 import Modal from "react-native-modal";
-import { Card, CardContent, CardHeader, CardTitle } from "./card";
+import { Card, CardHeader, CardTitle } from "./card";
 import { X } from "lucide-react-native";
 
 interface BottomModalProps {
@@ -11,6 +11,7 @@ interface BottomModalProps {
     showCloseButton?: boolean;
     children: React.ReactNode;
     maxHeight?: number; // Optional custom max height (0-1, percentage of screen height)
+    minHeight?: number; // Optional custom min height (0-1, percentage of screen height)
 }
 
 export default function BottomModal({
@@ -19,7 +20,8 @@ export default function BottomModal({
     title,
     showCloseButton = true,
     children,
-    maxHeight = 0.8, // Default to 80% of screen height
+    maxHeight = 0.8,
+    minHeight = 0.2, // Default to 80% of screen height
 }: BottomModalProps) {
     return (
         <Modal
@@ -31,6 +33,10 @@ export default function BottomModal({
             animationOut='slideOutDown'
             hideModalContentWhileAnimating={false}
             propagateSwipe={true}
+            useNativeDriver={true} // Add this for better performance
+            animationInTiming={200} // Reduce animation time
+            animationOutTiming={150}
+            backdropOpacity={0.5}
             style={{
                 width: "100%",
                 margin: 0,
@@ -60,12 +66,11 @@ export default function BottomModal({
                         style={{
                             maxHeight:
                                 Dimensions.get("window").height * maxHeight,
+                            minHeight:
+                                Dimensions.get("window").height * minHeight,
                         }}
-                        
                     >
-                        <CardContent className='flex flex-col justify-between gap-4'>
-                            {children}
-                        </CardContent>
+                        {children}
                     </View>
                 </Card>
             </View>
