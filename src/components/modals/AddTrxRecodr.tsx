@@ -102,13 +102,13 @@ export default function AddTrxRecodr({
                     </CardHeader>
 
                     <ScrollView showsVerticalScrollIndicator={true}>
-                        <CardContent className='space-y-4'>
+                        <CardContent className='gap-4'>
                             {/* Transaction Type */}
                             <View>
                                 <Text className='mb-2 text-sm text-gray-600'>
                                     Transaction Type
                                 </Text>
-                                <View className='flex-row space-x-2'>
+                                <View className='flex-row gap-2'>
                                     <Pressable
                                         onPress={() =>
                                             handleInputChange("type", "income")
@@ -259,7 +259,7 @@ export default function AddTrxRecodr({
                     </ScrollView>
 
                     {/* Action Buttons */}
-                    <View className='flex-row space-x-3 p-6 pt-0'>
+                    <View className='flex-row gap-3 p-6 pt-0'>
                         <Pressable
                             onPress={onClose}
                             className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'

@@ -13,7 +13,7 @@ interface FormData {
     name: string;
     phone: string;
     amount: string;
-    borrowedDate: string;
+    lentDate: string;
     purpose: string;
 }
 
@@ -35,7 +35,7 @@ export default function AddRecord() {
             name: "",
             phone: "",
             amount: "",
-            borrowedDate: new Date().toLocaleDateString(),
+            lentDate: new Date().toLocaleDateString(),
             purpose: "",
         },
     });
@@ -109,15 +109,10 @@ export default function AddRecord() {
                 showsVerticalScrollIndicator={false}
                 style={{ flex: 1 }}
             >
-                {/* <ScrollView
-                    showsVerticalScrollIndicator={true}
-                    keyboardShouldPersistTaps='handled'
-                    keyboardDismissMode='on-drag'
-                > */}
                 <CardContent className='flex flex-col p-4'>
                     <View className='mb-6'>
                         <Text className='text-2xl font-bold text-gray-900'>
-                            Add Entry to Pay Book
+                            Add Entry to Collect Book
                         </Text>
                     </View>
 
@@ -203,11 +198,11 @@ export default function AddRecord() {
 
                     <View className='mb-4'>
                         <Text className='mb-2 text-sm font-medium text-gray-700'>
-                            Borrowed Date (DD/MM/YYYY)
+                            Lent Date (DD/MM/YYYY)
                         </Text>
                         <Controller
                             control={control}
-                            name='borrowedDate'
+                            name='lentDate'
                             rules={{
                                 required: "Date is required",
                                 validate: (value) => {
@@ -224,9 +219,9 @@ export default function AddRecord() {
                                         <Text className='text-gray-700'>
                                             {value}
                                         </Text>
-                                        {errors.borrowedDate && (
+                                        {errors.lentDate && (
                                             <Text className='text-red-500 text-xs mt-1'>
-                                                {errors.borrowedDate.message}
+                                                {errors.lentDate.message}
                                             </Text>
                                         )}
                                     </View>
@@ -277,14 +272,13 @@ export default function AddRecord() {
 
                     <Pressable
                         onPress={handleSubmit(onSubmit)}
-                        className='py-3 px-4 bg-blue-600 rounded-lg items-center'
+                        className='py-3 px-4 bg-green-600 rounded-lg items-center'
                     >
                         <Text className='text-white font-medium'>
                             Add Record
                         </Text>
                     </Pressable>
                 </CardContent>
-                {/* </ScrollView> */}
             </KeyboardAwareScrollView>
 
             <ContactList

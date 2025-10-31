@@ -66,7 +66,7 @@ export default function DeleteRecord({
                     </CardContent>
 
                     {/* Action Buttons */}
-                    <View className='flex-row space-x-3 p-6 pt-0'>
+                    <View className='flex-row gap-3 p-6 pt-0'>
                         <Pressable
                             onPress={onClose}
                             className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'

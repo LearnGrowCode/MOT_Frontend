@@ -1,51 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
-import { ListFilter, LucideIcon, Search, SortAsc } from "lucide-react-native";
-import { Option } from "@/type/interface";
+import { ListFilter, Search } from "lucide-react-native";
 
 interface SearchAndFilterProps {
     searchQuery: string;
     totalRecords: number;
     filteredRecords: number;
-    onSearch: () => void;
+    onSearch: (query: string) => void;
     setShowFilterAndSort: (show: boolean) => void;
 }
 
-const STATUS_OPTIONS = [
-    { label: "All", value: "all" },
-    { label: "Unpaid", value: "unpaid" },
-    { label: "Paid", value: "paid" },
-    { label: "Partial Paid", value: "partial" },
-    { label: "Completed", value: "completed" },
-    { label: "Overdue", value: "overdue" },
-    { label: "In Date", value: "in_date" },
-] as Option[];
-
-const SORT_OPTIONS = [
-    { label: "Name (A-Z)", value: "name_asc" },
-    { label: "Name (Z-A)", value: "name_desc" },
-    { label: "Date (Newest)", value: "date_desc" },
-    { label: "Date (Oldest)", value: "date_asc" },
-] as Option[];
-
-type FilterType = "status" | "sort";
-
-const FILTER_OPTIONS: {
-    type: FilterType;
-    options: Option[];
-    icon: LucideIcon;
-}[] = [
-    {
-        type: "status",
-        options: STATUS_OPTIONS,
-        icon: ListFilter,
-    },
-    {
-        type: "sort",
-        options: SORT_OPTIONS,
-        icon: SortAsc,
-    },
-];
+// Reserved for future inline filter options
 
 export default function SearchAndFilter({
     searchQuery,
@@ -55,15 +20,7 @@ export default function SearchAndFilter({
     onSearch,
     setShowFilterAndSort,
 }: SearchAndFilterProps) {
-    const [searchandfilter, setSearchandfilter] = useState<{
-        search: string;
-        status: Option;
-        sort: Option;
-    }>({
-        search: "",
-        status: STATUS_OPTIONS[0],
-        sort: SORT_OPTIONS[0],
-    });
+    // Controlled locally; lifted via onSearch when user triggers search
     const [search, setSearch] = useState(searchQuery);
     useEffect(() => {
         setSearch(searchQuery);
@@ -82,7 +39,7 @@ export default function SearchAndFilter({
                 </View>
                 <Pressable
                     className='bg-blue-600 p-3 rounded-r-xl h-fit flex items-center justify-center'
-                    onPress={onSearch}
+                    onPress={() => onSearch(search)}
                 >
                     <Search size={24} color='#fff' />
                 </Pressable>
@@ -99,7 +56,7 @@ export default function SearchAndFilter({
                     }}
                 >
                     <Pressable
-                        key={'filter-and-sort'}
+                        key={"filter-and-sort"}
                         onPress={() => setShowFilterAndSort(true)}
                         className='bg-white border border-gray-200 rounded-lg px-4 py-2 flex-row items-center gap-2'
                     >

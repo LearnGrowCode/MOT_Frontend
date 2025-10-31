@@ -1,6 +1,10 @@
 import { Drawer } from "expo-router/drawer";
+import { Redirect } from "expo-router";
+import { useProfileStore } from "@/store/useProfileStore";
 
 export default function AuthLayout() {
+    const isAuthenticated = useProfileStore((s) => s.isAuthenticated);
+    if (!isAuthenticated) return <Redirect href='/sign-in' />;
     return (
         <Drawer
             screenOptions={{
@@ -11,7 +15,10 @@ export default function AuthLayout() {
             }}
         >
             <Drawer.Screen name='index' options={{ title: "Home" }} />
-            <Drawer.Screen name='analysis/index' options={{ title: "Analysis" }} />
+            <Drawer.Screen
+                name='analysis/index'
+                options={{ title: "Analysis" }}
+            />
             <Drawer.Screen
                 name='my-account/index'
                 options={{ title: "My Account" }}

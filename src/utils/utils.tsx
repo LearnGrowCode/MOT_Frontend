@@ -55,8 +55,12 @@ export const getStatusColor = (status: Status) => {
             return "bg-orange-100 text-orange-700";
         case "paid":
             return "bg-green-100 text-green-700";
+        case "collected":
+            return "bg-green-100 text-green-700";
         case "partial":
             return "bg-yellow-100 text-yellow-700";
+        case "overdue":
+            return "bg-red-100 text-red-700";
         default:
             return "bg-gray-100 text-gray-700";
     }
@@ -68,6 +72,8 @@ export const getStatusText = (status: Status) => {
             return "⏰ Unpaid";
         case "paid":
             return "✅ Paid";
+        case "collected":
+            return "✅ Collected";
         case "partial":
             return "🔄 Partial";
         case "overdue":

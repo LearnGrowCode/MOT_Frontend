@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
@@ -101,9 +101,40 @@ export default function ToPayScreen() {
             paymentRecords.find((r) => r.id === recordId) as PaymentRecord
         );
     };
+    // Derived visible records based on search/filter/sort
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filtered = paymentRecords.filter((record) => {
+        const matchesQuery =
+            normalizedQuery.length === 0 ||
+            record.name.toLowerCase().includes(normalizedQuery) ||
+            record.category.toLowerCase().includes(normalizedQuery);
+        const matchesStatus =
+            filterStatus === "all" || record.status === (filterStatus as any);
+        return matchesQuery && matchesStatus;
+    });
+
+    const visibleRecords = [...filtered].sort((a, b) => {
+        if (sortBy === "name_asc") return a.name.localeCompare(b.name);
+        if (sortBy === "name_desc") return b.name.localeCompare(a.name);
+        if (sortBy === "oldest")
+            return (
+                new Date(a.borrowedDate).getTime() -
+                new Date(b.borrowedDate).getTime()
+            );
+        // newest default
+        return (
+            new Date(b.borrowedDate).getTime() -
+            new Date(a.borrowedDate).getTime()
+        );
+    });
+
     return (
         <View className='flex-1'>
-            <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
+            <ScrollView
+                className='flex-1'
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 96 }}
+            >
                 <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
                         userName={toPayData.userName}
@@ -119,41 +150,35 @@ export default function ToPayScreen() {
                 </View>
 
                 {/* Payment Records Section */}
-                <View className='px-6'>
+                <View className='px-6 pb-6'>
                     <View className='flex-row items-center justify-between mb-4'>
                         <Text className='text-lg font-bold text-gray-900'>
                             Payment Entries
                         </Text>
-                        <Link
-                            href='/(auth)/collect-book'
-                            asChild
-                            className='bg-blue-600 px-4 py-2 rounded-lg flex-row items-center'
-                        >
-                            <View className='flex-row items-center gap-2'>
+                        <Link href='/(auth)/collect-book' asChild>
+                            <Pressable className='bg-green-600 px-4 py-2 rounded-full flex-row items-center gap-2'>
                                 <BanknoteArrowDownIcon
                                     size={16}
                                     color='white'
                                 />
-                                <Text className='text-white text-sm font-medium '>
+                                <Text className='text-white text-sm font-semibold'>
                                     Collect Book
                                 </Text>
-                            </View>
+                            </Pressable>
                         </Link>
                     </View>
 
                     <SearchAndFilter
-                        searchQuery={""}
-                        totalRecords={0}
-                        filteredRecords={0}
-                        onSearch={() => {
-                            console.log("search");
-                        }}
+                        searchQuery={searchQuery}
+                        totalRecords={paymentRecords.length}
+                        filteredRecords={visibleRecords.length}
+                        onSearch={(q) => setSearchQuery(q)}
                         setShowFilterAndSort={setShowFilterAndSort}
                     />
 
                     {/* Payment Record Cards */}
                     <View className='flex gap-3 w-full'>
-                        {paymentRecords.map((record) => (
+                        {visibleRecords.map((record) => (
                             <PaymentRecordCard
                                 key={record.id}
                                 record={record}

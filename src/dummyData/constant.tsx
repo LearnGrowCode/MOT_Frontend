@@ -73,3 +73,74 @@ export const toPayData = {
         },
     ],
 };
+
+export const toCollectData = {
+    userName: "Akshay",
+    userAvatar: "https://via.placeholder.com/150",
+    userStatus: "online",
+    userGreeting: "Hi, Akshay",
+    userGreetingMessage: "Let's see how much you need to collect",
+    userAmountToCollect: 2500,
+    userAmountToCollectMessage: "Total amount others owe to you",
+    userCollectionRecords: [
+        {
+            id: 1,
+            name: "Mike Johnson",
+            amount: 500,
+            lentDate: "2024-01-10",
+            category: "Personal loan",
+            status: "unpaid",
+            remaining: 500,
+            avatar: "https://via.placeholder.com/150",
+        },
+        {
+            id: 2,
+            name: "Emma Davis",
+            amount: 200,
+            lentDate: "2024-01-20",
+            category: "Dinner",
+            status: "collected",
+            remaining: 200,
+            avatar: "https://via.placeholder.com/150",
+        },
+        {
+            id: 3,
+            name: "Alex Brown",
+            amount: 800,
+            lentDate: "2024-02-05",
+            category: "Emergency loan",
+            status: "partial",
+            remaining: 300,
+            avatar: "https://via.placeholder.com/150",
+            trx_history: [
+                {
+                    id: 1,
+                    amount: 200,
+                    date: "2024-02-10",
+                },
+                {
+                    id: 2,
+                    amount: 300,
+                    date: "2024-02-15",
+                },
+            ],
+        },
+        {
+            id: 4,
+            name: "Lisa Wilson",
+            amount: 1000,
+            lentDate: "2024-01-25",
+            category: "Business loan",
+            status: "overdue",
+            remaining: 1000,
+            avatar: "https://via.placeholder.com/150",
+            trx_history: [
+                {
+                    id: 1,
+                    amount: 1000,
+                    date: "2024-01-25",
+                },
+            ],
+        },
+    ],
+};

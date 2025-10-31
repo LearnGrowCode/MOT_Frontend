@@ -13,7 +13,7 @@ export default function AmountSummaryCard({
 }: AmountSummaryCardProps) {
     return (
         <Card className='bg-gray-50 border border-gray-100 shadow-sm'>
-            <CardContent className='space-y-2'>
+            <CardContent className='gap-2'>
                 <Text className='text-sm font-medium text-gray-600'>
                     Amount To Pay
                 </Text>

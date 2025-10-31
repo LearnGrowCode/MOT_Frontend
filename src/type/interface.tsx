@@ -26,7 +26,19 @@ export interface PaymentRecord {
     trx_history?: TransactionRecord[];
 }
 
-export type Status = "unpaid" | "paid" | "partial" | "overdue";
+export interface CollectionRecord {
+    id: string;
+    name: string;
+    amount: number;
+    lentDate: string;
+    category: string;
+    status: Status;
+    remaining: number;
+    avatar?: string | null;
+    trx_history?: TransactionRecord[];
+}
+
+export type Status = "unpaid" | "paid" | "partial" | "overdue" | "collected";
 
 export interface TransactionRecord {
     id: string;

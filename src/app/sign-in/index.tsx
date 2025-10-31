@@ -1,17 +1,11 @@
-import {
-    View,
-    Text,
-    KeyboardAvoidingView,
-    Platform,
-    Alert,
-    TouchableOpacity,
-    ScrollView,
-} from "react-native";
+import { View, Text, Alert, TouchableOpacity, ScrollView } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import React from "react";
 import Input from "../../components/form/Input";
 import PrimaryButton from "../../components/button/PrimaryButton";
 import GoogleButton from "../../components/button/GoogleButton";
 import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import {
     Card,
     CardContent,
@@ -20,6 +14,7 @@ import {
 } from "../../components/ui/card";
 import { SignInFormData } from "../../type/interface";
 import { useForm } from "react-hook-form";
+import { useProfileStore } from "@/store/useProfileStore";
 export default function SignInScreen() {
     const {
         handleSubmit,
@@ -35,6 +30,9 @@ export default function SignInScreen() {
 
     const [loading, setLoading] = React.useState(false);
     const navigator = useNavigation();
+    const router = useRouter();
+    const setAuthenticated = useProfileStore((s) => s.setAuthenticated);
+    const setProfile = useProfileStore((s) => s.setProfile);
 
     const email = watch("email");
     const password = watch("password");
@@ -44,7 +42,15 @@ export default function SignInScreen() {
         try {
             // TODO: replace with real auth API
             await new Promise((res) => setTimeout(res, 800));
-            Alert.alert("Signed in", `Welcome ${data.email}`);
+            setProfile({
+                id: "demo",
+                name: data.email.split("@")[0],
+                email: data.email,
+            });
+            setAuthenticated(true);
+            router.replace("/(auth)");
+        } catch {
+            Alert.alert("Sign in failed", "Please try again.");
         } finally {
             setLoading(false);
         }
@@ -72,7 +78,7 @@ export default function SignInScreen() {
                         Money On Track
                     </CardTitle>
                 </CardHeader>
-                <CardContent className='flex flex-col items-center space-y-3'>
+                <CardContent className='flex flex-col items-center gap-3'>
                     <Text className='text-white text-xl font-semibold tracking-wide'>
                         Simple • Secure • Smart
                     </Text>
@@ -83,12 +89,11 @@ export default function SignInScreen() {
                 </CardContent>
             </Card>
             <Card className='bg-white p-8 shadow-xl rounded-2xl my-3 mx-3'>
-                <KeyboardAvoidingView
-                    className='flex-1'
-                    behavior={Platform.select({
-                        ios: "padding",
-                        android: undefined,
-                    })}
+                <KeyboardAwareScrollView
+                    keyboardShouldPersistTaps='handled'
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
                 >
                     <View className='flex-1 px-6 py-8'>
                         <Text className='text-3xl font-bold text-gray-900 mb-3'>
@@ -139,7 +144,7 @@ export default function SignInScreen() {
                             className='shadow-sm'
                         />
 
-                        <View className='mt-8 flex items-center space-y-4'>
+                        <View className='mt-8 flex items-center gap-4'>
                             <TouchableOpacity
                                 onPress={() =>
                                     navigator.navigate(
@@ -170,7 +175,7 @@ export default function SignInScreen() {
                             </View>
                         </View>
                     </View>
-                </KeyboardAvoidingView>
+                </KeyboardAwareScrollView>
             </Card>
         </ScrollView>
     );

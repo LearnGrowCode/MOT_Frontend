@@ -1,25 +1,25 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Card, CardContent } from "../ui/card";
-import { PaymentRecord } from "../../type/interface";
+import { CollectionRecord } from "../../type/interface";
 import BottomModal from "../ui/BottomModal";
 import { formatCurrency } from "@/utils/utils";
 
-interface OptionProps {
+interface CollectionOptionProps {
     visible: boolean;
     onClose: () => void;
     onEdit: () => void;
     onDelete: () => void;
-    record: PaymentRecord | null;
+    record: CollectionRecord | null;
 }
 
-export default function Option({
+export default function CollectionOption({
     visible,
     onClose,
     onEdit,
     onDelete,
     record,
-}: OptionProps) {
+}: CollectionOptionProps) {
     const handleEdit = () => {
         onEdit();
         onClose();
@@ -58,19 +58,19 @@ export default function Option({
                         {/* Edit Button */}
                         <Pressable
                             onPress={handleEdit}
-                            className='flex-row items-center px-4 py-2  w-1/2 bg-blue-100 rounded-lg'
+                            className='flex-row items-center px-4 py-2  w-1/2 bg-green-100 rounded-lg'
                         >
-                            <View className='w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3'>
-                                <Text className='text-blue-700 text-lg'>
+                            <View className='w-10 h-10 bg-green-100 rounded-full items-center justify-center mr-3'>
+                                <Text className='text-green-700 text-lg'>
                                     ✏️
                                 </Text>
                             </View>
                             <View className='flex-1'>
-                                <Text className='text-md font-semibold text-blue-800'>
+                                <Text className='text-md font-semibold text-green-800'>
                                     Edit
                                 </Text>
                             </View>
-                            <Text className='text-blue-400 text-lg'>›</Text>
+                            <Text className='text-green-400 text-lg'>›</Text>
                         </Pressable>
 
                         {/* Delete Button */}

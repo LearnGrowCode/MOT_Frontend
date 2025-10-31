@@ -2,23 +2,23 @@ import React, { useState } from "react";
 import { View, Text, Modal, Pressable } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
-import { PaymentRecord } from "../../type/interface";
+import { CollectionRecord } from "../../type/interface";
 
-interface PaymentConfirmationProps {
+interface CollectionConfirmationProps {
     visible: boolean;
     onClose: () => void;
-    onConfirmPayment: (amount: number, payer: string) => void;
-    record: PaymentRecord | null;
+    onConfirmCollection: (amount: number, collector: string) => void;
+    record: CollectionRecord | null;
 }
 
-export default function PaymentConfirmation({
+export default function CollectionConfirmation({
     visible,
     onClose,
-    onConfirmPayment,
+    onConfirmCollection,
     record,
-}: PaymentConfirmationProps) {
-    const [receivedAmount, setReceivedAmount] = useState("");
-    const [payer] = useState(record?.name || "");
+}: CollectionConfirmationProps) {
+    const [collectedAmount, setCollectedAmount] = useState("");
+    const [collector, setCollector] = useState(record?.name || "");
 
     const formatAmount = (value: string) => {
         const numericValue = value.replace(/[^0-9.]/g, "");
@@ -32,9 +32,9 @@ export default function PaymentConfirmation({
     };
 
     const handleConfirm = () => {
-        const amount = parseFloat(receivedAmount) || 0;
-        onConfirmPayment(amount, payer);
-        setReceivedAmount("");
+        const amount = parseFloat(collectedAmount) || 0;
+        onConfirmCollection(amount, collector);
+        setCollectedAmount("");
         onClose();
     };
 
@@ -50,11 +50,11 @@ export default function PaymentConfirmation({
                 <Card className='w-full max-w-md'>
                     <CardHeader className='flex-row items-center justify-between'>
                         <View className='flex-row items-center'>
-                            <Text className='text-blue-600 text-xl mr-2'>
-                                💳
+                            <Text className='text-green-600 text-xl mr-2'>
+                                💰
                             </Text>
                             <CardTitle className='text-lg font-semibold'>
-                                Payment Confirmation
+                                Collection Confirmation
                             </CardTitle>
                         </View>
 
@@ -66,33 +66,59 @@ export default function PaymentConfirmation({
                     </CardHeader>
 
                     <CardContent className='gap-4'>
-                        {/* Payment Record Brief Info */}
-                        <View className='bg-blue-50 p-4 rounded-lg border border-blue-200'>
+                        {/* Collection Record Brief Info */}
+                        <View className='bg-green-50 p-4 rounded-lg border border-green-200'>
                             <View className='flex-row items-center mb-2'>
-                                <Text className='text-blue-600 text-lg mr-2'>
+                                <Text className='text-green-600 text-lg mr-2'>
                                     👤
                                 </Text>
-                                <Text className='text-lg font-semibold text-blue-800'>
+                                <Text className='text-lg font-semibold text-green-800'>
                                     {record?.name}
                                 </Text>
                             </View>
-                            <View>
-                                <Text className='text-sm text-blue-600 font-medium'>
-                                    Remaining
-                                </Text>
-                                <Text className='text-xl font-bold text-blue-800'>
-                                    ₹
-                                    {(record?.remaining ?? 0).toLocaleString(
-                                        "en-IN"
-                                    )}
-                                </Text>
+                            <View className='flex-row items-center justify-between'>
+                                <View>
+                                    <Text className='text-sm text-green-600 font-medium'>
+                                        Amount to Collect
+                                    </Text>
+                                    <Text className='text-xl font-bold text-green-800'>
+                                        ₹
+                                        {record?.amount?.toLocaleString(
+                                            "en-IN"
+                                        ) || "0"}
+                                    </Text>
+                                    {record?.remaining &&
+                                        record.remaining > 0 && (
+                                            <Text className='text-xs text-orange-600 font-medium'>
+                                                Remaining: ₹
+                                                {record.remaining.toLocaleString(
+                                                    "en-IN"
+                                                )}
+                                            </Text>
+                                        )}
+                                </View>
+                                <View className='items-end'>
+                                    <Text className='text-sm text-green-600 font-medium'>
+                                        Category
+                                    </Text>
+                                    <Text className='text-sm font-semibold text-green-700'>
+                                        {record?.category || "General"}
+                                    </Text>
+                                    <Text className='text-xs text-green-500 mt-1'>
+                                        {record?.status?.toUpperCase() ||
+                                            "UNPAID"}
+                                    </Text>
+                                </View>
                             </View>
+                            <Text className='text-xs text-green-500 mt-2'>
+                                Recording collection for this entry
+                            </Text>
                         </View>
 
-                        {/* Enter Received Amount */}
+                        {/* Enter Collected Amount */}
                         <View>
                             <Text className='mb-2 text-sm text-gray-600'>
-                                Enter the received amount
+                                Enter the collected amount
                             </Text>
                             <View className='flex-row items-center'>
                                 <Text className='text-3xl font-bold mr-2'>
@@ -101,9 +127,9 @@ export default function PaymentConfirmation({
                                 <View className='flex-1'>
                                     <Input
                                         placeholder='0'
-                                        value={receivedAmount}
+                                        value={collectedAmount}
                                         onChangeText={(value) =>
-                                            setReceivedAmount(
+                                            setCollectedAmount(
                                                 formatAmount(value)
                                             )
                                         }
@@ -113,16 +139,16 @@ export default function PaymentConfirmation({
                                 </View>
                             </View>
                             <Text className='mt-1 text-xs text-gray-500 text-center'>
-                                {getAmountInWords(receivedAmount)}
+                                {getAmountInWords(collectedAmount)}
                             </Text>
                         </View>
 
-                        {/* Paid By */}
+                        {/* Collected From */}
                         <View className='flex-row items-center justify-center'>
                             <View className='flex-row items-center bg-green-100 px-3 py-2 rounded-full'>
                                 <View className='w-2 h-2 bg-green-500 rounded-full mr-2'></View>
                                 <Text className='text-sm text-green-700'>
-                                    Paid by {payer}
+                                    Collected from {collector}
                                 </Text>
                             </View>
                         </View>
@@ -151,7 +177,7 @@ export default function PaymentConfirmation({
                         </Pressable>
                         <Pressable
                             onPress={handleConfirm}
-                            className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
+                            className='flex-1 py-3 px-4 bg-green-600 rounded-md items-center'
                         >
                             <Text className='text-white font-medium'>
                                 Confirm

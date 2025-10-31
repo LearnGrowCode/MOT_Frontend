@@ -2,21 +2,21 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
-import { PaymentRecord } from "../../type/interface";
+import { CollectionRecord } from "../../type/interface";
 
-interface EditRecordProps {
+interface EditCollectionRecordProps {
     visible: boolean;
     onClose: () => void;
-    onSaveRecord: (record: PaymentRecord) => void;
-    record: PaymentRecord | null;
+    onSaveRecord: (record: CollectionRecord) => void;
+    record: CollectionRecord | null;
 }
 
-export default function EditRecord({
+export default function EditCollectionRecord({
     visible,
     onClose,
     onSaveRecord,
     record,
-}: EditRecordProps) {
+}: EditCollectionRecordProps) {
     const [formData, setFormData] = useState({
         name: "",
         amount: "",
@@ -44,7 +44,7 @@ export default function EditRecord({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.name.trim()) newErrors.name = "Payer name is required";
+        if (!formData.name.trim()) newErrors.name = "Borrower name is required";
         if (!formData.amount.trim()) newErrors.amount = "Amount is required";
         if (!formData.purpose.trim()) newErrors.purpose = "Purpose is required";
 
@@ -55,7 +55,7 @@ export default function EditRecord({
     const handleSubmit = () => {
         if (!validateForm() || !record) return;
 
-        const updatedRecord: PaymentRecord = {
+        const updatedRecord: CollectionRecord = {
             ...record,
             name: formData.name.trim(),
             amount: parseFloat(formData.amount) || 0,
@@ -85,7 +85,7 @@ export default function EditRecord({
                 <Card className='w-full max-w-md max-h-[90%]'>
                     <CardHeader className='flex-row items-center justify-between'>
                         <CardTitle className='text-lg font-semibold'>
-                            Edit Record
+                            Edit Collection Record
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
                             <Text className='text-xl font-bold text-gray-500'>
@@ -96,18 +96,18 @@ export default function EditRecord({
 
                     <ScrollView showsVerticalScrollIndicator={true}>
                         <CardContent className='gap-4'>
-                            {/* Payer Name */}
+                            {/* Borrower Name */}
                             <View>
                                 <View className='flex-row items-center mb-1'>
                                     <Text className='text-gray-600 mr-2'>
                                         👤
                                     </Text>
                                     <Text className='text-sm text-gray-600'>
-                                        Payer Name
+                                        Borrower Name
                                     </Text>
                                 </View>
                                 <Input
-                                    placeholder="Enter payer's name"
+                                    placeholder="Enter borrower's name"
                                     value={formData.name}
                                     onChangeText={(value) =>
                                         handleInputChange("name", value)
@@ -187,7 +187,7 @@ export default function EditRecord({
                         </Pressable>
                         <Pressable
                             onPress={handleSubmit}
-                            className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
+                            className='flex-1 py-3 px-4 bg-green-600 rounded-md items-center'
                         >
                             <Text className='text-white font-medium'>
                                 Save Changes

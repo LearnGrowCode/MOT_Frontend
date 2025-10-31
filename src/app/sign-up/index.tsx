@@ -1,18 +1,11 @@
-import {
-    View,
-    Text,
-    KeyboardAvoidingView,
-    Platform,
-    Alert,
-    TouchableOpacity,
-    ScrollView,
-} from "react-native";
+import { View, Text, Alert, TouchableOpacity, ScrollView } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import Input from "../../components/form/Input";
 import PrimaryButton from "../../components/button/PrimaryButton";
 import GoogleButton from "../../components/button/GoogleButton";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import {
     Card,
     CardContent,
@@ -21,10 +14,13 @@ import {
 } from "../../components/ui/card";
 
 import { SignUpFormData } from "../../type/interface";
+import { useProfileStore } from "@/store/useProfileStore";
 
 export default function SignUpScreen() {
     const [loading, setLoading] = React.useState(false);
-    const navigator = useNavigation();
+    const router = useRouter();
+    const setAuthenticated = useProfileStore((s) => s.setAuthenticated);
+    const setProfile = useProfileStore((s) => s.setProfile);
 
     const {
         control,
@@ -47,10 +43,16 @@ export default function SignUpScreen() {
         try {
             // TODO: replace with real auth API
             await new Promise((res) => setTimeout(res, 800));
-            Alert.alert(
-                "Account created",
-                `Welcome ${data.name}! Your account has been created successfully.`
-            );
+            // Demo: mark authenticated and set profile
+            setProfile({
+                id: "demo",
+                name: data.name || data.email.split("@")[0],
+                email: data.email,
+            });
+            setAuthenticated(true);
+            router.replace("/(auth)");
+        } catch {
+            Alert.alert("Sign up failed", "Please try again.");
         } finally {
             setLoading(false);
         }
@@ -78,7 +80,7 @@ export default function SignUpScreen() {
                         Money On Track
                     </CardTitle>
                 </CardHeader>
-                <CardContent className='flex flex-col items-center space-y-3'>
+                <CardContent className='flex flex-col items-center gap-3'>
                     <Text className='text-white text-xl font-semibold tracking-wide'>
                         Simple • Secure • Smart
                     </Text>
@@ -89,12 +91,11 @@ export default function SignUpScreen() {
                 </CardContent>
             </Card>
             <Card className='bg-white p-8 shadow-xl rounded-2xl my-3 mx-3'>
-                <KeyboardAvoidingView
-                    className='flex-1'
-                    behavior={Platform.select({
-                        ios: "padding",
-                        android: undefined,
-                    })}
+                <KeyboardAwareScrollView
+                    keyboardShouldPersistTaps='handled'
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
                 >
                     <View className='flex-1 px-6 py-8'>
                         <Text className='text-3xl font-bold text-gray-900 mb-3'>
@@ -230,15 +231,13 @@ export default function SignUpScreen() {
                             className='shadow-sm'
                         />
 
-                        <View className='mt-8 flex items-center space-y-4'>
+                        <View className='mt-8 flex items-center gap-4'>
                             <View className='flex-row items-center'>
                                 <Text className='text-gray-600'>
                                     Already have an account?
                                 </Text>
                                 <TouchableOpacity
-                                    onPress={() =>
-                                        navigator.navigate("sign-in" as never)
-                                    }
+                                    onPress={() => router.push("/sign-in")}
                                     className='ml-2'
                                 >
                                     <Text className='text-blue-600 font-medium'>
@@ -248,7 +247,7 @@ export default function SignUpScreen() {
                             </View>
                         </View>
                     </View>
-                </KeyboardAvoidingView>
+                </KeyboardAwareScrollView>
             </Card>
         </ScrollView>
     );
