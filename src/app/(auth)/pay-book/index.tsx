@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
@@ -9,12 +9,15 @@ import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
 import { Link } from "expo-router";
-import { toPayData } from "@/dummyData/constant";
+// import { toPayData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import Option from "@/components/modals/Option";
+import { getPayBookEntries, getTotalPayRemaining } from "@/api/BookEntry";
+import { addSettlement } from "@/db/models/Book";
+import { uuidv4 } from "@/utils/uuid";
 
 export default function ToPayScreen() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -31,10 +34,33 @@ export default function ToPayScreen() {
         null
     );
 
-    // Payment records state
-    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>(
-        toPayData.userPaymentRecords as unknown as PaymentRecord[]
-    );
+    // Payment records state (loaded from DB)
+    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+    const [totalToPay, setTotalToPay] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        const load = async () => {
+            try {
+                const [records, total] = await Promise.all([
+                    getPayBookEntries(),
+                    getTotalPayRemaining(),
+                ]);
+                console.log("records", records);
+                console.log("total", total);
+                if (!isMounted) return;
+                setPaymentRecords(records);
+                setTotalToPay(total);
+            } finally {
+                if (isMounted) setIsLoading(false);
+            }
+        };
+        load();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleMarkPayment = (recordId: string) => {
         const record = paymentRecords.find((r) => r.id === recordId);
@@ -62,19 +88,42 @@ export default function ToPayScreen() {
         setSelectedRecord(null);
     };
 
-    const handleConfirmPayment = (amount: number, payer: string) => {
-        if (selectedRecord) {
-            const updatedRecord: PaymentRecord = {
-                ...selectedRecord,
-                remaining: Math.max(0, selectedRecord.remaining - amount),
-                status:
-                    selectedRecord.remaining - amount <= 0 ? "paid" : "partial",
-            };
-            setPaymentRecords((prev) =>
-                prev.map((record) =>
-                    record.id === selectedRecord.id ? updatedRecord : record
-                )
-            );
+    const handleConfirmPayment = async (amount: number, payer: string) => {
+        if (selectedRecord && amount > 0) {
+            try {
+                // Create settlement in database
+                await addSettlement({
+                    id: uuidv4(),
+                    bookEntryId: selectedRecord.id,
+                    amount: amount,
+                    date: Date.now(),
+                    description: `Payment from ${payer}`,
+                });
+
+                // Refresh the records from database
+                const [records, total] = await Promise.all([
+                    getPayBookEntries(),
+                    getTotalPayRemaining(),
+                ]);
+                setPaymentRecords(records);
+                setTotalToPay(total);
+            } catch (error) {
+                console.error("Error adding settlement:", error);
+                // Still update UI even if there's an error (for now)
+                const updatedRecord: PaymentRecord = {
+                    ...selectedRecord,
+                    remaining: Math.max(0, selectedRecord.remaining - amount),
+                    status:
+                        selectedRecord.remaining - amount <= 0
+                            ? "paid"
+                            : "partial",
+                };
+                setPaymentRecords((prev) =>
+                    prev.map((record) =>
+                        record.id === selectedRecord.id ? updatedRecord : record
+                    )
+                );
+            }
         }
         setShowPaymentConfirmation(false);
         setSelectedRecord(null);
@@ -137,15 +186,15 @@ export default function ToPayScreen() {
             >
                 <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
-                        userName={toPayData.userName}
-                        userAvatar={toPayData.userAvatar}
-                        greet={toPayData.userGreeting}
-                        subGreet={toPayData.userGreetingMessage}
+                        userName={"You"}
+                        userAvatar={null}
+                        greet={"Welcome back!"}
+                        subGreet={"Track and settle your dues."}
                     />
                     {/* Amount to Pay Summary */}
                     <AmountSummaryCard
-                        amount={toPayData.userAmountToPay}
-                        message={toPayData.userAmountToPayMessage}
+                        amount={totalToPay}
+                        message={"Total remaining to pay"}
                     />
                 </View>
 
@@ -178,14 +227,22 @@ export default function ToPayScreen() {
 
                     {/* Payment Record Cards */}
                     <View className='flex gap-3 w-full'>
-                        {visibleRecords.map((record) => (
-                            <PaymentRecordCard
-                                key={record.id}
-                                record={record}
-                                onMarkPayment={handleMarkPayment}
-                                onOption={handleOption}
-                            />
-                        ))}
+                        {isLoading ? (
+                            <Text className='text-gray-500'>Loading...</Text>
+                        ) : visibleRecords.length === 0 ? (
+                            <Text className='text-gray-500'>
+                                No payment entries.
+                            </Text>
+                        ) : (
+                            visibleRecords.map((record) => (
+                                <PaymentRecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onMarkPayment={handleMarkPayment}
+                                    onOption={handleOption}
+                                />
+                            ))
+                        )}
                     </View>
                 </View>
             </ScrollView>

@@ -3,7 +3,7 @@ import { Redirect } from "expo-router";
 import { useProfileStore } from "@/store/useProfileStore";
 
 export default function AuthLayout() {
-    const isAuthenticated = useProfileStore((s) => s.isAuthenticated);
+    const {isAuthenticated} = useProfileStore();
     if (!isAuthenticated) return <Redirect href='/sign-in' />;
     return (
         <Drawer

@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import { cn } from "../../lib/utils";
 
 type GoogleButtonProps = {
@@ -21,23 +21,12 @@ export default function GoogleButton({
             onPress={onPress}
             disabled={disabled}
             className={cn(
-                "w-full flex-row items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-3",
+                "w-full flex-row items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5",
                 disabled ? "opacity-60" : "active:opacity-90",
                 className
             )}
         >
-            <Image
-                source={{
-                    uri: "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",
-                }}
-                accessibilityIgnoresInvertColors
-                style={{ width: 18, height: 18 }}
-            />
-            <Text className='text-base font-semibold text-gray-800'>
-                {title}
-            </Text>
+            <Text className='text-base font-medium text-gray-900'>{title}</Text>
         </Pressable>
     );
 }
-
-
