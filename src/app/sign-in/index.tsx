@@ -8,15 +8,15 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useEffect, useState } from "react";
-import Input from "../../components/form/Input";
-import PrimaryButton from "../../components/button/PrimaryButton";
-import GoogleButton from "../../components/button/GoogleButton";
+import Input from "@/components/form/Input";
+import PrimaryButton from "@/components/button/PrimaryButton";
+import GoogleButton from "@/components/button/GoogleButton";
 import { useRouter } from "expo-router";
-import { Card } from "../../components/ui/card";
-import { SignInFormData } from "../../type/interface";
+import { Card } from "@/components/ui/card";
+import { SignInFormData } from "@/type/interface";
 import { useForm } from "react-hook-form";
 import { useProfileStore } from "@/store/useProfileStore";
-import { login } from "@/api/Authentication";
+import { login } from "@/services/api/auth.service";
 export default function SignInScreen() {
     const {
         handleSubmit,
@@ -40,10 +40,8 @@ export default function SignInScreen() {
         setLoading(true);
         try {
             const response = await login(data.email, data.password);
-            console.log(response);
-            console.log(response.success);
+
             if (response.success) {
-                console.log(response.data);
                 updateToken(
                     response.data.refresh_token,
                     response.data.access_token

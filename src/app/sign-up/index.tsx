@@ -9,15 +9,15 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import Input from "../../components/form/Input";
-import PrimaryButton from "../../components/button/PrimaryButton";
-import GoogleButton from "../../components/button/GoogleButton";
+import Input from "@/components/form/Input";
+import PrimaryButton from "@/components/button/PrimaryButton";
+import GoogleButton from "@/components/button/GoogleButton";
 import { useRouter } from "expo-router";
-import { Card } from "../../components/ui/card";
+import { Card } from "@/components/ui/card";
 
-import { SignUpFormData } from "../../type/interface";
+import { SignUpFormData } from "@/type/interface";
 import { useProfileStore } from "@/store/useProfileStore";
-import { signup } from "@/api/Authentication";
+import { signup } from "@/services/api/auth.service";
 
 export default function SignUpScreen() {
     const [loading, setLoading] = React.useState(false);
@@ -45,7 +45,7 @@ export default function SignUpScreen() {
         setLoading(true);
         try {
             const response = await signup(data.email, data.password, data.name);
-            console.log(response.success);
+
             if (response.success) {
                 updateToken(
                     response.data.refresh_token,

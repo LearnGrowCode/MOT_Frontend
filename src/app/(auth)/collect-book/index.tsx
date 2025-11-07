@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import CollectionRecordCard from "@/components/cards/CollectionRecordCard";
 import { CollectionRecord } from "@/type/interface";
@@ -8,18 +8,24 @@ import FloatingActionButton from "@/components/ui/FloatingActionButton";
 import EditCollectionRecord from "@/components/modals/EditCollectionRecord";
 import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
 import CollectionConfirmation from "@/components/modals/CollectionConfirmation";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { toCollectData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowUpIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import CollectionOption from "@/components/modals/CollectionOption";
+import {
+    getCollectBookEntries,
+    getTotalCollectRemaining,
+} from "@/services/book/book-entry.service";
+import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
+import { uuidv4 } from "@/utils/uuid";
 
 export default function ToCollectScreen() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterStatus] = useState("all");
-    const [sortBy] = useState("newest");
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [sortBy, setSortBy] = useState("newest");
 
     const [showEditRecord, setShowEditRecord] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
@@ -30,10 +36,56 @@ export default function ToCollectScreen() {
     const [selectedRecord, setSelectedRecord] =
         useState<CollectionRecord | null>(null);
 
-    // Collection records state
+    // Collection records state (loaded from DB)
     const [collectionRecords, setCollectionRecords] = useState<
         CollectionRecord[]
-    >(toCollectData.userCollectionRecords as unknown as CollectionRecord[]);
+    >([]);
+    const [totalToCollect, setTotalToCollect] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    const fetchRecords = useCallback(async () => {
+        const [records, total] = await Promise.all([
+            getCollectBookEntries(),
+            getTotalCollectRemaining(),
+        ]);
+        return { records, total };
+    }, []);
+
+    useEffect(() => {
+        let isActive = true;
+        setIsLoading(true);
+        fetchRecords()
+            .then(({ records, total }) => {
+                if (!isActive) return;
+                setCollectionRecords(records);
+                setTotalToCollect(total);
+            })
+            .finally(() => {
+                if (isActive) setIsLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [fetchRecords]);
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            setIsLoading(true);
+            fetchRecords()
+                .then(({ records, total }) => {
+                    if (!isActive) return;
+                    setCollectionRecords(records);
+                    setTotalToCollect(total);
+                })
+                .finally(() => {
+                    if (isActive) setIsLoading(false);
+                });
+            return () => {
+                isActive = false;
+            };
+        }, [fetchRecords])
+    );
 
     const handleMarkCollection = (recordId: string) => {
         const record = collectionRecords.find((r) => r.id === recordId);
@@ -43,14 +95,27 @@ export default function ToCollectScreen() {
         }
     };
 
-    const handleSaveRecord = (updatedRecord: CollectionRecord) => {
-        setCollectionRecords((prev) =>
-            prev.map((record) =>
-                record.id === updatedRecord.id ? updatedRecord : record
-            )
-        );
-        setShowEditRecord(false);
-        setSelectedRecord(null);
+    const handleSaveRecord = async (updatedRecord: CollectionRecord) => {
+        try {
+            await updateBookEntryWithPrincipal({
+                id: updatedRecord.id,
+                counterparty: updatedRecord.name,
+                principalAmount: updatedRecord.amount,
+                currency: updatedRecord.category,
+            });
+            const { records, total } = await fetchRecords();
+            setCollectionRecords(records);
+            setTotalToCollect(total);
+        } catch {
+            setCollectionRecords((prev) =>
+                prev.map((record) =>
+                    record.id === updatedRecord.id ? updatedRecord : record
+                )
+            );
+        } finally {
+            setShowEditRecord(false);
+            setSelectedRecord(null);
+        }
     };
 
     const handleDeleteRecord = (recordId: string) => {
@@ -61,40 +126,57 @@ export default function ToCollectScreen() {
         setSelectedRecord(null);
     };
 
-    const handleConfirmCollection = (amount: number, collector: string) => {
-        if (selectedRecord) {
-            const updatedRecord: CollectionRecord = {
-                ...selectedRecord,
-                remaining: Math.max(0, selectedRecord.remaining - amount),
-                status:
-                    selectedRecord.remaining - amount <= 0
-                        ? "collected"
-                        : "partial",
-            };
-            setCollectionRecords((prev) =>
-                prev.map((record) =>
-                    record.id === selectedRecord.id ? updatedRecord : record
-                )
-            );
+    const handleConfirmCollection = async (
+        amount: number,
+        collector: string
+    ) => {
+        if (selectedRecord && amount > 0) {
+            try {
+                await addSettlement({
+                    id: uuidv4(),
+                    bookEntryId: selectedRecord.id,
+                    amount: amount,
+                    date: Date.now(),
+                    description: `Collection from ${collector}`,
+                });
+                const { records, total } = await fetchRecords();
+                setCollectionRecords(records);
+                setTotalToCollect(total);
+            } catch {
+                const updatedRecord: CollectionRecord = {
+                    ...selectedRecord,
+                    remaining: Math.max(0, selectedRecord.remaining - amount),
+                    status:
+                        selectedRecord.remaining - amount <= 0
+                            ? "collected"
+                            : "partial",
+                };
+                setCollectionRecords((prev) =>
+                    prev.map((record) =>
+                        record.id === selectedRecord.id ? updatedRecord : record
+                    )
+                );
+            }
         }
         setShowCollectionConfirmation(false);
         setSelectedRecord(null);
     };
 
     const handleFilterAndSort = (filters: any) => {
-        console.log(filters);
+        if (filters) {
+            if (filters.status) setFilterStatus(filters.status);
+            if (filters.sortBy) setSortBy(filters.sortBy);
+        }
+        setShowFilterAndSort(false);
     };
 
     const handleEdit = () => {
         setShowOption(false);
         setShowEditRecord(true);
-        setShowOption(false);
-        setSelectedRecord(null);
     };
     const handleDelete = () => {
         setShowDeleteRecord(true);
         setShowOption(false);
-        setSelectedRecord(null);
     };
     const handleOption = (recordId: string) => {
         setShowOption(true);
@@ -141,8 +223,8 @@ export default function ToCollectScreen() {
                     />
                     {/* Amount to Collect Summary */}
                     <AmountSummaryCard
-                        amount={toCollectData.userAmountToCollect}
-                        message={toCollectData.userAmountToCollectMessage}
+                        amount={totalToCollect}
+                        message={"Total remaining to collect"}
                     />
                 </View>
 
@@ -172,14 +254,22 @@ export default function ToCollectScreen() {
 
                     {/* Collection Record Cards */}
                     <View className='flex gap-3 w-full'>
-                        {visibleRecords.map((record) => (
-                            <CollectionRecordCard
-                                key={record.id}
-                                record={record}
-                                onMarkCollection={handleMarkCollection}
-                                onOption={handleOption}
-                            />
-                        ))}
+                        {isLoading ? (
+                            <Text className='text-gray-500'>Loading...</Text>
+                        ) : visibleRecords.length === 0 ? (
+                            <Text className='text-gray-500'>
+                                No collection entries.
+                            </Text>
+                        ) : (
+                            visibleRecords.map((record) => (
+                                <CollectionRecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onMarkCollection={handleMarkCollection}
+                                    onOption={handleOption}
+                                />
+                            ))
+                        )}
                     </View>
                 </View>
             </ScrollView>

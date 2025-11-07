@@ -1,4 +1,4 @@
-import { getDb, nowTs } from "../index";
+import { getDb, nowTs } from "@/db";
 
 export interface User {
     id: string;

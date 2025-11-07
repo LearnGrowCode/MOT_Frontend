@@ -1,13 +1,13 @@
 import "react-native-get-random-values";
 import { Stack } from "expo-router";
-import "../global.css";
+import "@/global.css";
 import { ThemeProvider } from "@react-navigation/native";
-import { NAV_THEME } from "../lib/theme";
+import { NAV_THEME } from "@/lib/theme";
 import { useColorScheme } from "react-native";
 import { PortalHost } from "@rn-primitives/portal";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import React from "react";
-import { getDb } from "../db";
+import { getDb } from "@/db";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     React.useEffect(() => {

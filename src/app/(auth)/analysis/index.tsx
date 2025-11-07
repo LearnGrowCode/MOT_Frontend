@@ -1,7 +1,13 @@
-import React, { useState, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Dimensions } from "react-native";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import {
+    View,
+    Text,
+    ScrollView,
+    Pressable,
+    Dimensions,
+    ActivityIndicator,
+} from "react-native";
 import { PieChart } from "react-native-chart-kit";
-import { toPayData, toCollectData } from "@/dummyData/constant";
 import { PaymentRecord, CollectionRecord } from "@/type/interface";
 import {
     TrendingUp,
@@ -10,46 +16,144 @@ import {
     Users,
     Calendar,
 } from "lucide-react-native";
+import { useFocusEffect } from "expo-router";
+import {
+    getPayBookEntries,
+    getCollectBookEntries,
+} from "@/services/book/book-entry.service";
 
 const screenWidth = Dimensions.get("window").width;
+const chartWidth = Math.max(screenWidth - 80, 220);
+
+const STATUS_LABELS: Record<string, string> = {
+    paid: "Paid",
+    unpaid: "Pending",
+    partial: "Partial",
+    overdue: "Overdue",
+    collected: "Collected",
+};
+
+const STATUS_COLOR_MAP: Record<string, string> = {
+    paid: "#10b981",
+    collected: "#10b981",
+    unpaid: "#f59e0b",
+    partial: "#8b5cf6",
+    overdue: "#ef4444",
+};
+
+const FALLBACK_PIE_COLORS = ["#ef4444", "#10b981", "#f59e0b", "#8b5cf6"];
+
+function buildStatusPieData(statusData: Record<string, number>) {
+    const entries = Object.entries(statusData).filter(([, value]) => value > 0);
+    if (!entries.length) {
+        return [
+            {
+                name: "No Data",
+                population: 1,
+                color: "#E5E7EB",
+                legendFontColor: "#9CA3AF",
+                legendFontSize: 12,
+            },
+        ];
+    }
+
+    return entries.map(([key, value], index) => {
+        const label =
+            STATUS_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
+        const color =
+            STATUS_COLOR_MAP[key] ??
+            FALLBACK_PIE_COLORS[index % FALLBACK_PIE_COLORS.length];
+
+        return {
+            name: label,
+            population: value,
+            color,
+            legendFontColor: "#7F7F7F",
+            legendFontSize: 12,
+        };
+    });
+}
 
 export default function AnalysisScreen() {
     const [activeTab, setActiveTab] = useState<"overview" | "pay" | "collect">(
         "overview"
     );
+    const [payRecords, setPayRecords] = useState<PaymentRecord[]>([]);
+    const [collectRecords, setCollectRecords] = useState<CollectionRecord[]>(
+        []
+    );
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    // Calculate general statistics
+    const fetchRecords = useCallback(async () => {
+        const [pay, collect] = await Promise.all([
+            getPayBookEntries(),
+            getCollectBookEntries(),
+        ]);
+        return { pay, collect };
+    }, []);
+
+    useEffect(() => {
+        let isActive = true;
+        setIsLoading(true);
+        fetchRecords()
+            .then(({ pay, collect }) => {
+                if (!isActive) return;
+                setPayRecords(pay);
+                setCollectRecords(collect);
+            })
+            .finally(() => {
+                if (isActive) setIsLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [fetchRecords]);
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            setIsLoading(true);
+            fetchRecords()
+                .then(({ pay, collect }) => {
+                    if (!isActive) return;
+                    setPayRecords(pay);
+                    setCollectRecords(collect);
+                })
+                .finally(() => {
+                    if (isActive) setIsLoading(false);
+                });
+            return () => {
+                isActive = false;
+            };
+        }, [fetchRecords])
+    );
+
     const generalStats = useMemo(() => {
-        const payRecords =
-            toPayData.userPaymentRecords as unknown as PaymentRecord[];
-        const collectRecords =
-            toCollectData.userCollectionRecords as unknown as CollectionRecord[];
-
         const totalToPay = payRecords.reduce(
-            (sum, record) => sum + record.amount,
+            (sum, record) => sum + (record.amount || 0),
             0
         );
         const totalToCollect = collectRecords.reduce(
-            (sum, record) => sum + record.amount,
+            (sum, record) => sum + (record.amount || 0),
             0
         );
         const netAmount = totalToCollect - totalToPay;
 
         const paidAmount = payRecords
             .filter((record) => record.status === "paid")
-            .reduce((sum, record) => sum + record.amount, 0);
+            .reduce((sum, record) => sum + (record.amount || 0), 0);
 
         const collectedAmount = collectRecords
             .filter((record) => record.status === "collected")
-            .reduce((sum, record) => sum + record.amount, 0);
+            .reduce((sum, record) => sum + (record.amount || 0), 0);
 
         const pendingPay = payRecords
             .filter((record) => record.status !== "paid")
-            .reduce((sum, record) => sum + record.remaining, 0);
+            .reduce((sum, record) => sum + (record.remaining || 0), 0);
 
         const pendingCollect = collectRecords
             .filter((record) => record.status !== "collected")
-            .reduce((sum, record) => sum + record.remaining, 0);
+            .reduce((sum, record) => sum + (record.remaining || 0), 0);
 
         return {
             totalToPay,
@@ -64,13 +168,9 @@ export default function AnalysisScreen() {
                 payRecords.filter((r) => r.status === "paid").length +
                 collectRecords.filter((r) => r.status === "collected").length,
         };
-    }, []);
+    }, [payRecords, collectRecords]);
 
-    // Calculate pay book analysis data
     const payAnalysis = useMemo(() => {
-        const payRecords =
-            toPayData.userPaymentRecords as unknown as PaymentRecord[];
-
         const statusData = payRecords.reduce(
             (acc, record) => {
                 acc[record.status] = (acc[record.status] || 0) + 1;
@@ -82,20 +182,19 @@ export default function AnalysisScreen() {
         const categoryData = payRecords.reduce(
             (acc, record) => {
                 acc[record.category] =
-                    (acc[record.category] || 0) + record.amount;
+                    (acc[record.category] || 0) + (record.amount || 0);
                 return acc;
             },
             {} as Record<string, number>
         );
 
-        // Monthly data for line chart
         const monthlyData = payRecords.reduce(
             (acc, record) => {
-                const month = new Date(record.borrowedDate).toLocaleDateString(
-                    "en-US",
-                    { month: "short" }
-                );
-                acc[month] = (acc[month] || 0) + record.amount;
+                const date = new Date(record.borrowedDate);
+                const month = Number.isNaN(date.getTime())
+                    ? "Unknown"
+                    : date.toLocaleDateString("en-US", { month: "short" });
+                acc[month] = (acc[month] || 0) + (record.amount || 0);
                 return acc;
             },
             {} as Record<string, number>
@@ -107,13 +206,9 @@ export default function AnalysisScreen() {
             monthlyData,
             records: payRecords,
         };
-    }, []);
+    }, [payRecords]);
 
-    // Calculate collect book analysis data
     const collectAnalysis = useMemo(() => {
-        const collectRecords =
-            toCollectData.userCollectionRecords as unknown as CollectionRecord[];
-
         const statusData = collectRecords.reduce(
             (acc, record) => {
                 acc[record.status] = (acc[record.status] || 0) + 1;
@@ -125,20 +220,19 @@ export default function AnalysisScreen() {
         const categoryData = collectRecords.reduce(
             (acc, record) => {
                 acc[record.category] =
-                    (acc[record.category] || 0) + record.amount;
+                    (acc[record.category] || 0) + (record.amount || 0);
                 return acc;
             },
             {} as Record<string, number>
         );
 
-        // Monthly data for line chart
         const monthlyData = collectRecords.reduce(
             (acc, record) => {
-                const month = new Date(record.lentDate).toLocaleDateString(
-                    "en-US",
-                    { month: "short" }
-                );
-                acc[month] = (acc[month] || 0) + record.amount;
+                const date = new Date(record.lentDate);
+                const month = Number.isNaN(date.getTime())
+                    ? "Unknown"
+                    : date.toLocaleDateString("en-US", { month: "short" });
+                acc[month] = (acc[month] || 0) + (record.amount || 0);
                 return acc;
             },
             {} as Record<string, number>
@@ -150,7 +244,15 @@ export default function AnalysisScreen() {
             monthlyData,
             records: collectRecords,
         };
-    }, []);
+    }, [collectRecords]);
+
+    if (isLoading) {
+        return (
+            <View className='flex-1 items-center justify-center bg-white'>
+                <ActivityIndicator size='large' color='#2563eb' />
+            </View>
+        );
+    }
 
     const pieChartConfig = {
         backgroundColor: "#ffffff",
@@ -347,113 +449,101 @@ export default function AnalysisScreen() {
         </View>
     );
 
-    const renderPayTab = () => (
-        <View className='gap-6'>
-            {/* Pay Book Stats */}
-            <View className='grid grid-cols-2 gap-4'>
-                <StatCard
-                    title='Total Owed'
-                    value={`$${generalStats.totalToPay.toFixed(2)}`}
-                    icon={DollarSign}
-                    color='border-red-500'
-                />
-                <StatCard
-                    title='Paid Amount'
-                    value={`$${generalStats.paidAmount.toFixed(2)}`}
-                    icon={TrendingUp}
-                    color='border-green-500'
-                />
-            </View>
+    const renderPayTab = () => {
+        const statusPieData = buildStatusPieData(payAnalysis.statusData);
 
-            {/* Status Distribution */}
-            <View className='bg-white p-4 rounded-xl shadow-sm'>
-                <Text className='text-lg font-bold text-gray-900 mb-4'>
-                    Payment Status
-                </Text>
-                <PieChart
-                    data={Object.entries(payAnalysis.statusData).map(
-                        ([key, value], index) => ({
-                            name: key.charAt(0).toUpperCase() + key.slice(1),
-                            population: value,
-                            color: ["#ef4444", "#10b981", "#f59e0b", "#8b5cf6"][
-                                index % 4
-                            ],
-                            legendFontColor: "#7F7F7F",
-                            legendFontSize: 12,
-                        })
-                    )}
-                    width={screenWidth - 80}
-                    height={200}
-                    chartConfig={pieChartConfig}
-                    accessor='population'
-                    backgroundColor='transparent'
-                    paddingLeft='15'
-                />
-            </View>
+        return (
+            <View className='gap-6'>
+                {/* Pay Book Stats */}
+                <View className='grid grid-cols-2 gap-4'>
+                    <StatCard
+                        title='Total Owed'
+                        value={`$${generalStats.totalToPay.toFixed(2)}`}
+                        icon={DollarSign}
+                        color='border-red-500'
+                    />
+                    <StatCard
+                        title='Paid Amount'
+                        value={`$${generalStats.paidAmount.toFixed(2)}`}
+                        icon={TrendingUp}
+                        color='border-green-500'
+                    />
+                </View>
 
-            {/* Category Breakdown */}
-            <View className='bg-white p-4 rounded-xl shadow-sm'>
-                <Text className='text-lg font-bold text-gray-900 mb-4'>
-                    Amount by Category
-                </Text>
-                <CategoryTable data={payAnalysis.categoryData} />
-            </View>
-        </View>
-    );
+                {/* Status Distribution */}
+                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                        Payment Status
+                    </Text>
+                    <PieChart
+                        data={statusPieData}
+                        width={chartWidth}
+                        height={200}
+                        chartConfig={pieChartConfig}
+                        accessor='population'
+                        backgroundColor='transparent'
+                        paddingLeft='15'
+                    />
+                </View>
 
-    const renderCollectTab = () => (
-        <View className='gap-6'>
-            {/* Collect Book Stats */}
-            <View className='grid grid-cols-2 gap-4'>
-                <StatCard
-                    title='Total to Collect'
-                    value={`$${generalStats.totalToCollect.toFixed(2)}`}
-                    icon={DollarSign}
-                    color='border-green-500'
-                />
-                <StatCard
-                    title='Collected Amount'
-                    value={`$${generalStats.collectedAmount.toFixed(2)}`}
-                    icon={TrendingUp}
-                    color='border-blue-500'
-                />
+                {/* Category Breakdown */}
+                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                        Amount by Category
+                    </Text>
+                    <CategoryTable data={payAnalysis.categoryData} />
+                </View>
             </View>
+        );
+    };
 
-            {/* Status Distribution */}
-            <View className='bg-white p-4 rounded-xl shadow-sm'>
-                <Text className='text-lg font-bold text-gray-900 mb-4'>
-                    Collection Status
-                </Text>
-                <PieChart
-                    data={Object.entries(collectAnalysis.statusData).map(
-                        ([key, value], index) => ({
-                            name: key.charAt(0).toUpperCase() + key.slice(1),
-                            population: value,
-                            color: ["#ef4444", "#10b981", "#f59e0b", "#8b5cf6"][
-                                index % 4
-                            ],
-                            legendFontColor: "#7F7F7F",
-                            legendFontSize: 12,
-                        })
-                    )}
-                    width={screenWidth - 80}
-                    height={200}
-                    chartConfig={pieChartConfig}
-                    accessor='population'
-                    backgroundColor='transparent'
-                    paddingLeft='15'
-                />
-            </View>
+    const renderCollectTab = () => {
+        const statusPieData = buildStatusPieData(collectAnalysis.statusData);
 
-            {/* Category Breakdown */}
-            <View className='bg-white p-4 rounded-xl shadow-sm'>
-                <Text className='text-lg font-bold text-gray-900 mb-4'>
-                    Amount by Category
-                </Text>
-                <CategoryTable data={collectAnalysis.categoryData} />
+        return (
+            <View className='gap-6'>
+                {/* Collect Book Stats */}
+                <View className='grid grid-cols-2 gap-4'>
+                    <StatCard
+                        title='Total to Collect'
+                        value={`$${generalStats.totalToCollect.toFixed(2)}`}
+                        icon={DollarSign}
+                        color='border-green-500'
+                    />
+                    <StatCard
+                        title='Collected Amount'
+                        value={`$${generalStats.collectedAmount.toFixed(2)}`}
+                        icon={TrendingUp}
+                        color='border-blue-500'
+                    />
+                </View>
+
+                {/* Status Distribution */}
+                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                        Collection Status
+                    </Text>
+                    <PieChart
+                        data={statusPieData}
+                        width={chartWidth}
+                        height={200}
+                        chartConfig={pieChartConfig}
+                        accessor='population'
+                        backgroundColor='transparent'
+                        paddingLeft='15'
+                    />
+                </View>
+
+                {/* Category Breakdown */}
+                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                        Amount by Category
+                    </Text>
+                    <CategoryTable data={collectAnalysis.categoryData} />
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <View className='flex-1 bg-gray-50'>

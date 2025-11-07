@@ -1,5 +1,5 @@
-import { getDb, nowTs } from "../index";
-import { uuidv4 } from "../../utils/uuid";
+import { getDb, nowTs } from "@/db";
+import { uuidv4 } from "@/utils/uuid";
 
 export type BookEntryType = "PAY" | "COLLECT";
 export type BookEntryStatus = "PENDING" | "PARTIALLY_SETTLED" | "SETTLED";
@@ -199,6 +199,120 @@ export async function getSettlements(
                 isDirty: r.is_dirty ?? 0,
             }) as Settlement
     );
+}
+
+export async function updateBookEntryBasic(params: {
+    id: string;
+    counterparty?: string;
+    principalAmount?: number;
+    remainingAmount?: number;
+    currency?: string;
+    description?: string | null;
+}): Promise<void> {
+    const db = await getDb();
+    const ts = nowTs();
+    const updates: string[] = [];
+    const values: any[] = [];
+
+    if (params.counterparty !== undefined) {
+        updates.push("counterparty = ?");
+        values.push(params.counterparty);
+    }
+    if (params.principalAmount !== undefined) {
+        updates.push("principal_amount = ?");
+        values.push(params.principalAmount);
+    }
+    if (params.remainingAmount !== undefined) {
+        updates.push("remaining_amount = ?");
+        values.push(params.remainingAmount);
+    }
+    if (params.currency !== undefined) {
+        updates.push("currency = ?");
+        values.push(params.currency);
+    }
+    if (params.description !== undefined) {
+        updates.push("description = ?");
+        values.push(params.description);
+    }
+
+    // Update status if principal/remaining change
+    if (
+        params.principalAmount !== undefined ||
+        params.remainingAmount !== undefined
+    ) {
+        updates.push("status = ?");
+        let status: BookEntryStatus = "PENDING";
+        const principal = params.principalAmount ?? null;
+        const remaining = params.remainingAmount ?? null;
+        if (remaining === 0) status = "SETTLED";
+        else if (
+            remaining !== null &&
+            principal !== null &&
+            remaining < principal
+        )
+            status = "PARTIALLY_SETTLED";
+        values.push(status);
+    }
+
+    updates.push("is_dirty = 1");
+    updates.push("updated_at = ?");
+    values.push(ts);
+
+    if (updates.length === 0) return;
+    const sql = `UPDATE book_entries SET ${updates.join(", ")} WHERE id = ?;`;
+    values.push(params.id);
+    await db.runAsync(sql, values);
+}
+
+export async function updateBookEntryWithPrincipal(params: {
+    id: string;
+    principalAmount: number;
+    counterparty?: string;
+    currency?: string;
+    description?: string | null;
+}): Promise<void> {
+    const db = await getDb();
+    const ts = nowTs();
+
+    const row = await db.getFirstAsync<any>(
+        `SELECT principal_amount, settlement_amount FROM book_entries WHERE id = ?;`,
+        [params.id]
+    );
+    if (!row) return;
+
+    const settledSoFar = Number(row.settlement_amount) || 0;
+    const newPrincipal = Number(params.principalAmount) || 0;
+    const newRemaining = Math.max(0, newPrincipal - settledSoFar);
+
+    let status: BookEntryStatus = "PENDING";
+    if (newRemaining === 0) status = "SETTLED";
+    else if (newRemaining < newPrincipal) status = "PARTIALLY_SETTLED";
+
+    const updates: string[] = [
+        "principal_amount = ?",
+        "remaining_amount = ?",
+        "status = ?",
+        "is_dirty = 1",
+        "updated_at = ?",
+    ];
+    const values: any[] = [newPrincipal, newRemaining, status, ts];
+
+    if (params.counterparty !== undefined) {
+        updates.unshift("counterparty = ?");
+        values.unshift(params.counterparty);
+    }
+    if (params.currency !== undefined) {
+        updates.unshift("currency = ?");
+        values.unshift(params.currency);
+    }
+    if (params.description !== undefined) {
+        updates.unshift("description = ?");
+        values.unshift(params.description);
+    }
+
+    const sql = `UPDATE book_entries SET ${updates.join(", ")} WHERE id = ?;`;
+    values.push(params.id);
+    await db.runAsync(sql, values);
 }
 
 function mapBookRow(r: any): BookEntry {

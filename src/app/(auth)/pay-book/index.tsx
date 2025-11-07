@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
@@ -8,15 +8,18 @@ import FloatingActionButton from "@/components/ui/FloatingActionButton";
 import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 // import { toPayData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import Option from "@/components/modals/Option";
-import { getPayBookEntries, getTotalPayRemaining } from "@/api/BookEntry";
-import { addSettlement } from "@/db/models/Book";
+import {
+    getPayBookEntries,
+    getTotalPayRemaining,
+} from "@/services/book/book-entry.service";
+import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
 
 export default function ToPayScreen() {
@@ -39,28 +42,49 @@ export default function ToPayScreen() {
     const [totalToPay, setTotalToPay] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const fetchRecords = useCallback(async () => {
+        const [records, total] = await Promise.all([
+            getPayBookEntries(),
+            getTotalPayRemaining(),
+        ]);
+        return { records, total };
+    }, []);
+
     useEffect(() => {
-        let isMounted = true;
-        const load = async () => {
-            try {
-                const [records, total] = await Promise.all([
-                    getPayBookEntries(),
-                    getTotalPayRemaining(),
-                ]);
-                console.log("records", records);
-                console.log("total", total);
-                if (!isMounted) return;
+        let isActive = true;
+        setIsLoading(true);
+        fetchRecords()
+            .then(({ records, total }) => {
+                if (!isActive) return;
                 setPaymentRecords(records);
                 setTotalToPay(total);
-            } finally {
-                if (isMounted) setIsLoading(false);
-            }
-        };
-        load();
+            })
+            .finally(() => {
+                if (isActive) setIsLoading(false);
+            });
         return () => {
-            isMounted = false;
+            isActive = false;
         };
-    }, []);
+    }, [fetchRecords]);
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            setIsLoading(true);
+            fetchRecords()
+                .then(({ records, total }) => {
+                    if (!isActive) return;
+                    setPaymentRecords(records);
+                    setTotalToPay(total);
+                })
+                .finally(() => {
+                    if (isActive) setIsLoading(false);
+                });
+            return () => {
+                isActive = false;
+            };
+        }, [fetchRecords])
+    );
 
     const handleMarkPayment = (recordId: string) => {
         const record = paymentRecords.find((r) => r.id === recordId);
@@ -70,14 +94,29 @@ export default function ToPayScreen() {
         }
     };
 
-    const handleSaveRecord = (updatedRecord: PaymentRecord) => {
-        setPaymentRecords((prev) =>
-            prev.map((record) =>
-                record.id === updatedRecord.id ? updatedRecord : record
-            )
-        );
-        setShowEditRecord(false);
-        setSelectedRecord(null);
+    const handleSaveRecord = async (updatedRecord: PaymentRecord) => {
+        try {
+            // Persist changes to DB with recalculated remaining based on settlements
+            await updateBookEntryWithPrincipal({
+                id: updatedRecord.id,
+                counterparty: updatedRecord.name,
+                principalAmount: updatedRecord.amount,
+                currency: updatedRecord.category,
+            });
+
+            const { records, total } = await fetchRecords();
+            setPaymentRecords(records);
+            setTotalToPay(total);
+        } catch (e) {
+            setPaymentRecords((prev) =>
+                prev.map((record) =>
+                    record.id === updatedRecord.id ? updatedRecord : record
+                )
+            );
+        } finally {
+            setShowEditRecord(false);
+            setSelectedRecord(null);
+        }
     };
 
     const handleDeleteRecord = (recordId: string) => {
@@ -100,11 +139,7 @@ export default function ToPayScreen() {
                     description: `Payment from ${payer}`,
                 });
 
-                // Refresh the records from database
-                const [records, total] = await Promise.all([
-                    getPayBookEntries(),
-                    getTotalPayRemaining(),
-                ]);
+                const { records, total } = await fetchRecords();
                 setPaymentRecords(records);
                 setTotalToPay(total);
             } catch (error) {
@@ -136,13 +171,10 @@ export default function ToPayScreen() {
     const handleEdit = () => {
         setShowOption(false);
         setShowEditRecord(true);
-        setShowOption(false);
-        setSelectedRecord(null);
     };
     const handleDelete = () => {
         setShowDeleteRecord(true);
         setShowOption(false);
-        setSelectedRecord(null);
     };
     const handleOption = (recordId: string) => {
         setShowOption(true);

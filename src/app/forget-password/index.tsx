@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import Input from "@/components/form/Input";
 import PrimaryButton from "@/components/button/PrimaryButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { requestPasswordReset } from "@/api/Authentication";
+import { requestPasswordReset } from "@/services/api/auth.service";
 
 export default function ForgetPasswordScreen() {
     const router = useRouter();

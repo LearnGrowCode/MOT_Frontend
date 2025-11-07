@@ -8,6 +8,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import ContactList from "@/components/modals/ContactList";
 import { usePermissionStore } from "@/store/usePermissionStore";
+import { createBookEntry } from "@/db/models/Book";
 
 interface FormData {
     name: string;
@@ -30,12 +31,13 @@ export default function AddRecord() {
         formState: { errors },
         reset,
         setValue,
+        watch,
     } = useForm<FormData>({
         defaultValues: {
             name: "",
             phone: "",
             amount: "",
-            lentDate: new Date().toLocaleDateString(),
+            lentDate: new Date().toISOString(),
             purpose: "",
         },
     });
@@ -43,6 +45,19 @@ export default function AddRecord() {
     const [contactsVisible, setContactsVisible] = useState(false);
     const [contactSearch, setContactSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    const amountValue = watch("amount");
+    const lentDateValue = watch("lentDate");
+
+    useEffect(() => {
+        if (lentDateValue) {
+            const parsed = new Date(lentDateValue);
+            if (!Number.isNaN(parsed.getTime())) {
+                setSelectedDate(parsed);
+            }
+        }
+    }, [lentDateValue]);
 
     // Debounce search input to prevent excessive filtering
     useEffect(() => {
@@ -84,12 +99,35 @@ export default function AddRecord() {
     };
 
     const onSubmit = useCallback(
-        (data: FormData) => {
-            // In a future iteration, persist the new record then navigate back
-            reset();
-            router.back();
+        async (data: FormData) => {
+            const dateTimestamp = selectedDate.getTime();
+
+            try {
+                await createBookEntry({
+                    type: "COLLECT",
+                    userId: "1",
+                    counterparty: data.name,
+                    date: dateTimestamp,
+                    description: data.purpose,
+                    principalAmount: Number(data.amount),
+                    currency: "INR",
+                    mobileNumber: data.phone,
+                });
+
+                reset({
+                    name: "",
+                    phone: "",
+                    amount: "",
+                    lentDate: new Date().toISOString(),
+                    purpose: "",
+                });
+                setSelectedDate(new Date());
+                router.back();
+            } catch (error) {
+                console.error("❌ Error:", error);
+            }
         },
-        [reset, router]
+        [reset, router, selectedDate]
     );
 
     const handleContactSelect = useCallback(
@@ -189,10 +227,7 @@ export default function AddRecord() {
                             )}
                         />
                         <Text className='mt-2 text-xs text-gray-500'>
-                            {getAmountInWords(
-                                control._formValues.amount,
-                                "INR"
-                            )}
+                            {getAmountInWords(amountValue, "INR")}
                         </Text>
                     </View>
 
@@ -205,19 +240,12 @@ export default function AddRecord() {
                             name='lentDate'
                             rules={{
                                 required: "Date is required",
-                                validate: (value) => {
-                                    const date = new Date(value);
-                                    return (
-                                        !isNaN(date.getTime()) ||
-                                        "Invalid date format"
-                                    );
-                                },
                             }}
                             render={({ field: { onChange, value } }) => (
                                 <View className='flex-row items-center'>
                                     <View className='flex-1'>
                                         <Text className='text-gray-700'>
-                                            {value}
+                                            {selectedDate.toLocaleDateString()}
                                         </Text>
                                         {errors.lentDate && (
                                             <Text className='text-red-500 text-xs mt-1'>
@@ -228,14 +256,15 @@ export default function AddRecord() {
                                     <Pressable
                                         onPress={() => {
                                             DateTimePickerAndroid.open({
-                                                value: new Date(),
+                                                value: selectedDate,
                                                 onChange: (event, date) => {
                                                     if (
                                                         event.type === "set" &&
                                                         date
                                                     ) {
+                                                        setSelectedDate(date);
                                                         onChange(
-                                                            date.toLocaleDateString()
+                                                            date.toISOString()
                                                         );
                                                     }
                                                 },

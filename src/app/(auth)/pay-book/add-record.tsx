@@ -8,7 +8,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import ContactList from "@/components/modals/ContactList";
 import { usePermissionStore } from "@/store/usePermissionStore";
-import { createBookEntry, listBookEntries } from "@/db/models/Book";
+import { createBookEntry } from "@/db/models/Book";
 interface FormData {
     name: string;
     phone: string;
@@ -28,7 +28,6 @@ export default function AddRecord() {
         control,
         handleSubmit,
         formState: { errors },
-        reset,
         setValue,
     } = useForm<FormData>({
         defaultValues: {
@@ -89,14 +88,8 @@ export default function AddRecord() {
             // Use selectedDate instead of parsing the string
             const dateTimestamp = selectedDate.getTime();
 
-            // Validate date is not NaN
-            if (isNaN(dateTimestamp)) {
-                console.error("❌ Invalid date:", selectedDate);
-                return;
-            }
-
             try {
-                const entryId = await createBookEntry({
+                await createBookEntry({
                     type: "PAY",
                     userId: "1",
                     counterparty: data.name,
@@ -106,11 +99,6 @@ export default function AddRecord() {
                     currency: "INR",
                     mobileNumber: data.phone,
                 });
-
-                // List all entries to verify
-                const allEntries = await listBookEntries("1");
-                console.log("📋 Total entries:", allEntries.length);
-                console.log("�� All entries:", allEntries);
 
                 router.back();
             } catch (error) {
@@ -137,11 +125,6 @@ export default function AddRecord() {
                 showsVerticalScrollIndicator={false}
                 style={{ flex: 1 }}
             >
-                {/* <ScrollView
-                    showsVerticalScrollIndicator={true}
-                    keyboardShouldPersistTaps='handled'
-                    keyboardDismissMode='on-drag'
-                > */}
                 <CardContent className='flex flex-col p-4'>
                     <View className='mb-6'>
                         <Text className='text-2xl font-bold text-gray-900'>
@@ -256,9 +239,14 @@ export default function AddRecord() {
                                             DateTimePickerAndroid.open({
                                                 value: selectedDate, // Use selectedDate
                                                 onChange: (event, date) => {
-                                                    if (event.type === "set" && date) {
+                                                    if (
+                                                        event.type === "set" &&
+                                                        date
+                                                    ) {
                                                         setSelectedDate(date); // Update selectedDate state
-                                                        onChange(date.toLocaleDateString());
+                                                        onChange(
+                                                            date.toLocaleDateString()
+                                                        );
                                                     }
                                                 },
                                                 mode: "date",
@@ -301,7 +289,6 @@ export default function AddRecord() {
                         </Text>
                     </Pressable>
                 </CardContent>
-                {/* </ScrollView> */}
             </KeyboardAwareScrollView>
 
             <ContactList

@@ -55,12 +55,19 @@ export default function EditRecord({
     const handleSubmit = () => {
         if (!validateForm() || !record) return;
 
+        const newAmount = parseFloat(formData.amount) || 0;
+        // Keep total paid constant: newRemaining = oldRemaining + (newAmount - oldAmount)
+        const newRemaining = Math.max(
+            0,
+            record.remaining + (newAmount - record.amount)
+        );
+
         const updatedRecord: PaymentRecord = {
             ...record,
             name: formData.name.trim(),
-            amount: parseFloat(formData.amount) || 0,
+            amount: newAmount,
             category: formData.purpose,
-            remaining: parseFloat(formData.amount) || 0,
+            remaining: newRemaining,
         };
 
         onSaveRecord(updatedRecord);
