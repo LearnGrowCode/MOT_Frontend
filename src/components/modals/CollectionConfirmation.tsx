@@ -3,6 +3,12 @@ import { View, Text, Modal, Pressable } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { CollectionRecord } from "../../type/interface";
+import {
+    formatCurrency,
+    getAmountInWords,
+    formatAmountInput,
+} from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 interface CollectionConfirmationProps {
     visible: boolean;
@@ -19,16 +25,10 @@ export default function CollectionConfirmation({
 }: CollectionConfirmationProps) {
     const [collectedAmount, setCollectedAmount] = useState("");
     const [collector, setCollector] = useState(record?.name || "");
+    const { currency } = useUserCurrency();
 
     const formatAmount = (value: string) => {
-        const numericValue = value.replace(/[^0-9.]/g, "");
-        return numericValue;
-    };
-
-    const getAmountInWords = (amount: string) => {
-        const num = parseFloat(amount) || 0;
-        if (num === 0) return "Zero Rupees Only";
-        return `${num} Rupees Only`;
+        return formatAmountInput(value);
     };
 
     const handleConfirm = () => {
@@ -82,17 +82,20 @@ export default function CollectionConfirmation({
                                         Amount to Collect
                                     </Text>
                                     <Text className='text-xl font-bold text-green-800'>
-                                        ₹
-                                        {record?.amount?.toLocaleString(
-                                            "en-IN"
-                                        ) || "0"}
+                                        {formatCurrency(
+                                            record?.amount ?? 0,
+                                            currency,
+                                            2
+                                        )}
                                     </Text>
                                     {record?.remaining &&
                                         record.remaining > 0 && (
                                             <Text className='text-xs text-orange-600 font-medium'>
-                                                Remaining: ₹
-                                                {record.remaining.toLocaleString(
-                                                    "en-IN"
+                                                Remaining:{" "}
+                                                {formatCurrency(
+                                                    record.remaining,
+                                                    currency,
+                                                    2
                                                 )}
                                             </Text>
                                         )}
@@ -121,9 +124,6 @@ export default function CollectionConfirmation({
                                 Enter the collected amount
                             </Text>
                             <View className='flex-row items-center'>
-                                <Text className='text-3xl font-bold mr-2'>
-                                    ₹
-                                </Text>
                                 <View className='flex-1'>
                                     <Input
                                         placeholder='0'
@@ -139,7 +139,7 @@ export default function CollectionConfirmation({
                                 </View>
                             </View>
                             <Text className='mt-1 text-xs text-gray-500 text-center'>
-                                {getAmountInWords(collectedAmount)}
+                                {getAmountInWords(collectedAmount, currency)}
                             </Text>
                         </View>
 

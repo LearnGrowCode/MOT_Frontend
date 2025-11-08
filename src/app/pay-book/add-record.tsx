@@ -9,6 +9,12 @@ import { useRouter } from "expo-router";
 import ContactList from "@/components/modals/ContactList";
 import { usePermissionStore } from "@/store/usePermissionStore";
 import { createBookEntry } from "@/db/models/Book";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
+import {
+    formatNumber,
+    getAmountInWords,
+    formatAmountInput,
+} from "@/utils/utils";
 interface FormData {
     name: string;
     phone: string;
@@ -20,6 +26,7 @@ interface FormData {
 export default function AddRecord() {
     const router = useRouter();
     const { updateContactsGranted, contacts } = usePermissionStore();
+    const { currency } = useUserCurrency();
     useEffect(() => {
         updateContactsGranted();
     }, [updateContactsGranted]);
@@ -29,6 +36,7 @@ export default function AddRecord() {
         handleSubmit,
         formState: { errors },
         setValue,
+        watch,
     } = useForm<FormData>({
         defaultValues: {
             name: "",
@@ -43,6 +51,7 @@ export default function AddRecord() {
     const [contactSearch, setContactSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const amountValue = watch("amount");
 
     // Debounce search input to prevent excessive filtering
     useEffect(() => {
@@ -74,13 +83,7 @@ export default function AddRecord() {
     }, [contacts, debouncedSearch]);
 
     const formatAmount = (value: string) => {
-        return value.replace(/[^0-9.]/g, "");
-    };
-
-    const getAmountInWords = (amount: string, currency: string) => {
-        const num = parseFloat(amount) || 0;
-        if (num === 0) return "Zero " + currency + " Only";
-        return `${num} ${currency} Only`;
+        return formatAmountInput(value);
     };
 
     const onSubmit = useCallback(
@@ -96,7 +99,7 @@ export default function AddRecord() {
                     date: dateTimestamp,
                     description: data.purpose,
                     principalAmount: Number(data.amount),
-                    currency: "INR",
+                    currency: currency,
                     mobileNumber: data.phone,
                 });
 
@@ -205,10 +208,7 @@ export default function AddRecord() {
                             )}
                         />
                         <Text className='mt-2 text-xs text-gray-500'>
-                            {getAmountInWords(
-                                control._formValues.amount,
-                                "INR"
-                            )}
+                            {getAmountInWords(amountValue || "", currency)}
                         </Text>
                     </View>
 

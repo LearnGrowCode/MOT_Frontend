@@ -2,6 +2,12 @@ import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Input from "@/components/form/Input";
+import {
+    formatNumber,
+    getAmountInWords,
+    formatAmountInput,
+} from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 type TransactionType = "income" | "expense";
 
@@ -50,14 +56,11 @@ export default function AddTransactionRecordModal({
 }: AddTransactionRecordModalProps) {
     const [form, setForm] = useState<FormState>(INITIAL_FORM);
     const [errors, setErrors] = useState<Partial<FormState>>({});
+    const { currency } = useUserCurrency();
 
     const amountInWords = useMemo(() => {
-        const value = parseFloat(form.amount);
-        if (!Number.isFinite(value) || value === 0) {
-            return "Zero Rupees Only";
-        }
-        return `${value} Rupees Only`;
-    }, [form.amount]);
+        return getAmountInWords(form.amount, currency);
+    }, [form.amount, currency]);
 
     const handleChange = (field: keyof FormState, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -67,7 +70,7 @@ export default function AddTransactionRecordModal({
     };
 
     const handleChangeAmount = (value: string) => {
-        const cleaned = value.replace(/[^0-9.]/g, "");
+        const cleaned = formatAmountInput(value);
         handleChange("amount", cleaned);
     };
 
@@ -168,9 +171,6 @@ export default function AddTransactionRecordModal({
                                     Amount
                                 </Text>
                                 <View className='flex-row items-center'>
-                                    <Text className='text-lg font-semibold mr-2'>
-                                        ₹
-                                    </Text>
                                     <Input
                                         placeholder='0.00'
                                         value={form.amount}

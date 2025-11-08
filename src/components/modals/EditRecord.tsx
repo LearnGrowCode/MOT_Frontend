@@ -3,6 +3,7 @@ import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { PaymentRecord } from "../../type/interface";
+import { formatAmountInput } from "@/utils/utils";
 
 interface EditRecordProps {
     visible: boolean;
@@ -75,8 +76,7 @@ export default function EditRecord({
     };
 
     const formatAmount = (value: string) => {
-        const numericValue = value.replace(/[^0-9.]/g, "");
-        return numericValue;
+        return formatAmountInput(value);
     };
 
     if (!record) return null;
@@ -126,9 +126,6 @@ export default function EditRecord({
                             {/* Amount to Collect */}
                             <View>
                                 <View className='flex-row items-center mb-1'>
-                                    <Text className='text-gray-600 mr-2'>
-                                        ₹
-                                    </Text>
                                     <Text className='text-sm text-gray-600'>
                                         Amount to Collect
                                     </Text>

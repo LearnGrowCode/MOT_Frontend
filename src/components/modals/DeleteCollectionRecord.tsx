@@ -2,6 +2,8 @@ import React from "react";
 import { View, Text, Modal, Pressable } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CollectionRecord } from "../../type/interface";
+import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 interface DeleteCollectionRecordProps {
     visible: boolean;
@@ -16,6 +18,8 @@ export default function DeleteCollectionRecord({
     onDeleteRecord,
     record,
 }: DeleteCollectionRecordProps) {
+    const { currency } = useUserCurrency();
+
     const handleDelete = () => {
         if (record) {
             onDeleteRecord(record.id);
@@ -72,7 +76,11 @@ export default function DeleteCollectionRecord({
                                         Amount
                                     </Text>
                                     <Text className='text-lg font-bold text-gray-800'>
-                                        ₹{record.amount.toLocaleString("en-IN")}
+                                        {formatCurrency(
+                                            record.amount,
+                                            currency,
+                                            2
+                                        )}
                                     </Text>
                                 </View>
                                 <View className='items-end'>

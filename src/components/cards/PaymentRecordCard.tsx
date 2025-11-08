@@ -10,6 +10,7 @@ import {
     getTimeAgo,
     formatCurrency,
 } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 import {
     Accordion,
     AccordionContent,
@@ -36,6 +37,7 @@ export default function PaymentRecordCard({
     onMarkPayment,
     onOption,
 }: PaymentRecordCardProps) {
+    const { currency } = useUserCurrency();
     const [showOption, setShowOption] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
@@ -91,12 +93,7 @@ export default function PaymentRecordCard({
                                 {record.name}
                             </Text>
                             <Text className='text-xl font-bold text-gray-900'>
-                                {formatCurrency(
-                                    record.amount,
-                                    "INR",
-                                    "en-IN",
-                                    0
-                                )}
+                                {formatCurrency(record.amount, currency, 0)}
                             </Text>
                         </View>
                     </View>
@@ -186,7 +183,7 @@ export default function PaymentRecordCard({
                     </View>
                     <Text className='text-sm font-medium text-gray-700'>
                         Remaining:{" "}
-                        {formatCurrency(record.remaining, "INR", "en-IN", 2)}
+                        {formatCurrency(record.remaining, currency, 2)}
                     </Text>
                 </View>
 

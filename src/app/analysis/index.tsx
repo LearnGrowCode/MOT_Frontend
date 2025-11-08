@@ -12,7 +12,7 @@ import { PaymentRecord, CollectionRecord } from "@/type/interface";
 import {
     TrendingUp,
     TrendingDown,
-    DollarSign,
+    Coins,
     Users,
     Calendar,
 } from "lucide-react-native";
@@ -21,6 +21,8 @@ import {
     getPayBookEntries,
     getCollectBookEntries,
 } from "@/services/book/book-entry.service";
+import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 const screenWidth = Dimensions.get("window").width;
 const chartWidth = Math.max(screenWidth - 80, 220);
@@ -75,6 +77,7 @@ function buildStatusPieData(statusData: Record<string, number>) {
 }
 
 export default function AnalysisScreen() {
+    const { currency } = useUserCurrency();
     const [activeTab, setActiveTab] = useState<"overview" | "pay" | "collect">(
         "overview"
     );
@@ -290,7 +293,7 @@ export default function AnalysisScreen() {
                     >
                         <Text className='flex-1 text-gray-900'>{category}</Text>
                         <Text className='w-24 text-right text-gray-900'>
-                            ${amount.toFixed(2)}
+                            {formatCurrency(amount, currency, 2)}
                         </Text>
                         <Text className='w-14 text-right text-gray-600'>
                             {total ? Math.round((amount / total) * 100) : 0}%
@@ -302,7 +305,7 @@ export default function AnalysisScreen() {
                         Total
                     </Text>
                     <Text className='w-24 text-right font-semibold text-gray-900'>
-                        ${total.toFixed(2)}
+                        {formatCurrency(total, currency, 2)}
                     </Text>
                     <Text className='w-14 text-right font-semibold text-gray-900'>
                         100%
@@ -393,8 +396,13 @@ export default function AnalysisScreen() {
             <View className='grid grid-cols-2 gap-4'>
                 <StatCard
                     title='Net Amount'
-                    value={`$${generalStats.netAmount.toFixed(2)}`}
-                    icon={DollarSign}
+                    value={formatCurrency(
+                        generalStats.netAmount,
+                        "INR",
+                        "en-IN",
+                        2
+                    )}
+                    icon={Coins}
                     color='border-green-500'
                     trend={
                         generalStats.netAmount > 0
@@ -418,7 +426,12 @@ export default function AnalysisScreen() {
                 />
                 <StatCard
                     title='Pending Pay'
-                    value={`$${generalStats.pendingPay.toFixed(2)}`}
+                    value={formatCurrency(
+                        generalStats.pendingPay,
+                        "INR",
+                        "en-IN",
+                        2
+                    )}
                     icon={TrendingDown}
                     color='border-red-500'
                 />
@@ -432,7 +445,12 @@ export default function AnalysisScreen() {
                 <View className='flex-row justify-between items-center'>
                     <View className='items-center'>
                         <Text className='text-2xl font-bold text-green-600'>
-                            ${generalStats.totalToCollect.toFixed(2)}
+                            {formatCurrency(
+                                generalStats.totalToCollect,
+                                "INR",
+                                "en-IN",
+                                2
+                            )}
                         </Text>
                         <Text className='text-sm text-gray-600'>
                             To Collect
@@ -440,7 +458,12 @@ export default function AnalysisScreen() {
                     </View>
                     <View className='items-center'>
                         <Text className='text-2xl font-bold text-red-600'>
-                            ${generalStats.totalToPay.toFixed(2)}
+                            {formatCurrency(
+                                generalStats.totalToPay,
+                                "INR",
+                                "en-IN",
+                                2
+                            )}
                         </Text>
                         <Text className='text-sm text-gray-600'>To Pay</Text>
                     </View>
@@ -458,13 +481,23 @@ export default function AnalysisScreen() {
                 <View className='grid grid-cols-2 gap-4'>
                     <StatCard
                         title='Total Owed'
-                        value={`$${generalStats.totalToPay.toFixed(2)}`}
-                        icon={DollarSign}
+                        value={formatCurrency(
+                            generalStats.totalToPay,
+                            "INR",
+                            "en-IN",
+                            2
+                        )}
+                        icon={Coins}
                         color='border-red-500'
                     />
                     <StatCard
                         title='Paid Amount'
-                        value={`$${generalStats.paidAmount.toFixed(2)}`}
+                        value={formatCurrency(
+                            generalStats.paidAmount,
+                            "INR",
+                            "en-IN",
+                            2
+                        )}
                         icon={TrendingUp}
                         color='border-green-500'
                     />
@@ -506,13 +539,23 @@ export default function AnalysisScreen() {
                 <View className='grid grid-cols-2 gap-4'>
                     <StatCard
                         title='Total to Collect'
-                        value={`$${generalStats.totalToCollect.toFixed(2)}`}
-                        icon={DollarSign}
+                        value={formatCurrency(
+                            generalStats.totalToCollect,
+                            "INR",
+                            "en-IN",
+                            2
+                        )}
+                        icon={Coins}
                         color='border-green-500'
                     />
                     <StatCard
                         title='Collected Amount'
-                        value={`$${generalStats.collectedAmount.toFixed(2)}`}
+                        value={formatCurrency(
+                            generalStats.collectedAmount,
+                            "INR",
+                            "en-IN",
+                            2
+                        )}
                         icon={TrendingUp}
                         color='border-blue-500'
                     />

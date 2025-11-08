@@ -3,6 +3,12 @@ import { View, Text, Modal, Pressable } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { PaymentRecord } from "../../type/interface";
+import {
+    formatCurrency,
+    getAmountInWords,
+    formatAmountInput,
+} from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 interface PaymentConfirmationProps {
     visible: boolean;
@@ -19,16 +25,10 @@ export default function PaymentConfirmation({
 }: PaymentConfirmationProps) {
     const [receivedAmount, setReceivedAmount] = useState("");
     const [payer] = useState(record?.name || "");
+    const { currency } = useUserCurrency();
 
     const formatAmount = (value: string) => {
-        const numericValue = value.replace(/[^0-9.]/g, "");
-        return numericValue;
-    };
-
-    const getAmountInWords = (amount: string) => {
-        const num = parseFloat(amount) || 0;
-        if (num === 0) return "Zero Rupees Only";
-        return `${num} Rupees Only`;
+        return formatAmountInput(value);
     };
 
     const handleConfirm = () => {
@@ -81,9 +81,10 @@ export default function PaymentConfirmation({
                                     Remaining
                                 </Text>
                                 <Text className='text-xl font-bold text-blue-800'>
-                                    ₹
-                                    {(record?.remaining ?? 0).toLocaleString(
-                                        "en-IN"
+                                    {formatCurrency(
+                                        record?.remaining ?? 0,
+                                        currency,
+                                        2
                                     )}
                                 </Text>
                             </View>
@@ -95,9 +96,6 @@ export default function PaymentConfirmation({
                                 Enter the received amount
                             </Text>
                             <View className='flex-row items-center'>
-                                <Text className='text-3xl font-bold mr-2'>
-                                    ₹
-                                </Text>
                                 <View className='flex-1'>
                                     <Input
                                         placeholder='0'
@@ -113,7 +111,7 @@ export default function PaymentConfirmation({
                                 </View>
                             </View>
                             <Text className='mt-1 text-xs text-gray-500 text-center'>
-                                {getAmountInWords(receivedAmount)}
+                                {getAmountInWords(receivedAmount, currency)}
                             </Text>
                         </View>
 

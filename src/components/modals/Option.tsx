@@ -4,6 +4,7 @@ import { Card, CardContent } from "../ui/card";
 import { PaymentRecord } from "../../type/interface";
 import BottomModal from "../ui/BottomModal";
 import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 interface OptionProps {
     visible: boolean;
@@ -20,6 +21,7 @@ export default function Option({
     onDelete,
     record,
 }: OptionProps) {
+    const { currency } = useUserCurrency();
     const handleEdit = () => {
         onEdit();
         onClose();
@@ -48,7 +50,7 @@ export default function Option({
                             {record.name}
                         </Text>
                         <Text className='text-sm text-gray-600'>
-                            {formatCurrency(record.amount, "INR", "en-IN", 0)} •{" "}
+                            {formatCurrency(record.amount, currency, 0)} •{" "}
                             {record.category}
                         </Text>
                     </View>

@@ -9,7 +9,6 @@ import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
 import { Link, useFocusEffect } from "expo-router";
-// import { toPayData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
@@ -21,6 +20,9 @@ import {
 } from "@/services/book/book-entry.service";
 import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
+import { getUser, getUserPreferences, User } from "@/db/models/User";
+
+const DEFAULT_USER_ID = "1";
 
 export default function ToPayScreen() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +49,11 @@ export default function ToPayScreen() {
     const [totalToPay, setTotalToPay] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    // User data state
+    const [user, setUser] = useState<User | null>(null);
+    const [userName, setUserName] = useState<string>("");
+    const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
     const fetchRecords = useCallback(async () => {
         const [records, total] = await Promise.all([
             getPayBookEntries(),
@@ -55,11 +62,33 @@ export default function ToPayScreen() {
         return { records, total };
     }, []);
 
+    const fetchUserData = useCallback(async () => {
+        try {
+            const [userData, userPrefs] = await Promise.all([
+                getUser(DEFAULT_USER_ID),
+                getUserPreferences(DEFAULT_USER_ID),
+            ]);
+
+            if (userData) {
+                setUser(userData);
+                const firstName = userData.firstName || "";
+                const lastName = userData.lastName || "";
+                const fullName =
+                    [firstName, lastName].filter(Boolean).join(" ") || "User";
+                setUserName(fullName);
+                // Avatar would come from user preferences or user data if available
+                setUserAvatar(null);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }, []);
+
     useEffect(() => {
         let isActive = true;
         setIsLoading(true);
-        fetchRecords()
-            .then(({ records, total }) => {
+        Promise.all([fetchRecords(), fetchUserData()])
+            .then(([{ records, total }]) => {
                 if (!isActive) return;
                 setPaymentRecords(records);
                 setTotalToPay(total);
@@ -70,14 +99,14 @@ export default function ToPayScreen() {
         return () => {
             isActive = false;
         };
-    }, [fetchRecords]);
+    }, [fetchRecords, fetchUserData]);
 
     useFocusEffect(
         useCallback(() => {
             let isActive = true;
             setIsLoading(true);
-            fetchRecords()
-                .then(({ records, total }) => {
+            Promise.all([fetchRecords(), fetchUserData()])
+                .then(([{ records, total }]) => {
                     if (!isActive) return;
                     setPaymentRecords(records);
                     setTotalToPay(total);
@@ -88,7 +117,7 @@ export default function ToPayScreen() {
             return () => {
                 isActive = false;
             };
-        }, [fetchRecords])
+        }, [fetchRecords, fetchUserData])
     );
 
     const handleMarkPayment = (recordId: string) => {
@@ -252,10 +281,14 @@ export default function ToPayScreen() {
             >
                 <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
-                        userName={"You"}
-                        userAvatar={null}
-                        greet={"Welcome back!"}
-                        subGreet={"Track and settle your dues."}
+                        userName={userName || "User"}
+                        userAvatar={userAvatar}
+                        greet={
+                            userName
+                                ? `Hi, ${userName.split(" ")[0]}`
+                                : "Hi there"
+                        }
+                        subGreet="Let's see how much you owe"
                     />
                     {/* Amount to Pay Summary */}
                     <AmountSummaryCard
