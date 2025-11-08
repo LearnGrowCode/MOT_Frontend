@@ -1,11 +1,8 @@
-import { Text, View } from "react-native";
-import "../global.css";
-export default function HomeScreen() {
-    return (
-        <View className='flex-1 items-center justify-center bg-white'>
-            <Text className='text-2xl font-bold text-blue-500'>
-                Welcome to Nativewind!
-            </Text>
-        </View>
-    );
+import React from "react";
+import { Redirect } from "expo-router";
+import { useProfileStore } from "@/store/useProfileStore";
+
+export default function IndexGate() {
+    const isAuthenticated = useProfileStore((s) => s.isAuthenticated);
+    return <Redirect href={isAuthenticated ? "/home" : "/sign-in"} />;
 }

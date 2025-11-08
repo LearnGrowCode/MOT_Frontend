@@ -1,5 +1,6 @@
 {
     "expo": {
+        "jsEngine": "hermes",
         "name": "mot-react-native",
         "slug": "mot-react-native",
         "version": "1.0.0",
@@ -19,7 +20,8 @@
                 "monochromeImage": "./assets/images/android-icon-monochrome.png"
             },
             "edgeToEdgeEnabled": true,
-            "predictiveBackGestureEnabled": false
+            "predictiveBackGestureEnabled": false,
+            "package": "com.money_on_track.mot"
         },
         "web": {
             "bundler": "metro",
@@ -28,6 +30,7 @@
         },
         "plugins": [
             "expo-router",
+
             [
                 "expo-splash-screen",
                 {
@@ -46,11 +49,18 @@
                     "enableFTS": true,
                     "useSQLCipher": true
                 }
-            ]
+            ],
+            "expo-secure-store"
         ],
         "experiments": {
             "typedRoutes": true,
             "reactCompiler": true
+        },
+        "extra": {
+            "router": {},
+            "eas": {
+                "projectId": "1dedc209-df9b-41bb-99d2-b885cd5deb5a"
+            }
         }
     }
 }

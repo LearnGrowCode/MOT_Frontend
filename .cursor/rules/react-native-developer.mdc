@@ -1,0 +1,154 @@
+---
+alwaysApply: true
+---
+
+# Expo React Native Project Rules.mdc
+
+## Purpose
+
+Single source of truth for **folder structure, naming, and code rules** following **KISS, DRY, SOC, SOP**.
+
+---
+
+## Directory Layout
+
+```
+project-root/
+├─ app/
+│  ├─ _layout.tsx
+│  ├─ index.tsx
+│  ├─ (auth)/
+│  ├─ (main)/
+│  └─ (settings)/
+│
+├─ src/
+│  ├─ components/
+│  │  ├─ common/
+│  │  ├─ forms/
+│  │  └─ layout/
+│  │
+│  ├─ screens/
+│  │  └─ Home/
+│  │     ├─ HomeScreen.tsx
+│  │     └─ components/
+│  │
+│  ├─ navigation/
+│  │  ├─ RootNavigator.tsx
+│  │  └─ AuthNavigator.tsx
+│  │
+│  ├─ services/
+│  │  ├─ api/
+│  │  │  ├─ client.ts
+│  │  │  └─ user.service.ts
+│  │  ├─ storage/
+│  │  ├─ notifications/
+│  │  └─ analytics/
+│  │
+│  ├─ hooks/
+│  ├─ context/
+│  ├─ utils/
+│  ├─ styles/
+│  └─ types/
+│
+├─ assets/
+├─ .env
+├─ app.config.ts
+├─ tsconfig.json
+├─ package.json
+└─ README.md
+```
+
+---
+
+## Golden Rules
+
+### KISS
+
+- Each file does one thing only.
+- Keep nesting shallow (max 3 levels).
+- Components <150 lines ideally.
+
+### DRY
+
+- Move duplicated UI → `components/`.
+- Move logic → `hooks/` or `utils/`.
+- API logic → `services/`.
+
+### SOC / SOP
+
+- UI ↔ components/
+- State ↔ context/
+- Effects ↔ services/
+- Routing ↔ app/, navigation/
+- Styles ↔ styles/
+- Types ↔ types/
+
+---
+
+## Naming
+
+- Folders: PascalCase
+- Components: PascalCase.tsx
+- Hooks: useThing.ts
+- One export per file.
+- Tests: \*.test.tsx colocated.
+
+---
+
+## Example API Setup
+
+**src/services/api/client.ts**
+
+```ts
+export async function http<T>(path: string, init?: RequestInit): Promise<T> {
+    const res = await fetch(process.env.EXPO_PUBLIC_API_URL + path, {
+        headers: {
+            "Content-Type": "application/json",
+            ...(init?.headers || {}),
+        },
+        ...init,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json() as Promise<T>;
+}
+```
+
+**src/services/api/user.service.ts**
+
+```ts
+import { http } from "./client";
+export const UserService = {
+    me: () => http("/users/me"),
+    update: (payload) =>
+        http("/users/me", { method: "PATCH", body: JSON.stringify(payload) }),
+};
+```
+
+---
+
+## Imports (tsconfig)
+
+```json
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@components/*": ["src/components/*"],
+            "@screens/*": ["src/screens/*"],
+            "@services/*": ["src/services/*"],
+            "@hooks/*": ["src/hooks/*"],
+            "@context/*": ["src/context/*"],
+            "@utils/*": ["src/utils/*"],
+            "@styles/*": ["src/styles/*"],
+            "@types/*": ["src/types/*"],
+            "@assets/*": ["assets/*"]
+        }
+    }
+}
+```
+
+---
+
+## When in Doubt
+
+Keep it **simple, reusable, and isolated**.

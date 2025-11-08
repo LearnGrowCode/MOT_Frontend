@@ -1,0 +1,305 @@
+import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { View, Text, Pressable } from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { CardContent } from "@/components/ui/card";
+import Input from "@/components/form/Input";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { useRouter } from "expo-router";
+import ContactList from "@/components/modals/ContactList";
+import { usePermissionStore } from "@/store/usePermissionStore";
+import { createBookEntry } from "@/db/models/Book";
+interface FormData {
+    name: string;
+    phone: string;
+    amount: string;
+    borrowedDate: string;
+    purpose: string;
+}
+
+export default function AddRecord() {
+    const router = useRouter();
+    const { updateContactsGranted, contacts } = usePermissionStore();
+    useEffect(() => {
+        updateContactsGranted();
+    }, [updateContactsGranted]);
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+    } = useForm<FormData>({
+        defaultValues: {
+            name: "",
+            phone: "",
+            amount: "",
+            borrowedDate: new Date().toLocaleDateString(),
+            purpose: "",
+        },
+    });
+
+    const [contactsVisible, setContactsVisible] = useState(false);
+    const [contactSearch, setContactSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    // Debounce search input to prevent excessive filtering
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(contactSearch);
+        }, 300); // 300ms delay
+
+        return () => clearTimeout(timer);
+    }, [contactSearch]);
+
+    const filteredContacts = useMemo(() => {
+        const q = debouncedSearch.trim().toLowerCase();
+        if (!q) return contacts;
+
+        // Pre-compile search terms for better performance
+        const searchTerms = q.split(" ").filter((term) => term.length > 0);
+
+        return contacts.filter((c) => {
+            // Use pre-computed search fields for better performance
+            const searchName = c.searchName || (c.name || "").toLowerCase();
+            const searchPhone = c.searchPhone || (c.phone || "").toLowerCase();
+
+            // Check if all search terms are found in name or phone
+            return searchTerms.every(
+                (term) =>
+                    searchName.includes(term) || searchPhone.includes(term)
+            );
+        });
+    }, [contacts, debouncedSearch]);
+
+    const formatAmount = (value: string) => {
+        return value.replace(/[^0-9.]/g, "");
+    };
+
+    const getAmountInWords = (amount: string, currency: string) => {
+        const num = parseFloat(amount) || 0;
+        if (num === 0) return "Zero " + currency + " Only";
+        return `${num} ${currency} Only`;
+    };
+
+    const onSubmit = useCallback(
+        async (data: FormData) => {
+            // Use selectedDate instead of parsing the string
+            const dateTimestamp = selectedDate.getTime();
+
+            try {
+                await createBookEntry({
+                    type: "PAY",
+                    userId: "1",
+                    counterparty: data.name,
+                    date: dateTimestamp,
+                    description: data.purpose,
+                    principalAmount: Number(data.amount),
+                    currency: "INR",
+                    mobileNumber: data.phone,
+                });
+
+                router.back();
+            } catch (error) {
+                console.error("❌ Error:", error);
+            }
+        },
+        [router, selectedDate]
+    );
+
+    const handleContactSelect = useCallback(
+        (name: string, phone: string) => {
+            setValue("name", name);
+            setValue("phone", phone);
+            setContactsVisible(false);
+        },
+        [setValue]
+    );
+
+    return (
+        <View className='flex-1'>
+            <KeyboardAwareScrollView
+                keyboardShouldPersistTaps='handled'
+                contentContainerStyle={{ flexGrow: 1 }}
+                showsVerticalScrollIndicator={false}
+                style={{ flex: 1 }}
+            >
+                <CardContent className='flex flex-col p-4'>
+                    <View className='mb-6'>
+                        <Text className='text-2xl font-bold text-gray-900'>
+                            Add Entry to Pay Book
+                        </Text>
+                    </View>
+
+                    <View className='mb-4'>
+                        <Pressable
+                            onPress={() => {
+                                setContactsVisible(true);
+                            }}
+                            className='p-3 bg-gray-100 rounded-lg items-center justify-center mb-4'
+                        >
+                            <Text className='text-gray-700 font-medium'>
+                                👤 Import Contact
+                            </Text>
+                        </Pressable>
+
+                        <Text className='mb-2 text-sm font-medium text-gray-700'>
+                            Name
+                        </Text>
+
+                        <Controller
+                            control={control}
+                            name='name'
+                            rules={{ required: "Name is required" }}
+                            render={({ field: { onChange, value } }) => (
+                                <Input
+                                    placeholder='Enter name'
+                                    value={value}
+                                    onChangeText={onChange}
+                                    className='w-full'
+                                    error={errors.name?.message}
+                                />
+                            )}
+                        />
+                    </View>
+
+                    <View className='mb-4'>
+                        <Text className='mb-2 text-sm font-medium text-gray-700'>
+                            Phone Number
+                        </Text>
+                        <Controller
+                            control={control}
+                            name='phone'
+                            render={({ field: { onChange, value } }) => (
+                                <Input
+                                    placeholder='Phone Number'
+                                    value={value}
+                                    onChangeText={onChange}
+                                    keyboardType='phone-pad'
+                                    className='w-full'
+                                />
+                            )}
+                        />
+                    </View>
+
+                    <View className='mb-4'>
+                        <Text className='mb-2 text-sm font-medium text-gray-700'>
+                            Amount to Collect
+                        </Text>
+                        <Controller
+                            control={control}
+                            name='amount'
+                            rules={{ required: "Amount is required" }}
+                            render={({ field: { onChange, value } }) => (
+                                <Input
+                                    placeholder='0.00'
+                                    value={value}
+                                    onChangeText={(val) =>
+                                        onChange(formatAmount(val))
+                                    }
+                                    keyboardType='numeric'
+                                    className='w-full'
+                                    error={errors.amount?.message}
+                                />
+                            )}
+                        />
+                        <Text className='mt-2 text-xs text-gray-500'>
+                            {getAmountInWords(
+                                control._formValues.amount,
+                                "INR"
+                            )}
+                        </Text>
+                    </View>
+
+                    <View className='mb-4'>
+                        <Text className='mb-2 text-sm font-medium text-gray-700'>
+                            Borrowed Date (DD/MM/YYYY)
+                        </Text>
+                        <Controller
+                            control={control}
+                            name='borrowedDate'
+                            rules={{
+                                required: "Date is required",
+                            }}
+                            render={({ field: { onChange, value } }) => (
+                                <View className='flex-row items-center'>
+                                    <View className='flex-1'>
+                                        <Text className='text-gray-700'>
+                                            {selectedDate.toLocaleDateString()}
+                                        </Text>
+                                        {errors.borrowedDate && (
+                                            <Text className='text-red-500 text-xs mt-1'>
+                                                {errors.borrowedDate.message}
+                                            </Text>
+                                        )}
+                                    </View>
+                                    <Pressable
+                                        onPress={() => {
+                                            DateTimePickerAndroid.open({
+                                                value: selectedDate, // Use selectedDate
+                                                onChange: (event, date) => {
+                                                    if (
+                                                        event.type === "set" &&
+                                                        date
+                                                    ) {
+                                                        setSelectedDate(date); // Update selectedDate state
+                                                        onChange(
+                                                            date.toLocaleDateString()
+                                                        );
+                                                    }
+                                                },
+                                                mode: "date",
+                                            });
+                                        }}
+                                        className='ml-3 px-4 py-2 rounded-md border border-gray-300 bg-white'
+                                    >
+                                        <Text>📅</Text>
+                                    </Pressable>
+                                </View>
+                            )}
+                        />
+                    </View>
+
+                    <View className='mb-6'>
+                        <Text className='mb-2 text-sm font-medium text-gray-700'>
+                            Purpose
+                        </Text>
+                        <Controller
+                            control={control}
+                            name='purpose'
+                            rules={{ required: "Purpose is required" }}
+                            render={({ field: { onChange, value } }) => (
+                                <Input
+                                    placeholder='Enter purpose'
+                                    value={value}
+                                    onChangeText={onChange}
+                                    error={errors.purpose?.message}
+                                />
+                            )}
+                        />
+                    </View>
+
+                    <Pressable
+                        onPress={handleSubmit(onSubmit)}
+                        className='py-3 px-4 bg-blue-600 rounded-lg items-center'
+                    >
+                        <Text className='text-white font-medium'>
+                            Add Record
+                        </Text>
+                    </Pressable>
+                </CardContent>
+            </KeyboardAwareScrollView>
+
+            <ContactList
+                contactsVisible={contactsVisible}
+                contacts={contacts}
+                contactSearch={contactSearch}
+                setContactSearch={setContactSearch}
+                filteredContacts={filteredContacts}
+                onContactSelect={handleContactSelect}
+                setContactsVisible={setContactsVisible}
+            />
+        </View>
+    );
+}

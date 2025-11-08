@@ -1,50 +1,58 @@
 import {
     View,
     Text,
-    KeyboardAvoidingView,
-    Platform,
     Alert,
     TouchableOpacity,
+    ScrollView,
+    Image,
 } from "react-native";
-import React from "react";
-import Input from "../../components/form/Input";
-import PrimaryButton from "../../components/button/PrimaryButton";
-import GoogleButton from "../../components/button/GoogleButton";
-import { useNavigation } from "@react-navigation/native";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "../../components/ui/card";
-
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { useEffect, useState } from "react";
+import Input from "@/components/form/Input";
+import PrimaryButton from "@/components/button/PrimaryButton";
+import GoogleButton from "@/components/button/GoogleButton";
+import { useRouter } from "expo-router";
+import { Card } from "@/components/ui/card";
+import { SignInFormData } from "@/type/interface";
+import { useForm } from "react-hook-form";
+import { useProfileStore } from "@/store/useProfileStore";
+import { login } from "@/services/api/auth.service";
 export default function SignInScreen() {
-    const [email, setEmail] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const [errors, setErrors] = React.useState<{
-        email?: string;
-        password?: string;
-    }>({});
-    const [loading, setLoading] = React.useState(false);
-    const navigator = useNavigation();
-    const validate = () => {
-        const next: { email?: string; password?: string } = {};
-        if (!email.trim()) next.email = "Email is required";
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
-            next.email = "Enter a valid email";
-        if (!password) next.password = "Password is required";
-        if (password && password.length < 6) next.password = "Min 6 characters";
-        setErrors(next);
-        return Object.keys(next).length === 0;
-    };
+    const {
+        handleSubmit,
+        formState: { errors },
+        setValue,
+        watch,
+    } = useForm<SignInFormData>({
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const { updateToken, checkAuthentication } = useProfileStore();
 
-    const onSubmit = async () => {
-        if (!validate()) return;
+    const email = watch("email");
+    const password = watch("password");
+
+    const onSubmit = async (data: SignInFormData) => {
         setLoading(true);
         try {
-            // TODO: replace with real auth API
-            await new Promise((res) => setTimeout(res, 800));
-            Alert.alert("Signed in", `Welcome ${email}`);
+            const response = await login(data.email, data.password);
+
+            if (response.success) {
+                updateToken(
+                    response.data.refresh_token,
+                    response.data.access_token
+                );
+                router.replace("/(auth)");
+            } else {
+                Alert.alert("Sign in failed");
+            }
+        } catch (error) {
+            console.log("error", error);
+            Alert.alert("Sign in failed", "Please try again.");
         } finally {
             setLoading(false);
         }
@@ -55,98 +63,113 @@ export default function SignInScreen() {
         Alert.alert("Google", "Google sign-in pressed");
     };
 
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuthenticated = await checkAuthentication();
+            if (isAuthenticated) {
+                router.replace("/(auth)");
+            }
+        };
+        checkAuth();
+    }, [checkAuthentication, router]);
     return (
-        <View className='flex-1 bg-white'>
-            <Card className='from-blue-500 to-blue-600 bg-gradient-to-b text-white flex flex-col items-center justify-center'>
-                <CardHeader className='text-center'>
-                    <CardTitle className='text-white'>Money On Track</CardTitle>
-                </CardHeader>
-                <CardContent className='flex flex-col items-center justify-center'>
-                    <Text className='text-white'>Simple Secure Smart</Text>
-                    <Text className='text-white'>
-                        Easist way to track money you&apos;ve lent or borrowed
-                    </Text>
-                </CardContent>
-            </Card>
-            <KeyboardAvoidingView
-                className='flex-1 bg-white'
-                behavior={Platform.select({
-                    ios: "padding",
-                    android: undefined,
-                })}
-            >
-                <View className='flex-1 px-6 py-10'>
-                    <View className='mt-10' />
-                    <Text className='mb-2 text-3xl font-bold text-gray-900'>
-                        Welcome Back
-                    </Text>
-                    <Text className='mb-8 text-gray-600'>
-                        Login to your account to continue
-                    </Text>
-
-                    <Input
-                        label='Email'
-                        value={email}
-                        onChangeText={setEmail}
-                        autoCapitalize='none'
-                        keyboardType='email-address'
-                        placeholder='you@example.com'
-                        error={errors.email}
-                    />
-
-                    <Input
-                        label='Password'
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        placeholder='your password'
-                        error={errors.password}
-                    />
-
-                    <PrimaryButton
-                        title='Sign in'
-                        onPress={onSubmit}
-                        loading={loading}
-                        className='mt-2 bg-black '
-                    />
-
-                    <View className='my-6 flex-row items-center'>
-                        <View className='h-[1px] flex-1 bg-gray-200' />
-                        <Text className='mx-3 text-gray-500'>
-                            or continue with
+        <ScrollView className=' bg-slate-50'>
+            <Card className='bg-white p-5 shadow-md rounded-xl my-4 mx-3'>
+                <KeyboardAwareScrollView
+                    keyboardShouldPersistTaps='handled'
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
+                    style={{ flex: 1 }}
+                >
+                    <View className='flex-1 px-2 py-2'>
+                        <View className='items-center mb-3'>
+                            <View className='flex-row items-center'>
+                                <Image
+                                    source={require("../../../assets/images/icon.png")}
+                                    className='w-8 h-8 mr-2'
+                                />
+                                <Text className='text-xl font-bold text-gray-900'>
+                                    MOT
+                                </Text>
+                            </View>
+                        </View>
+                        <Text className='text-2xl font-bold text-gray-900 mb-1'>
+                            Welcome Back
                         </Text>
-                        <View className='h-[1px] flex-1 bg-gray-200' />
-                    </View>
+                        <Text className='text-gray-600 mb-5'>
+                            Sign in to continue
+                        </Text>
 
-                    <GoogleButton onPress={onGoogle} />
-                    <View className='my-6 flex-row items-center'>
-                        <View className='h-[1px] flex-1 bg-gray-200' />
-                        <Text className='mx-3 text-gray-500'>or</Text>
-                        <View className='h-[1px] flex-1 bg-gray-200' />
-                    </View>
-                    <View className='flex-col items-center justify-center'>
-                        <TouchableOpacity
-                            onPress={() =>
-                                navigator.navigate("/forgot-password")
-                            }
-                        >
-                            <Text className=' text-gray-500 '>
-                                Forgot your password?
+                        <Input
+                            label='Email'
+                            value={email}
+                            onChangeText={(text) => setValue("email", text)}
+                            autoCapitalize='none'
+                            keyboardType='email-address'
+                            placeholder='you@example.com'
+                            error={errors.email?.message}
+                            className='mb-3'
+                        />
+
+                        <Input
+                            label='Password'
+                            value={password}
+                            onChangeText={(text) => setValue("password", text)}
+                            secureTextEntry
+                            placeholder='your password'
+                            error={errors.password?.message}
+                            className='mb-4'
+                        />
+
+                        <PrimaryButton
+                            title='Sign in'
+                            onPress={handleSubmit(onSubmit)}
+                            loading={loading}
+                            className='bg-blue-600 hover:bg-blue-700'
+                        />
+
+                        <View className='my-4 flex-row items-center'>
+                            <View className='h-[1px] flex-1 bg-gray-200' />
+                            <Text className='mx-3 text-gray-500 font-medium'>
+                                or continue with
                             </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => navigator.navigate("/sign-up")}
-                            className='mt-2 flex flex-row items-center justify-center'
-                        >
-                            <Text className='mx-3 text-gray-500'>
-                                {" "}
-                                Don&apos;t have an account?
-                            </Text>
-                            <Text className='text-blue-600'>Sign up</Text>
-                        </TouchableOpacity>
+                            <View className='h-[1px] flex-1 bg-gray-200' />
+                        </View>
+
+                        <GoogleButton
+                            onPress={onGoogle}
+                            className='shadow-xs'
+                        />
+
+                        <View className='mt-6 flex items-center gap-3'>
+                            <TouchableOpacity
+                                onPress={() =>
+                                    router.push("/forget-password" as any)
+                                }
+                                className='hover:opacity-80'
+                            >
+                                <Text className='text-gray-600 font-medium'>
+                                    Forgot your password?
+                                </Text>
+                            </TouchableOpacity>
+
+                            <View className='flex-row items-center'>
+                                <Text className='text-gray-600'>
+                                    Don&apos;t have an account?
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={() => router.push("/sign-up")}
+                                    className='ml-2'
+                                >
+                                    <Text className='text-blue-600 font-medium'>
+                                        Sign up
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </KeyboardAvoidingView>
-        </View>
+                </KeyboardAwareScrollView>
+            </Card>
+        </ScrollView>
     );
 }
