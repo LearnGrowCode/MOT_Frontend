@@ -14,31 +14,52 @@ export interface SignInFormData {
     password: string;
 }
 
-export interface PaymentRecord {
+export interface BookEntry {
     id: string;
-    name: string;
-    amount: number;
-    borrowedDate: string;
+    counterparty: string;
+    principalAmount: number;
+    date: string;
     category: string;
     status: Status;
-    remaining: number;
-    avatar?: string | null;
-    trx_history?: TransactionRecord[];
-}
-
-export interface CollectionRecord {
-    id: string;
-    name: string;
-    amount: number;
-    lentDate: string;
-    category: string;
-    status: Status;
-    remaining: number;
-    avatar?: string | null;
-    trx_history?: TransactionRecord[];
+    remainingAmount: number;
+    settlementAmount: number;
+    interestAmount: number;
+    currency: string;
+    mobileNumber?: string;
 }
 
 export type Status = "unpaid" | "paid" | "partial" | "overdue" | "collected";
+
+/**
+ * Common base interface for book entry records (Payment and Collection)
+ * Contains all shared fields between PaymentRecord and CollectionRecord
+ */
+export interface BaseBookRecord {
+    id: string;
+    name: string;
+    amount: number;
+    category: string;
+    status: Status;
+    remaining: number;
+    avatar: string | null;
+    trx_history: TransactionRecord[];
+}
+
+/**
+ * Payment record interface for Pay Book entries
+ * Extends BaseBookRecord with borrowedDate field
+ */
+export interface PaymentRecord extends BaseBookRecord {
+    borrowedDate: string;
+}
+
+/**
+ * Collection record interface for Collect Book entries
+ * Extends BaseBookRecord with lentDate field
+ */
+export interface CollectionRecord extends BaseBookRecord {
+    lentDate: string;
+}
 
 export interface TransactionRecord {
     id: string;

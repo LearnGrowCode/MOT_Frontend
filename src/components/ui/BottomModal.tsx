@@ -31,12 +31,14 @@ export default function BottomModal({
             swipeDirection='down' // 👇 enables swipe-down to close
             animationIn='slideInUp'
             animationOut='slideOutDown'
-            hideModalContentWhileAnimating={false}
+            hideModalContentWhileAnimating={true}
             propagateSwipe={true}
             useNativeDriver={true} // Add this for better performance
-            animationInTiming={200} // Reduce animation time
-            animationOutTiming={150}
+            animationInTiming={450}
+            animationOutTiming={400}
             backdropOpacity={0.5}
+            backdropTransitionInTiming={450}
+            backdropTransitionOutTiming={400}
             style={{
                 width: "100%",
                 margin: 0,

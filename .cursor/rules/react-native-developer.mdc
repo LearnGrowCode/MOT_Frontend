@@ -17,8 +17,6 @@ project-root/
 ├─ app/
 │  ├─ _layout.tsx
 │  ├─ index.tsx
-│  ├─ (auth)/
-│  ├─ (main)/
 │  └─ (settings)/
 │
 ├─ src/

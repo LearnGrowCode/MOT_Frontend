@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, Pressable, ScrollView, Dimensions } from "react-native";
 import Modal from "react-native-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -9,69 +9,87 @@ import {
     AccordionTrigger,
 } from "../ui/accordion";
 import { X } from "lucide-react-native";
+
+// Configuration: Delay before closing modal to show selection (in milliseconds)
+const CLOSE_DELAY_MS = 1000;
+
 interface FilterAndSortProps {
     visible: boolean;
     onClose: () => void;
-    onFilterAndSort: (filters: any) => void;
+    onFilterAndSort: (filters: { filter?: string; sort?: string }) => void;
+    filterAndSort: {
+        filter: string;
+        sort: string;
+    };
 }
 
-const FILTER_OPTIONS = [
-    {
-        id: "name",
-        label: "Name",
-        subOptions: [
-            { id: "name_asc", label: "A to Z" },
-            { id: "name_desc", label: "Z to A" },
-        ],
-    },
-    {
-        id: "amount",
-        label: "Amount",
-        subOptions: [
-            { id: "amount_asc", label: "Low to High" },
-            { id: "amount_desc", label: "High to Low" },
-        ],
-    },
-    {
-        id: "date",
-        label: "Date Created",
-        subOptions: [
-            { id: "date_asc", label: "Oldest First" },
-            { id: "date_desc", label: "Newest First" },
-        ],
-    },
-
-    {
-        id: "status",
-        label: "Status",
-        subOptions: [
-            { id: "all", label: "All" },
-            { id: "unpaid", label: "Unpaid" },
-            { id: "partial", label: "Partially Paid" },
-            { id: "paid", label: "Paid" },
-        ],
-    },
-];
+const FILTER_SORT_OPTIONS = {
+    filter: [
+        { id: "all", label: "All" },
+        { id: "unpaid", label: "Unpaid" },
+        { id: "partial", label: "Partially Paid" },
+        { id: "paid", label: "Paid" },
+    ],
+    sort: [
+        {
+            id: "name",
+            label: "Name",
+            subOptions: [
+                { id: "name_asc", label: "A to Z" },
+                { id: "name_desc", label: "Z to A" },
+            ],
+        },
+        {
+            id: "amount",
+            label: "Amount",
+            subOptions: [
+                { id: "amount_asc", label: "Low to High" },
+                { id: "amount_desc", label: "High to Low" },
+            ],
+        },
+        {
+            id: "date",
+            label: "Date Created",
+            subOptions: [
+                { id: "date_asc", label: "Oldest First" },
+                { id: "date_desc", label: "Newest First" },
+            ],
+        },
+    ],
+};
 
 export default function FilterAndSort({
     visible,
     onClose,
     onFilterAndSort,
+    filterAndSort,
 }: FilterAndSortProps) {
-    const [selectedFilters, setSelectedFilters] = useState<
-        Record<string, string>
-    >({});
-
-    const handleSubOptionSelect = (optionId: string, subOptionId: string) => {
-        setSelectedFilters((prev) => ({
-            ...prev,
-            [optionId]: subOptionId,
-        }));
+    const handleFilterSelect = (filterId: string) => {
+        onFilterAndSort({
+            filter: filterId,
+        });
+        // Delay closing to show selection
+        setTimeout(() => {
+            onClose();
+        }, CLOSE_DELAY_MS);
     };
 
-    const handleApplyFilters = () => {
-        onFilterAndSort(selectedFilters);
-        onClose();
+    const handleSortSelect = (sortId: string) => {
+        // Map date_asc/date_desc to oldest/newest for backward compatibility
+        let mappedSortId = sortId;
+        if (sortId === "date_asc") {
+            mappedSortId = "oldest";
+        } else if (sortId === "date_desc") {
+            mappedSortId = "newest";
+        }
+
+        onFilterAndSort({
+            sort: mappedSortId,
+        });
+        // Delay closing to show selection
+        setTimeout(() => {
+            onClose();
+        }, CLOSE_DELAY_MS);
     };
 
     return (
@@ -82,8 +100,14 @@ export default function FilterAndSort({
             swipeDirection='down' // 👇 enables swipe-down to close
             animationIn='slideInUp'
             animationOut='slideOutDown'
-            hideModalContentWhileAnimating={false}
+            hideModalContentWhileAnimating={true}
             propagateSwipe={true}
+            useNativeDriver={true}
+            animationInTiming={450}
+            animationOutTiming={400}
+            backdropOpacity={0.5}
+            backdropTransitionInTiming={450}
+            backdropTransitionOutTiming={400}
             style={{
                 width: "100%",
                 margin: 0,
@@ -117,155 +141,141 @@ export default function FilterAndSort({
                                     <Text className='text-lg font-semibold text-gray-800'>
                                         Filter
                                     </Text>
-                                    {FILTER_OPTIONS.filter(
-                                        (option) => option.id === "status"
-                                    ).map((option) => (
-                                        <View
-                                            key={option.id}
-                                            role='group'
-                                            className='flex flex-row flex-wrap gap-2'
-                                        >
-                                            {option.subOptions.map(
-                                                (subOption) => (
+                                    <View
+                                        role='group'
+                                        className='flex flex-row flex-wrap gap-2'
+                                    >
+                                        {FILTER_SORT_OPTIONS.filter.map(
+                                            (filterOption) => {
+                                                // For "paid" filter, also check if filter is "collected" (for collection records)
+                                                const isSelected =
+                                                    filterAndSort.filter ===
+                                                        filterOption.id ||
+                                                    (filterOption.id ===
+                                                        "paid" &&
+                                                        filterAndSort.filter ===
+                                                            "collected");
+                                                return (
                                                     <Pressable
-                                                        key={subOption.id}
+                                                        key={filterOption.id}
                                                         onPress={() =>
-                                                            handleSubOptionSelect(
-                                                                option.id,
-                                                                subOption.id
+                                                            handleFilterSelect(
+                                                                filterOption.id
                                                             )
                                                         }
                                                         className={`
-                                                    py-1.5 px-3
-                                                    rounded-full
-                                                    border
-                                                    transition-all
-                                                    active:scale-95
-                                                    ${
-                                                        selectedFilters[
-                                                            option.id
-                                                        ] === subOption.id
-                                                            ? "bg-blue-50 border-blue-200"
-                                                            : "bg-white border-gray-200"
-                                                    }
-                                                    `}
+                                                            py-1.5 px-3
+                                                            rounded-full
+                                                            border
+                                                            transition-all
+                                                            active:scale-95
+                                                            ${
+                                                                isSelected
+                                                                    ? "bg-blue-50 border-blue-200"
+                                                                    : "bg-white border-gray-200"
+                                                            }
+                                                        `}
                                                     >
                                                         <Text
                                                             className={`
-                                                        text-sm
-                                                        ${
-                                                            selectedFilters[
-                                                                option.id
-                                                            ] === subOption.id
-                                                                ? "text-blue-600 font-medium"
-                                                                : "text-gray-600"
-                                                        }
-                                                        `}
+                                                                text-sm
+                                                                ${
+                                                                    isSelected
+                                                                        ? "text-blue-600 font-medium"
+                                                                        : "text-gray-600"
+                                                                }
+                                                            `}
                                                         >
-                                                            {subOption.label}
+                                                            {filterOption.label}
                                                         </Text>
                                                     </Pressable>
-                                                )
-                                            )}
-                                        </View>
-                                    ))}
+                                                );
+                                            }
+                                        )}
+                                    </View>
                                 </View>
                                 <View className=''>
                                     <Text className='text-lg font-semibold text-gray-800'>
                                         Sort
                                     </Text>
                                     <Accordion type='single' collapsible>
-                                        {FILTER_OPTIONS.filter(
-                                            (option) => option.id !== "status"
-                                        ).map((option) => (
-                                            <AccordionItem
-                                                key={option.id}
-                                                value={option.id}
-                                            >
-                                                <AccordionTrigger>
-                                                    <Text className='text-base font-medium'>
-                                                        {option.label}
-                                                    </Text>
-                                                </AccordionTrigger>
-                                                <AccordionContent>
-                                                    <View className='flex flex-row flex-wrap gap-2 '>
-                                                        {option.subOptions.map(
-                                                            (subOption) => (
-                                                                <Pressable
-                                                                    key={
-                                                                        subOption.id
-                                                                    }
-                                                                    onPress={() =>
-                                                                        handleSubOptionSelect(
-                                                                            option.id,
-                                                                            subOption.id
-                                                                        )
-                                                                    }
-                                                                    className={`
-                                                                py-2 px-4
-                                                                rounded-lg
-                                                                border
-                                                                transition-all
-                                                                active:scale-95
-                                                                ${
-                                                                    selectedFilters[
-                                                                        option
-                                                                            .id
-                                                                    ] ===
-                                                                    subOption.id
-                                                                        ? "bg-blue-50 border-blue-200"
-                                                                        : "bg-white border-gray-200"
+                                        {FILTER_SORT_OPTIONS.sort.map(
+                                            (sortOption) => (
+                                                <AccordionItem
+                                                    key={sortOption.id}
+                                                    value={sortOption.id}
+                                                >
+                                                    <AccordionTrigger>
+                                                        <Text className='text-base font-medium'>
+                                                            {sortOption.label}
+                                                        </Text>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                        <View className='flex flex-row flex-wrap gap-2 '>
+                                                            {sortOption.subOptions.map(
+                                                                (subOption) => {
+                                                                    // Check if this option is selected (handle mapping)
+                                                                    const isSelected =
+                                                                        filterAndSort.sort ===
+                                                                            subOption.id ||
+                                                                        (filterAndSort.sort ===
+                                                                            "oldest" &&
+                                                                            subOption.id ===
+                                                                                "date_asc") ||
+                                                                        (filterAndSort.sort ===
+                                                                            "newest" &&
+                                                                            subOption.id ===
+                                                                                "date_desc");
+                                                                    return (
+                                                                        <Pressable
+                                                                            key={
+                                                                                subOption.id
+                                                                            }
+                                                                            onPress={() =>
+                                                                                handleSortSelect(
+                                                                                    subOption.id
+                                                                                )
+                                                                            }
+                                                                            className={`
+                                                                                py-2 px-4
+                                                                                rounded-lg
+                                                                                border
+                                                                                transition-all
+                                                                                active:scale-95
+                                                                                ${
+                                                                                    isSelected
+                                                                                        ? "bg-blue-50 border-blue-200"
+                                                                                        : "bg-white border-gray-200"
+                                                                                }
+                                                                            `}
+                                                                        >
+                                                                            <Text
+                                                                                className={`
+                                                                                    text-sm
+                                                                                    ${
+                                                                                        isSelected
+                                                                                            ? "text-blue-600 font-medium"
+                                                                                            : "text-gray-600"
+                                                                                    }
+                                                                                `}
+                                                                            >
+                                                                                {
+                                                                                    subOption.label
+                                                                                }
+                                                                            </Text>
+                                                                        </Pressable>
+                                                                    );
                                                                 }
-                                                            `}
-                                                                >
-                                                                    <Text
-                                                                        className={`
-                                                                    text-sm
-                                                                    ${
-                                                                        selectedFilters[
-                                                                            option
-                                                                                .id
-                                                                        ] ===
-                                                                        subOption.id
-                                                                            ? "text-blue-600 font-medium"
-                                                                            : "text-gray-600"
-                                                                    }
-                                                                `}
-                                                                    >
-                                                                        {
-                                                                            subOption.label
-                                                                        }
-                                                                    </Text>
-                                                                </Pressable>
-                                                            )
-                                                        )}
-                                                    </View>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ))}
+                                                            )}
+                                                        </View>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            )
+                                        )}
                                     </Accordion>
                                 </View>
                             </CardContent>
                         </ScrollView>
-                    </View>
-
-                    <View className='flex-row gap-3 p-6 pt-4'>
-                        <Pressable
-                            onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
-                        >
-                            <Text className='text-gray-700 font-medium'>
-                                Cancel
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={handleApplyFilters}
-                            className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
-                        >
-                            <Text className='text-white font-medium'>
-                                Apply Filters
-                            </Text>
-                        </Pressable>
                     </View>
                 </Card>
             </View>

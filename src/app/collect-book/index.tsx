@@ -1,51 +1,57 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
-import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
-import { PaymentRecord } from "@/type/interface";
+import CollectionRecordCard from "@/components/cards/CollectionRecordCard";
+import { CollectionRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
 
-import EditRecord from "@/components/modals/EditRecord";
-import DeleteRecord from "@/components/modals/DeleteRecord";
-import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
+import EditCollectionRecord from "@/components/modals/EditCollectionRecord";
+import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
+import CollectionConfirmation from "@/components/modals/CollectionConfirmation";
 import { Link, useFocusEffect } from "expo-router";
-// import { toPayData } from "@/dummyData/constant";
+import { toCollectData } from "@/dummyData/constant";
 import GreetingCard from "@/components/cards/GreetingCard";
 import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
-import { BanknoteArrowDownIcon } from "lucide-react-native";
+import { BanknoteArrowUpIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
-import Option from "@/components/modals/Option";
+import CollectionOption from "@/components/modals/CollectionOption";
 import {
-    getPayBookEntries,
-    getTotalPayRemaining,
+    getCollectBookEntries,
+    getTotalCollectRemaining,
 } from "@/services/book/book-entry.service";
 import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
 
-export default function ToPayScreen() {
+export default function ToCollectScreen() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterStatus, setFilterStatus] = useState("all");
-    const [sortBy, setSortBy] = useState("newest");
+    const [filterAndSort, setFilterAndSort] = useState<{
+        filter: string;
+        sort: string;
+    }>({
+        filter: "all",
+        sort: "date_desc",
+    });
 
     const [showEditRecord, setShowEditRecord] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
-    const [showPaymentConfirmation, setShowPaymentConfirmation] =
+    const [showCollectionConfirmation, setShowCollectionConfirmation] =
         useState(false);
     const [showFilterAndSort, setShowFilterAndSort] = useState(false);
     const [showOption, setShowOption] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
-        null
-    );
+    const [selectedRecord, setSelectedRecord] =
+        useState<CollectionRecord | null>(null);
 
-    // Payment records state (loaded from DB)
-    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
-    const [totalToPay, setTotalToPay] = useState<number>(0);
+    // Collection records state (loaded from DB)
+    const [collectionRecords, setCollectionRecords] = useState<
+        CollectionRecord[]
+    >([]);
+    const [totalToCollect, setTotalToCollect] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const fetchRecords = useCallback(async () => {
         const [records, total] = await Promise.all([
-            getPayBookEntries(),
-            getTotalPayRemaining(),
+            getCollectBookEntries(),
+            getTotalCollectRemaining(),
         ]);
         return { records, total };
     }, []);
@@ -56,8 +62,8 @@ export default function ToPayScreen() {
         fetchRecords()
             .then(({ records, total }) => {
                 if (!isActive) return;
-                setPaymentRecords(records);
-                setTotalToPay(total);
+                setCollectionRecords(records);
+                setTotalToCollect(total);
             })
             .finally(() => {
                 if (isActive) setIsLoading(false);
@@ -74,8 +80,8 @@ export default function ToPayScreen() {
             fetchRecords()
                 .then(({ records, total }) => {
                     if (!isActive) return;
-                    setPaymentRecords(records);
-                    setTotalToPay(total);
+                    setCollectionRecords(records);
+                    setTotalToCollect(total);
                 })
                 .finally(() => {
                     if (isActive) setIsLoading(false);
@@ -86,29 +92,27 @@ export default function ToPayScreen() {
         }, [fetchRecords])
     );
 
-    const handleMarkPayment = (recordId: string) => {
-        const record = paymentRecords.find((r) => r.id === recordId);
+    const handleMarkCollection = (recordId: string) => {
+        const record = collectionRecords.find((r) => r.id === recordId);
         if (record) {
             setSelectedRecord(record);
-            setShowPaymentConfirmation(true);
+            setShowCollectionConfirmation(true);
         }
     };
 
-    const handleSaveRecord = async (updatedRecord: PaymentRecord) => {
+    const handleSaveRecord = async (updatedRecord: CollectionRecord) => {
         try {
-            // Persist changes to DB with recalculated remaining based on settlements
             await updateBookEntryWithPrincipal({
                 id: updatedRecord.id,
                 counterparty: updatedRecord.name,
                 principalAmount: updatedRecord.amount,
                 currency: updatedRecord.category,
             });
-
             const { records, total } = await fetchRecords();
-            setPaymentRecords(records);
-            setTotalToPay(total);
-        } catch (e) {
-            setPaymentRecords((prev) =>
+            setCollectionRecords(records);
+            setTotalToCollect(total);
+        } catch {
+            setCollectionRecords((prev) =>
                 prev.map((record) =>
                     record.id === updatedRecord.id ? updatedRecord : record
                 )
@@ -120,52 +124,68 @@ export default function ToPayScreen() {
     };
 
     const handleDeleteRecord = (recordId: string) => {
-        setPaymentRecords((prev) =>
+        setCollectionRecords((prev) =>
             prev.filter((record) => record.id !== recordId)
         );
         setShowDeleteRecord(false);
         setSelectedRecord(null);
     };
 
-    const handleConfirmPayment = async (amount: number, payer: string) => {
+    const handleConfirmCollection = async (
+        amount: number,
+        collector: string
+    ) => {
         if (selectedRecord && amount > 0) {
             try {
-                // Create settlement in database
                 await addSettlement({
                     id: uuidv4(),
                     bookEntryId: selectedRecord.id,
                     amount: amount,
                     date: Date.now(),
-                    description: `Payment from ${payer}`,
+                    description: `Collection from ${collector}`,
                 });
-
                 const { records, total } = await fetchRecords();
-                setPaymentRecords(records);
-                setTotalToPay(total);
-            } catch (error) {
-                console.error("Error adding settlement:", error);
-                // Still update UI even if there's an error (for now)
-                const updatedRecord: PaymentRecord = {
+                setCollectionRecords(records);
+                setTotalToCollect(total);
+            } catch {
+                const updatedRecord: CollectionRecord = {
                     ...selectedRecord,
                     remaining: Math.max(0, selectedRecord.remaining - amount),
                     status:
                         selectedRecord.remaining - amount <= 0
-                            ? "paid"
+                            ? "collected"
                             : "partial",
                 };
-                setPaymentRecords((prev) =>
+                setCollectionRecords((prev) =>
                     prev.map((record) =>
                         record.id === selectedRecord.id ? updatedRecord : record
                     )
                 );
             }
         }
-        setShowPaymentConfirmation(false);
+        setShowCollectionConfirmation(false);
         setSelectedRecord(null);
     };
 
-    const handleFilterAndSort = (filters: any) => {
-        console.log(filters);
+    const handleFilterAndSort = (filters: {
+        filter?: string;
+        sort?: string;
+    }) => {
+        if (filters) {
+            if (filters.filter) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    filter: filters.filter!,
+                }));
+            }
+            if (filters.sort) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    sort: filters.sort!,
+                }));
+            }
+        }
+        setShowFilterAndSort(false);
     };
 
     const handleEdit = () => {
@@ -179,34 +199,50 @@ export default function ToPayScreen() {
     const handleOption = (recordId: string) => {
         setShowOption(true);
         setSelectedRecord(
-            paymentRecords.find((r) => r.id === recordId) as PaymentRecord
+            collectionRecords.find((r) => r.id === recordId) as CollectionRecord
         );
     };
     // Derived visible records based on search/filter/sort
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    const filtered = paymentRecords.filter((record) => {
+    const filtered = collectionRecords.filter((record) => {
         const matchesQuery =
             normalizedQuery.length === 0 ||
             record.name.toLowerCase().includes(normalizedQuery) ||
             record.category.toLowerCase().includes(normalizedQuery);
+        // Map "paid" filter to "collected" status for collection records
+        const statusToMatch =
+            filterAndSort.filter === "paid"
+                ? "collected"
+                : filterAndSort.filter;
         const matchesStatus =
-            filterStatus === "all" || record.status === (filterStatus as any);
+            filterAndSort.filter === "all" ||
+            record.status === (statusToMatch as any);
         return matchesQuery && matchesStatus;
     });
 
     const visibleRecords = [...filtered].sort((a, b) => {
-        if (sortBy === "name_asc") return a.name.localeCompare(b.name);
-        if (sortBy === "name_desc") return b.name.localeCompare(a.name);
-        if (sortBy === "oldest")
-            return (
-                new Date(a.borrowedDate).getTime() -
-                new Date(b.borrowedDate).getTime()
-            );
-        // newest default
-        return (
-            new Date(b.borrowedDate).getTime() -
-            new Date(a.borrowedDate).getTime()
-        );
+        switch (filterAndSort.sort) {
+            case "name_asc":
+                return a.name.localeCompare(b.name);
+            case "name_desc":
+                return b.name.localeCompare(a.name);
+            case "amount_asc":
+                return a.amount - b.amount;
+            case "amount_desc":
+                return b.amount - a.amount;
+            case "date_asc":
+                return (
+                    new Date(a.lentDate).getTime() -
+                    new Date(b.lentDate).getTime()
+                );
+            case "date_desc":
+                return (
+                    new Date(b.lentDate).getTime() -
+                    new Date(a.lentDate).getTime()
+                );
+            default:
+                return 0;
+        }
     });
 
     return (
@@ -218,32 +254,29 @@ export default function ToPayScreen() {
             >
                 <View className='px-6 flex flex-col gap-6 py-6'>
                     <GreetingCard
-                        userName={"You"}
-                        userAvatar={null}
-                        greet={"Welcome back!"}
-                        subGreet={"Track and settle your dues."}
+                        userName={toCollectData.userName}
+                        userAvatar={toCollectData.userAvatar}
+                        greet={toCollectData.userGreeting}
+                        subGreet={toCollectData.userGreetingMessage}
                     />
-                    {/* Amount to Pay Summary */}
+                    {/* Amount to Collect Summary */}
                     <AmountSummaryCard
-                        amount={totalToPay}
-                        message={"Total remaining to pay"}
+                        amount={totalToCollect}
+                        message={"Total remaining to collect"}
                     />
                 </View>
 
-                {/* Payment Records Section */}
+                {/* Collection Records Section */}
                 <View className='px-6 pb-6'>
                     <View className='flex-row items-center justify-between mb-4'>
                         <Text className='text-lg font-bold text-gray-900'>
-                            Payment Entries
+                            Collection Entries
                         </Text>
-                        <Link href='/(auth)/collect-book' asChild>
-                            <Pressable className='bg-green-600 px-4 py-2 rounded-full flex-row items-center gap-2'>
-                                <BanknoteArrowDownIcon
-                                    size={16}
-                                    color='white'
-                                />
+                        <Link href='/pay-book' asChild>
+                            <Pressable className='bg-blue-600 px-4 py-2 rounded-full flex-row items-center gap-2'>
+                                <BanknoteArrowUpIcon size={16} color='white' />
                                 <Text className='text-white text-sm font-semibold'>
-                                    Collect Book
+                                    Pay Book
                                 </Text>
                             </Pressable>
                         </Link>
@@ -251,26 +284,26 @@ export default function ToPayScreen() {
 
                     <SearchAndFilter
                         searchQuery={searchQuery}
-                        totalRecords={paymentRecords.length}
+                        totalRecords={collectionRecords.length}
                         filteredRecords={visibleRecords.length}
                         onSearch={(q) => setSearchQuery(q)}
                         setShowFilterAndSort={setShowFilterAndSort}
                     />
 
-                    {/* Payment Record Cards */}
+                    {/* Collection Record Cards */}
                     <View className='flex gap-3 w-full'>
                         {isLoading ? (
                             <Text className='text-gray-500'>Loading...</Text>
                         ) : visibleRecords.length === 0 ? (
                             <Text className='text-gray-500'>
-                                No payment entries.
+                                No collection entries.
                             </Text>
                         ) : (
                             visibleRecords.map((record) => (
-                                <PaymentRecordCard
+                                <CollectionRecordCard
                                     key={record.id}
                                     record={record}
-                                    onMarkPayment={handleMarkPayment}
+                                    onMarkCollection={handleMarkCollection}
                                     onOption={handleOption}
                                 />
                             ))
@@ -279,39 +312,40 @@ export default function ToPayScreen() {
                 </View>
             </ScrollView>
             {/* Floating Action Button */}
-            <Link href='/(auth)/pay-book/add-record' asChild>
+            <Link href='/collect-book/add-record' asChild>
                 <FloatingActionButton
                     icon='+'
                     size='md'
-                    color='blue'
+                    color='green'
                     position='bottom-right'
                 />
             </Link>
 
-            <EditRecord
+            <EditCollectionRecord
                 visible={showEditRecord}
                 onClose={() => setShowEditRecord(false)}
                 onSaveRecord={handleSaveRecord}
                 record={selectedRecord}
             />
-            <DeleteRecord
+            <DeleteCollectionRecord
                 visible={showDeleteRecord}
                 onClose={() => setShowDeleteRecord(false)}
                 onDeleteRecord={handleDeleteRecord}
                 record={selectedRecord}
             />
-            <PaymentConfirmation
-                visible={showPaymentConfirmation}
-                onClose={() => setShowPaymentConfirmation(false)}
-                onConfirmPayment={handleConfirmPayment}
+            <CollectionConfirmation
+                visible={showCollectionConfirmation}
+                onClose={() => setShowCollectionConfirmation(false)}
+                onConfirmCollection={handleConfirmCollection}
                 record={selectedRecord}
             />
             <FilterAndSort
                 visible={showFilterAndSort}
                 onClose={() => setShowFilterAndSort(false)}
                 onFilterAndSort={handleFilterAndSort}
+                filterAndSort={filterAndSort}
             />
-            <Option
+            <CollectionOption
                 visible={showOption}
                 onClose={() => setShowOption(false)}
                 onEdit={handleEdit}
