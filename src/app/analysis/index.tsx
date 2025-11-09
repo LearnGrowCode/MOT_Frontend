@@ -396,12 +396,7 @@ export default function AnalysisScreen() {
             <View className='grid grid-cols-2 gap-4'>
                 <StatCard
                     title='Net Amount'
-                    value={formatCurrency(
-                        generalStats.netAmount,
-                        "INR",
-                        "en-IN",
-                        2
-                    )}
+                    value={formatCurrency(generalStats.netAmount, currency, 2)}
                     icon={Coins}
                     color='border-green-500'
                     trend={
@@ -426,12 +421,7 @@ export default function AnalysisScreen() {
                 />
                 <StatCard
                     title='Pending Pay'
-                    value={formatCurrency(
-                        generalStats.pendingPay,
-                        "INR",
-                        "en-IN",
-                        2
-                    )}
+                    value={formatCurrency(generalStats.pendingPay, currency, 2)}
                     icon={TrendingDown}
                     color='border-red-500'
                 />
@@ -447,8 +437,7 @@ export default function AnalysisScreen() {
                         <Text className='text-2xl font-bold text-green-600'>
                             {formatCurrency(
                                 generalStats.totalToCollect,
-                                "INR",
-                                "en-IN",
+                                currency,
                                 2
                             )}
                         </Text>
@@ -460,8 +449,7 @@ export default function AnalysisScreen() {
                         <Text className='text-2xl font-bold text-red-600'>
                             {formatCurrency(
                                 generalStats.totalToPay,
-                                "INR",
-                                "en-IN",
+                                currency,
                                 2
                             )}
                         </Text>
@@ -483,8 +471,7 @@ export default function AnalysisScreen() {
                         title='Total Owed'
                         value={formatCurrency(
                             generalStats.totalToPay,
-                            "INR",
-                            "en-IN",
+                            currency,
                             2
                         )}
                         icon={Coins}
@@ -494,8 +481,7 @@ export default function AnalysisScreen() {
                         title='Paid Amount'
                         value={formatCurrency(
                             generalStats.paidAmount,
-                            "INR",
-                            "en-IN",
+                            currency,
                             2
                         )}
                         icon={TrendingUp}
@@ -541,8 +527,7 @@ export default function AnalysisScreen() {
                         title='Total to Collect'
                         value={formatCurrency(
                             generalStats.totalToCollect,
-                            "INR",
-                            "en-IN",
+                            currency,
                             2
                         )}
                         icon={Coins}
@@ -552,8 +537,7 @@ export default function AnalysisScreen() {
                         title='Collected Amount'
                         value={formatCurrency(
                             generalStats.collectedAmount,
-                            "INR",
-                            "en-IN",
+                            currency,
                             2
                         )}
                         icon={TrendingUp}

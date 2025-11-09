@@ -27,14 +27,6 @@ export default function Layout() {
                         }}
                     >
                         <Drawer.Screen
-                            name='onboarding'
-                            options={{
-                                title: "Welcome",
-                                drawerItemStyle: { display: "none" },
-                                headerShown: false,
-                            }}
-                        />
-                        <Drawer.Screen
                             name='index'
                             options={{ title: "Home" }}
                         />

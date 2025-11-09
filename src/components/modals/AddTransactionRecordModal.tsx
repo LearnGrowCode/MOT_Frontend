@@ -2,11 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Input from "@/components/form/Input";
-import {
-    formatNumber,
-    getAmountInWords,
-    formatAmountInput,
-} from "@/utils/utils";
+import { getAmountInWords, formatAmountInput } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 type TransactionType = "income" | "expense";
@@ -55,7 +51,7 @@ export default function AddTransactionRecordModal({
     onAddTransaction,
 }: AddTransactionRecordModalProps) {
     const [form, setForm] = useState<FormState>(INITIAL_FORM);
-    const [errors, setErrors] = useState<Partial<FormState>>({});
+    const [errors, setErrors] = useState<Partial<Omit<FormState, "type">>>({});
     const { currency } = useUserCurrency();
 
     const amountInWords = useMemo(() => {
@@ -64,7 +60,7 @@ export default function AddTransactionRecordModal({
 
     const handleChange = (field: keyof FormState, value: string) => {
         setForm((prev) => ({ ...prev, [field]: value }));
-        if (errors[field]) {
+        if (field !== "type" && errors[field]) {
             setErrors((prev) => ({ ...prev, [field]: undefined }));
         }
     };
@@ -75,8 +71,8 @@ export default function AddTransactionRecordModal({
     };
 
     const validate = () => {
-        const nextErrors: Partial<FormState> = {};
-        const fieldsToValidate: (keyof FormState)[] = [
+        const nextErrors: Partial<Omit<FormState, "type">> = {};
+        const fieldsToValidate: (keyof Omit<FormState, "type">)[] = [
             "payer",
             "amount",
             "purpose",
@@ -220,18 +216,6 @@ export default function AddTransactionRecordModal({
                                     error={errors.purpose}
                                 />
                             </View>
-
-                            <Pressable className='flex-row items-center justify-between p-3 border border-gray-300 rounded-md'>
-                                <View className='flex-row items-center'>
-                                    <Text className='text-gray-600 mr-2'>
-                                        📅
-                                    </Text>
-                                    <Text className='text-sm text-gray-600'>
-                                        Advanced options
-                                    </Text>
-                                </View>
-                                <Text className='text-gray-400'>▼</Text>
-                            </Pressable>
                         </CardContent>
                     </ScrollView>
 
