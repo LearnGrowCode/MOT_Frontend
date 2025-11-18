@@ -15,11 +15,8 @@ export async function login(
         body: JSON.stringify({ email, password }),
     });
     const data = await parseJson(response);
-    await SecureStore.setItemAsync(
-        "token",
-       data.access_token ?? ""
-    );
-console.log("data", data);
+    await SecureStore.setItemAsync("token", data.access_token ?? "");
+    console.log("data", data);
     return { success: response.ok, data };
 }
 
@@ -54,9 +51,9 @@ export async function signup(
         method: "POST",
         body: JSON.stringify(body),
     });
-    
+
     const data = await parseJson(response);
-    
+
     // Store token if available in response
     if (data?.access_token) {
         await SecureStore.setItemAsync("token", data.access_token);
@@ -67,18 +64,6 @@ export async function signup(
         );
     }
 
-    return { success: response.ok, data };
-}
-
-export async function requestPasswordReset(
-    email: string
-): Promise<AuthResponse> {
-    const response = await request("/user/forgot-password/", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-    });
-
-    const data = await parseJson(response);
     return { success: response.ok, data };
 }
 

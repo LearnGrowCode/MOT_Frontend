@@ -100,13 +100,6 @@ export type SyncPullResponse = {
     } | null;
 };
 
-export function buildEmptySyncTables(): Required<SyncTablePayload> {
-    return {
-        upserts: [],
-        deletes: [],
-    };
-}
-
 /**
  * Builds sync payload from local database entries that need to be synced
  * Includes entries with is_dirty = 1 (for upserts) and deleted_at IS NOT NULL (for deletes)
