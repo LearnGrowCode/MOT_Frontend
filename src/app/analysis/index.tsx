@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+    useState,
+    useMemo,
+    useCallback,
+    useEffect,
+    useRef,
+} from "react";
 import {
     View,
     Text,
@@ -26,6 +32,13 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 
 const screenWidth = Dimensions.get("window").width;
 const chartWidth = Math.max(screenWidth - 80, 220);
+
+// Tab index mapping
+const TAB_INDEX_MAP: Record<"overview" | "pay" | "collect", number> = {
+    overview: 0,
+    pay: 1,
+    collect: 2,
+};
 
 const STATUS_LABELS: Record<string, string> = {
     paid: "Paid",
@@ -86,6 +99,7 @@ export default function AnalysisScreen() {
         []
     );
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const fetchRecords = useCallback(async () => {
         const [pay, collect] = await Promise.all([
@@ -130,6 +144,16 @@ export default function AnalysisScreen() {
             };
         }, [fetchRecords])
     );
+
+    // Update scroll position when tab changes
+    useEffect(() => {
+        const index = TAB_INDEX_MAP[activeTab];
+        // Scroll to the correct position with smooth animation
+        scrollViewRef.current?.scrollTo({
+            x: index * screenWidth,
+            animated: true,
+        });
+    }, [activeTab]);
 
     const generalStats = useMemo(() => {
         const totalToPay = payRecords.reduce(
@@ -390,6 +414,22 @@ export default function AnalysisScreen() {
         </Pressable>
     );
 
+    // Handle scroll events to update active tab
+    const handleScroll = (event: any) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const index = Math.round(offsetX / screenWidth);
+
+        // Update active tab based on scroll position
+        const tabs: ("overview" | "pay" | "collect")[] = [
+            "overview",
+            "pay",
+            "collect",
+        ];
+        if (tabs[index] && tabs[index] !== activeTab) {
+            setActiveTab(tabs[index]);
+        }
+    };
+
     const renderOverviewTab = () => (
         <View className='gap-6'>
             {/* General Stats Cards */}
@@ -574,46 +614,80 @@ export default function AnalysisScreen() {
 
     return (
         <View className='flex-1 bg-gray-50'>
-            <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-                <View className='px-6 py-6'>
-                    {/* Header */}
-                    <View className='mb-6'>
-                        <Text className='text-2xl font-bold text-gray-900 mb-2'>
-                            Financial Analysis
-                        </Text>
-                        <Text className='text-gray-600'>
-                            Track your pay and collect book performance
-                        </Text>
-                    </View>
+            {/* Header - Fixed */}
+            <View className='px-6 pt-6 pb-4 bg-gray-50'>
+                <Text className='text-2xl font-bold text-gray-900 mb-2'>
+                    Financial Analysis
+                </Text>
+                <Text className='text-gray-600'>
+                    Track your pay and collect book performance
+                </Text>
 
-                    {/* Tab Navigation */}
-                    <View className='flex-row gap-2 mb-6'>
-                        <TabButton
-                            tab='overview'
-                            label='Overview'
-                            isActive={activeTab === "overview"}
-                            onPress={() => setActiveTab("overview")}
-                        />
-                        <TabButton
-                            tab='pay'
-                            label='Pay Book'
-                            isActive={activeTab === "pay"}
-                            onPress={() => setActiveTab("pay")}
-                        />
-                        <TabButton
-                            tab='collect'
-                            label='Collect Book'
-                            isActive={activeTab === "collect"}
-                            onPress={() => setActiveTab("collect")}
-                        />
-                    </View>
-
-                    {/* Tab Content */}
-                    {activeTab === "overview" && renderOverviewTab()}
-                    {activeTab === "pay" && renderPayTab()}
-                    {activeTab === "collect" && renderCollectTab()}
+                {/* Tab Navigation */}
+                <View className='flex-row gap-2 mt-4'>
+                    <TabButton
+                        tab='overview'
+                        label='Overview'
+                        isActive={activeTab === "overview"}
+                        onPress={() => setActiveTab("overview")}
+                    />
+                    <TabButton
+                        tab='pay'
+                        label='Pay Book'
+                        isActive={activeTab === "pay"}
+                        onPress={() => setActiveTab("pay")}
+                    />
+                    <TabButton
+                        tab='collect'
+                        label='Collect Book'
+                        isActive={activeTab === "collect"}
+                        onPress={() => setActiveTab("collect")}
+                    />
                 </View>
-            </ScrollView>
+            </View>
+
+            {/* Tab Content with Slide Animation */}
+            <View className='flex-1' style={{ overflow: "hidden" }}>
+                <ScrollView
+                    ref={scrollViewRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    decelerationRate='fast'
+                    snapToInterval={screenWidth}
+                    snapToAlignment='start'
+                    contentContainerStyle={{ width: screenWidth * 3 }}
+                >
+                    {/* Overview Tab */}
+                    <ScrollView
+                        className='flex-1'
+                        showsVerticalScrollIndicator={false}
+                        style={{ width: screenWidth }}
+                    >
+                        <View className='px-6 py-4'>{renderOverviewTab()}</View>
+                    </ScrollView>
+
+                    {/* Pay Book Tab */}
+                    <ScrollView
+                        className='flex-1'
+                        showsVerticalScrollIndicator={false}
+                        style={{ width: screenWidth }}
+                    >
+                        <View className='px-6 py-4'>{renderPayTab()}</View>
+                    </ScrollView>
+
+                    {/* Collect Book Tab */}
+                    <ScrollView
+                        className='flex-1'
+                        showsVerticalScrollIndicator={false}
+                        style={{ width: screenWidth }}
+                    >
+                        <View className='px-6 py-4'>{renderCollectTab()}</View>
+                    </ScrollView>
+                </ScrollView>
+            </View>
         </View>
     );
 }

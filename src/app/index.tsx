@@ -8,7 +8,7 @@ import {
     ActivityIndicator,
 } from "react-native";
 
-import { useRouter, useFocusEffect, Router } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
     BanknoteArrowDownIcon,
     User,
@@ -17,42 +17,8 @@ import {
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import * as SecureStore from "expo-secure-store";
-import { clearDatabase, resetAppData } from "@/utils/db-utils";
 
 const ONBOARDING_COMPLETE_KEY = "onboarding_complete";
-
-// Testing function to reset onboarding
-const resetOnboarding = async (router: Router) => {
-    try {
-        await SecureStore.deleteItemAsync(ONBOARDING_COMPLETE_KEY);
-        console.log("Onboarding reset - redirecting to onboarding...");
-        // Redirect to onboarding after reset
-        router.replace("/onboarding" as any);
-    } catch (error) {
-        console.error("Error resetting onboarding:", error);
-    }
-};
-
-// Testing function to clear database
-const handleClearDatabase = async () => {
-    try {
-        await clearDatabase();
-        console.log("Database cleared successfully");
-    } catch (error) {
-        console.error("Error clearing database:", error);
-    }
-};
-
-// Testing function to reset all app data
-const handleResetAppData = async (router: Router) => {
-    try {
-        await resetAppData();
-        console.log("App data reset - redirecting to onboarding...");
-        router.replace("/onboarding" as any);
-    } catch (error) {
-        console.error("Error resetting app data:", error);
-    }
-};
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -150,40 +116,6 @@ export default function HomeScreen() {
 
     return (
         <View className='flex-1 bg-gray-50 px-6 py-8'>
-            {/* Testing: Reset Buttons - Remove in production */}
-            <View className='absolute top-12 right-6 flex-col gap-2 z-50'>
-                <Pressable
-                    onPress={() => resetOnboarding(router)}
-                    className='bg-red-500 px-3 py-2 rounded-lg'
-                    accessibilityRole='button'
-                    accessibilityLabel='Reset onboarding for testing'
-                >
-                    <Text className='text-white text-xs font-semibold'>
-                        Reset Onboarding
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={handleClearDatabase}
-                    className='bg-orange-500 px-3 py-2 rounded-lg'
-                    accessibilityRole='button'
-                    accessibilityLabel='Clear database for testing'
-                >
-                    <Text className='text-white text-xs font-semibold'>
-                        Clear DB
-                    </Text>
-                </Pressable>
-                <Pressable
-                    onPress={() => handleResetAppData(router)}
-                    className='bg-purple-500 px-3 py-2 rounded-lg'
-                    accessibilityRole='button'
-                    accessibilityLabel='Reset all app data for testing'
-                >
-                    <Text className='text-white text-xs font-semibold'>
-                        Reset All
-                    </Text>
-                </Pressable>
-            </View>
-
             <View className='flex-1 items-center justify-center'>
                 <View className='items-center justify-center mb-8'>
                     <Text className='text-3xl font-bold text-gray-900'>

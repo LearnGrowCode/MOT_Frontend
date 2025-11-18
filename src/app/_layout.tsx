@@ -28,25 +28,43 @@ export default function Layout() {
                     >
                         <Drawer.Screen
                             name='index'
-                            options={{ title: "Home" }}
+                            options={{
+                                title: "Home",
+                                drawerLabel: "Home",
+                            }}
                         />
                         <Drawer.Screen
                             name='analysis/index'
-                            options={{ title: "Analysis" }}
+                            options={{
+                                title: "Analysis",
+                                drawerLabel: "Analysis",
+                            }}
                         />
                         <Drawer.Screen
                             name='my-account/index'
-                            options={{ title: "My Account" }}
+                            options={{
+                                title: "My Account",
+                                drawerLabel: "My Account",
+                            }}
                         />
                         <Drawer.Screen
-                            name='collect-book/index'
-                            options={{ title: "Collect Book" }}
+                            name='collect-book'
+                            options={{
+                                title: "Collect Book",
+                                drawerLabel: "Collect Book",
+                            }}
                         />
                         <Drawer.Screen
-                            name='pay-book/index'
+                            name='pay-book'
                             options={{
                                 title: "Pay Book",
-                                headerShown: false,
+                                drawerLabel: "Pay Book",
+                            }}
+                        />
+                        <Drawer.Screen
+                            name='onboarding/index'
+                            options={{
+                                drawerItemStyle: { display: "none" },
                             }}
                         />
                     </Drawer>

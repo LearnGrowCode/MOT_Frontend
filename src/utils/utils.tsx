@@ -59,12 +59,18 @@ export const formatCurrency = (
 
     // If fractionDigits is specified, use it; otherwise use 0 for whole numbers, 2 for decimals
     // Ensure values are valid integers between 0 and 20
-    const maxFractionDigits =
-        fractionDigits !== undefined
-            ? Math.max(0, Math.min(20, Math.floor(fractionDigits)))
-            : isWholeNumber
-              ? 0
-              : 2;
+    // Handle invalid fractionDigits (NaN, Infinity, null, undefined, non-numbers)
+    let maxFractionDigits: number;
+    if (
+        fractionDigits !== undefined &&
+        typeof fractionDigits === "number" &&
+        !isNaN(fractionDigits) &&
+        isFinite(fractionDigits)
+    ) {
+        maxFractionDigits = Math.max(0, Math.min(20, Math.floor(fractionDigits)));
+    } else {
+        maxFractionDigits = isWholeNumber ? 0 : 2;
+    }
 
     const formattedAmount = new Intl.NumberFormat(locale, {
         style: "currency",

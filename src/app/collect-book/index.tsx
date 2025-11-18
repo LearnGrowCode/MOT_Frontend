@@ -65,18 +65,15 @@ export default function ToCollectScreen() {
 
     const fetchUserData = useCallback(async () => {
         try {
-            const [userData, userPrefs] = await Promise.all([
+            const [userData] = await Promise.all([
                 getUser(DEFAULT_USER_ID),
                 getUserPreferences(DEFAULT_USER_ID),
             ]);
 
             if (userData) {
                 setUser(userData);
-                const firstName = userData.firstName || "";
-                const lastName = userData.lastName || "";
-                const fullName =
-                    [firstName, lastName].filter(Boolean).join(" ") || "User";
-                setUserName(fullName);
+                const username = userData.username || "";
+                setUserName(username);
                 // Avatar would come from user preferences or user data if available
                 setUserAvatar(null);
             }

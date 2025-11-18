@@ -1,24 +1,19 @@
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
-
-function buildRequestInit(init?: RequestInit): RequestInit {
-    const headers = {
-        "Content-Type": "application/json",
-        ...(init?.headers ?? {}),
-    } as Record<string, string>;
-
-    return {
-        ...init,
-        headers,
-    };
-}
-
 export async function request(
     path: string,
     init?: RequestInit
 ): Promise<Response> {
+    const headers = new Headers(init?.headers);
+
+    if (init?.body && !headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+    }
+   
     const response = await fetch(
-        `${API_BASE_URL}${path}`,
-        buildRequestInit(init)
+        `https://django-mot-backend-1027288280838.asia-south1.run.app/api/v1${path}`,
+        {
+            ...init,
+            headers,
+        }
     );
     return response;
 }
@@ -40,7 +35,7 @@ export async function http<T>(path: string, init?: RequestInit): Promise<T> {
 async function safeParseJson(response: Response) {
     try {
         return await response.json();
-    } catch (error) {
+    } catch {
         return null;
     }
 }

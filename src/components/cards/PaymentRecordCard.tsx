@@ -157,8 +157,7 @@ export default function PaymentRecordCard({
                                             <Text className='text-sm font-semibold text-gray-700'>
                                                 {formatCurrency(
                                                     item.amount,
-                                                    "INR",
-                                                    "en-IN",
+                                                    currency,
                                                     2
                                                 )}
                                             </Text>
