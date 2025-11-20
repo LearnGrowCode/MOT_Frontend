@@ -91,6 +91,13 @@ export const migrations: Migration[] = [
             );`,
         ],
     },
+    {
+        id: 2,
+        up: [
+            // Add locale field to user_preferences for currency formatting
+            `ALTER TABLE user_preferences ADD COLUMN locale TEXT;`,
+        ],
+    },
 ];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {

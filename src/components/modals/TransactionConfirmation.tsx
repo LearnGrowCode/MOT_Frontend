@@ -93,7 +93,7 @@ export default function TransactionConfirmation({
                                         onChangeText={(value) =>
                                             setAmount(formatAmount(value))
                                         }
-                                        maxLength={15}
+                                        maxLength={12}
                                         autoFocus
                                         keyboardType='numeric'
                                         className='text-2xl font-bold text-center'

@@ -4,13 +4,12 @@ import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
 import { PaymentRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
+import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
-import EditRecord from "@/components/modals/EditRecord";
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
-import { Link, useFocusEffect } from "expo-router";
-import GreetingCard from "@/components/cards/GreetingCard";
-import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { BanknoteArrowDownIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import Option from "@/components/modals/Option";
@@ -18,13 +17,20 @@ import {
     getPayBookEntries,
     getTotalPayRemaining,
 } from "@/services/book/book-entry.service";
-import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
+import {
+    addSettlement,
+    updateBookEntryWithPrincipal,
+    softDeleteBookEntry,
+    deleteSettlement,
+} from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 
 const DEFAULT_USER_ID = "1";
 
 export default function ToPayScreen() {
+    const router = useRouter();
+    const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterAndSort, setFilterAndSort] = useState<{
         filter: string;
@@ -35,7 +41,6 @@ export default function ToPayScreen() {
     });
 
     const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
-    const [showEditRecord, setShowEditRecord] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showPaymentConfirmation, setShowPaymentConfirmation] =
         useState(false);
@@ -51,8 +56,6 @@ export default function ToPayScreen() {
 
     // User data state
     const [user, setUser] = useState<User | null>(null);
-    const [userName, setUserName] = useState<string>("");
-    const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
     const fetchRecords = useCallback(async () => {
         const [records, total] = await Promise.all([
@@ -71,13 +74,6 @@ export default function ToPayScreen() {
 
             if (userData) {
                 setUser(userData);
-                const firstName = userData.firstName || "";
-                const lastName = userData.lastName || "";
-                const fullName =
-                    [firstName, lastName].filter(Boolean).join(" ") || "User";
-                setUserName(fullName);
-                // Avatar would come from user preferences or user data if available
-                setUserAvatar(null);
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
@@ -128,37 +124,22 @@ export default function ToPayScreen() {
         }
     };
 
-    const handleSaveRecord = async (updatedRecord: PaymentRecord) => {
-        try {
-            // Persist changes to DB with recalculated remaining based on settlements
-            await updateBookEntryWithPrincipal({
-                id: updatedRecord.id,
-                counterparty: updatedRecord.name,
-                principalAmount: updatedRecord.amount,
-                currency: updatedRecord.category,
-            });
 
+    const handleDeleteRecord = async (recordId: string) => {
+        try {
+            await softDeleteBookEntry(recordId);
             const { records, total } = await fetchRecords();
             setPaymentRecords(records);
             setTotalToPay(total);
-        } catch {
+        } catch (error) {
+            console.error("Error deleting record:", error);
             setPaymentRecords((prev) =>
-                prev.map((record) =>
-                    record.id === updatedRecord.id ? updatedRecord : record
-                )
+                prev.filter((record) => record.id !== recordId)
             );
         } finally {
-            setShowEditRecord(false);
+            setShowDeleteRecord(false);
             setSelectedRecord(null);
         }
-    };
-
-    const handleDeleteRecord = (recordId: string) => {
-        setPaymentRecords((prev) =>
-            prev.filter((record) => record.id !== recordId)
-        );
-        setShowDeleteRecord(false);
-        setSelectedRecord(null);
     };
 
     const handleConfirmPayment = async (amount: number, payer: string) => {
@@ -221,7 +202,13 @@ export default function ToPayScreen() {
 
     const handleEdit = () => {
         setShowOption(false);
-        setShowEditRecord(true);
+        if (selectedRecord) {
+            router.push({
+                pathname: "/pay-book/edit-record",
+                params: { id: selectedRecord.id },
+            } as any);
+        }
+        setSelectedRecord(null);
     };
     const handleDelete = () => {
         setShowDeleteRecord(true);
@@ -273,56 +260,83 @@ export default function ToPayScreen() {
     });
 
     return (
-        <View className='flex-1'>
+        <View className='flex-1 bg-[#fef5f5]'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 96 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
             >
-                <View className='px-6 flex flex-col gap-6 py-6'>
-                    <GreetingCard
-                        userName={userName || "User"}
-                        userAvatar={userAvatar}
-                        greet={
-                            userName
-                                ? `Hi, ${userName.split(" ")[0]}`
-                                : "Hi there"
-                        }
-                        subGreet="Let's see how much you owe"
-                    />
-                    {/* Amount to Pay Summary */}
-                    <AmountSummaryCard
-                        amount={totalToPay}
-                        message={"Total remaining to pay"}
-                    />
+                <View className='px-4 pt-2'>
+                    {/* Header Section */}
+                    <View className='mb-6'>
+                        <View className='flex-row items-start justify-between mb-2'>
+                            <View className='flex-1'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                    Payments
+                                </Text>
+                                <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                                    Pay Book
+                                </Text>
+                            </View>
+                            <Link href='/collect-book' asChild>
+                                <Pressable className='bg-[#10b981] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#10b981]/30 ml-4'>
+                                    <BanknoteArrowDownIcon
+                                        size={18}
+                                        color='white'
+                                    />
+                                    <Text className='text-white text-sm font-semibold'>
+                                        Collect
+                                    </Text>
+                                </Pressable>
+                            </Link>
+                        </View>
+                    </View>
+
+                    {/* Hero Summary Card */}
+                    <View className='mb-6'>
+                        <View className='rounded-3xl border border-[#fecaca] bg-[#fef2f2] px-5 py-6 shadow-lg shadow-[#fca5a5]/40'>
+                            <View className='flex-1'>
+                                <Text className='text-sm font-medium text-[#dc2626] mb-1'>
+                                    Total Remaining to Pay
+                                </Text>
+                                <Text className='text-3xl font-bold text-[#991b1b] mb-1'>
+                                    {isLoading ? (
+                                        "Loading..."
+                                    ) : (
+                                        formatCurrency(totalToPay, currency, 2, "")
+                                    )}
+                                </Text>
+                                <Text className='text-sm text-[#ef4444] mt-1'>
+                                    {paymentRecords.length}{" "}
+                                    {paymentRecords.length === 1
+                                        ? "entry"
+                                        : "entries"}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Payment Records Section */}
-                <View className='px-6 pb-6'>
-                    <View className='flex-row items-center justify-between mb-4'>
-                        <Text className='text-lg font-bold text-gray-900'>
+                <View className='px-4 pb-6'>
+                    <View className='mb-4'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500 mb-2'>
+                            Records
+                        </Text>
+                        <Text className='text-xl font-bold text-stone-900'>
                             Payment Entries
                         </Text>
-                        <Link href='/collect-book' asChild>
-                            <Pressable className='bg-green-600 px-4 py-2 rounded-full flex-row items-center gap-2'>
-                                <BanknoteArrowDownIcon
-                                    size={16}
-                                    color='white'
-                                />
-                                <Text className='text-white text-sm font-semibold'>
-                                    Collect Book
-                                </Text>
-                            </Pressable>
-                        </Link>
                     </View>
 
-                    <SearchAndFilter
-                        searchQuery={searchQuery}
-                        totalRecords={paymentRecords.length}
-                        filteredRecords={visibleRecords.length}
-                        onSearch={(q) => setSearchQuery(q)}
-                        setShowFilterAndSort={setShowFilterAndSort}
-                    />
+                    <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm mb-4'>
+                        <SearchAndFilter
+                            searchQuery={searchQuery}
+                            totalRecords={paymentRecords.length}
+                            filteredRecords={visibleRecords.length}
+                            onSearch={(q) => setSearchQuery(q)}
+                            setShowFilterAndSort={setShowFilterAndSort}
+                        />
+                    </View>
 
                     {/* Payment Record Cards */}
                     <View className='flex gap-3 w-full'>
@@ -349,18 +363,13 @@ export default function ToPayScreen() {
             <Link href='/pay-book/add-record' asChild>
                 <FloatingActionButton
                     icon='+'
-                    size='md'
-                    color='blue'
+                    size='lg'
+                    color='red'
                     position='bottom-right'
+                    className='shadow-2xl shadow-red-500/50'
                 />
             </Link>
 
-            <EditRecord
-                visible={showEditRecord}
-                onClose={() => setShowEditRecord(false)}
-                onSaveRecord={handleSaveRecord}
-                record={selectedRecord}
-            />
             <DeleteRecord
                 visible={showDeleteRecord}
                 onClose={() => setShowDeleteRecord(false)}

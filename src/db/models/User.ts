@@ -24,6 +24,7 @@ export interface UserPreferences {
     userId: string;
     currency?: string;
     language?: string;
+    locale?: string; // Locale for currency formatting (e.g., "en-US", "en-IN")
     theme?: string;
     notifications?: 0 | 1;
     emailNotifications?: 0 | 1;
@@ -109,11 +110,12 @@ export async function upsertUserPreferences(
     );
     if (existing) {
         await db.runAsync(
-            `UPDATE user_preferences SET user_id = ?, currency = ?, language = ?, theme = ?, notifications = ?, email_notifications = ?, sms_notifications = ?, push_notifications = ?, remote_id = ?, updated_at = ?, is_dirty = 1 WHERE id = ?;`,
+            `UPDATE user_preferences SET user_id = ?, currency = ?, language = ?, locale = ?, theme = ?, notifications = ?, email_notifications = ?, sms_notifications = ?, push_notifications = ?, remote_id = ?, updated_at = ?, is_dirty = 1 WHERE id = ?;`,
             [
                 prefs.userId,
                 prefs.currency ?? null,
                 prefs.language ?? null,
+                prefs.locale ?? null,
                 prefs.theme ?? null,
                 prefs.notifications ?? 1,
                 prefs.emailNotifications ?? 1,
@@ -126,13 +128,14 @@ export async function upsertUserPreferences(
         );
     } else {
         await db.runAsync(
-            `INSERT INTO user_preferences (id, user_id, currency, language, theme, notifications, email_notifications, sms_notifications, push_notifications, remote_id, created_at, updated_at, deleted_at, is_dirty)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            `INSERT INTO user_preferences (id, user_id, currency, language, locale, theme, notifications, email_notifications, sms_notifications, push_notifications, remote_id, created_at, updated_at, deleted_at, is_dirty)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
                 prefs.id,
                 prefs.userId,
                 prefs.currency ?? null,
                 prefs.language ?? null,
+                prefs.locale ?? null,
                 prefs.theme ?? null,
                 prefs.notifications ?? 1,
                 prefs.emailNotifications ?? 1,
@@ -187,6 +190,7 @@ function mapPrefs(r: any): UserPreferences {
         userId: r.user_id,
         currency: r.currency ?? undefined,
         language: r.language ?? undefined,
+        locale: r.locale ?? undefined,
         theme: r.theme ?? undefined,
         notifications: r.notifications ?? 1,
         emailNotifications: r.email_notifications ?? 1,

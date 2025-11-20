@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, FlatList } from "react-native";
+import React from "react";
+import { View, Text } from "react-native";
 import { Card, CardContent } from "@/components/ui/card";
 import PrimaryButton from "@/components/button/PrimaryButton";
 import { CollectionRecord } from "@/type/interface";
@@ -17,14 +17,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { MoreVertical } from "lucide-react-native";
-import Option from "../modals/Option";
 
 interface CollectionRecordCardProps {
     record: CollectionRecord;
@@ -38,35 +31,19 @@ export default function CollectionRecordCard({
     onOption,
 }: CollectionRecordCardProps) {
     const { currency } = useUserCurrency();
-    const [showOption, setShowOption] = useState(false);
-    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
-    const [selectedRecord, setSelectedRecord] =
-        useState<CollectionRecord | null>(null);
     const getCardColorClasses = (status: CollectionRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-orange-50 border-orange-200";
+                return "bg-[#fff7ed] border-[#fed7aa]";
             case "collected":
-                return "bg-green-50 border-green-200";
+                return "bg-[#f0fdf4] border-[#bbf7d0]";
             case "partial":
-                return "bg-yellow-50 border-yellow-200";
+                return "bg-[#fefce8] border-[#fde047]";
             case "overdue":
-                return "bg-red-50 border-red-200";
+                return "bg-[#fef2f2] border-[#fecaca]";
             default:
-                return "bg-gray-50 border-gray-200";
+                return "bg-[#eef3ff] border-[#dbe4ff]";
         }
-    };
-    const handleEdit = () => {
-        setShowOption(false);
-        setShowDeleteRecord(true);
-        setShowOption(false);
-        setSelectedRecord(null);
-    };
-
-    const handleDelete = () => {
-        setShowOption(false);
-        setSelectedRecord(null);
-        // Add your delete logic here
     };
     return (
         <Card
@@ -75,8 +52,8 @@ export default function CollectionRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-12 h-12 bg-green-100 border border-green-200 rounded-xl items-center justify-center mr-4 relative'>
-                            <Text className='text-green-700 text-base font-semibold'>
+                        <View className='w-12 h-12 bg-[#dbe4ff] border border-[#93c5fd] rounded-xl items-center justify-center mr-4 relative'>
+                            <Text className='text-[#1d4ed8] text-base font-semibold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -110,21 +87,24 @@ export default function CollectionRecordCard({
                                 {getStatusText(record.status)}
                             </Text>
                         </View>
-                        <Option
-                            visible={showOption}
-                            onClose={() => setShowOption(false)}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                            record={selectedRecord}
-                        />
                     </View>
                 </View>
 
                 {/* Category line to reflect simple text like in the screenshot */}
-                <View>
+                <View className='gap-1'>
                     <Text className='text-sm text-gray-700'>
                         {record.category}
                     </Text>
+                    {record.purpose?.trim() ? (
+                        <View className='self-start px-3 py-1 rounded-full bg-white/80 border border-gray-100'>
+                            <Text
+                                className='text-xs font-medium text-gray-600'
+                                numberOfLines={1}
+                            >
+                                {record.purpose.trim()}
+                            </Text>
+                        </View>
+                    ) : null}
                 </View>
                 {record.trx_history && record.trx_history.length > 0 && (
                     <Accordion type='single' collapsible>
@@ -142,31 +122,25 @@ export default function CollectionRecordCard({
                                 </View>
                             </AccordionTrigger>
                             <AccordionContent className='bg-white pb-0'>
-                                <FlatList
-                                    data={record.trx_history}
-                                    renderItem={({ item }) => (
-                                        <View className='flex-row justify-between items-center p-3 border-b border-gray-100'>
-                                            <View className='flex-row items-center gap-2'>
-                                                <View>
-                                                    <Text className='text-sm font-medium text-gray-700'>
-                                                        {formatDate(item.date)}
-                                                    </Text>
-                                                </View>
-                                            </View>
+                                <View className='divide-y divide-gray-100'>
+                                    {record.trx_history.map((item) => (
+                                        <View
+                                            key={item.id}
+                                            className='flex-row justify-between items-center p-3'
+                                        >
+                                            <Text className='text-sm font-medium text-gray-700'>
+                                                {formatDate(item.date)}
+                                            </Text>
                                             <Text className='text-sm font-semibold text-gray-700'>
                                                 {formatCurrency(
                                                     item.amount,
                                                     "INR",
-                                                    "en-IN",
                                                     2
                                                 )}
                                             </Text>
                                         </View>
-                                    )}
-                                    ItemSeparatorComponent={() => (
-                                        <View className='h-[1px] bg-gray-100' />
-                                    )}
-                                />
+                                    ))}
+                                </View>
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
@@ -190,7 +164,7 @@ export default function CollectionRecordCard({
                     <PrimaryButton
                         title='Add Collection Record'
                         onPress={() => onMarkCollection(record.id)}
-                        className='bg-green-600 shadow-sm shadow-green-200 rounded-lg  py-2 font-thin'
+                        className='bg-[#2563eb] shadow-sm shadow-[#93c5fd] rounded-lg  py-2 font-thin'
                     />
                 )}
             </CardContent>

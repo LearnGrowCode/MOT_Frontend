@@ -4,6 +4,7 @@ import React, {
     useCallback,
     useEffect,
     useRef,
+    useContext,
 } from "react";
 import {
     View,
@@ -21,8 +22,11 @@ import {
     Coins,
     Users,
     Calendar,
+    BanknoteArrowDownIcon,
+    BanknoteArrowUpIcon,
 } from "lucide-react-native";
-import { useFocusEffect } from "expo-router";
+import { Link } from "expo-router";
+import { NavigationContext } from "@react-navigation/native";
 import {
     getPayBookEntries,
     getCollectBookEntries,
@@ -100,6 +104,7 @@ export default function AnalysisScreen() {
     );
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const scrollViewRef = useRef<ScrollView>(null);
+    const isScrollingProgrammatically = useRef<boolean>(false);
 
     const fetchRecords = useCallback(async () => {
         const [pay, collect] = await Promise.all([
@@ -126,33 +131,47 @@ export default function AnalysisScreen() {
         };
     }, [fetchRecords]);
 
-    useFocusEffect(
-        useCallback(() => {
-            let isActive = true;
+    const navigation = useContext(NavigationContext);
+
+    useEffect(() => {
+        if (!navigation) return;
+        let isMounted = true;
+
+        const loadData = () => {
             setIsLoading(true);
             fetchRecords()
                 .then(({ pay, collect }) => {
-                    if (!isActive) return;
+                    if (!isMounted) return;
                     setPayRecords(pay);
                     setCollectRecords(collect);
                 })
                 .finally(() => {
-                    if (isActive) setIsLoading(false);
+                    if (isMounted) setIsLoading(false);
                 });
-            return () => {
-                isActive = false;
-            };
-        }, [fetchRecords])
-    );
+        };
+
+        const unsubscribe = navigation.addListener("focus", loadData);
+
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
+    }, [navigation, fetchRecords]);
 
     // Update scroll position when tab changes
     useEffect(() => {
         const index = TAB_INDEX_MAP[activeTab];
+        // Mark as programmatic scroll to prevent handleScroll from interfering
+        isScrollingProgrammatically.current = true;
         // Scroll to the correct position with smooth animation
         scrollViewRef.current?.scrollTo({
             x: index * screenWidth,
             animated: true,
         });
+        // Reset flag after animation completes (300ms for smooth scroll)
+        setTimeout(() => {
+            isScrollingProgrammatically.current = false;
+        }, 300);
     }, [activeTab]);
 
     const generalStats = useMemo(() => {
@@ -353,7 +372,7 @@ export default function AnalysisScreen() {
         trend?: "up" | "down" | "neutral";
     }) => (
         <View
-            className={`p-4 rounded-xl border-l-4 ${color} bg-white shadow-sm`}
+            className={`p-4 rounded-2xl border-l-4 ${color} bg-white border border-[#e3e9f5] shadow-sm`}
         >
             <View className='flex-row items-center justify-between'>
                 <View className='flex-1'>
@@ -401,12 +420,12 @@ export default function AnalysisScreen() {
         <Pressable
             onPress={onPress}
             className={`px-4 py-2 rounded-lg ${
-                isActive ? "bg-blue-600" : "bg-gray-100"
+                isActive ? "bg-[#2563eb]" : "bg-transparent"
             }`}
         >
             <Text
-                className={`font-medium ${
-                    isActive ? "text-white" : "text-gray-700"
+                className={`font-semibold text-sm ${
+                    isActive ? "text-white" : "text-stone-600"
                 }`}
             >
                 {label}
@@ -416,6 +435,11 @@ export default function AnalysisScreen() {
 
     // Handle scroll events to update active tab
     const handleScroll = (event: any) => {
+        // Ignore scroll updates during programmatic scrolling (tab clicks)
+        if (isScrollingProgrammatically.current) {
+            return;
+        }
+
         const offsetX = event.nativeEvent.contentOffset.x;
         const index = Math.round(offsetX / screenWidth);
 
@@ -428,6 +452,23 @@ export default function AnalysisScreen() {
         if (tabs[index] && tabs[index] !== activeTab) {
             setActiveTab(tabs[index]);
         }
+    };
+
+    // Handle scroll end to sync tab when user manually swipes
+    const handleScrollEnd = (event: any) => {
+        const offsetX = event.nativeEvent.contentOffset.x;
+        const index = Math.round(offsetX / screenWidth);
+
+        const tabs: ("overview" | "pay" | "collect")[] = [
+            "overview",
+            "pay",
+            "collect",
+        ];
+        if (tabs[index] && tabs[index] !== activeTab) {
+            setActiveTab(tabs[index]);
+        }
+        // Reset programmatic scroll flag when scroll ends
+        isScrollingProgrammatically.current = false;
     };
 
     const renderOverviewTab = () => (
@@ -468,7 +509,7 @@ export default function AnalysisScreen() {
             </View>
 
             {/* Summary Charts */}
-            <View className='bg-white p-4 rounded-xl shadow-sm'>
+            <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
                 <Text className='text-lg font-bold text-gray-900 mb-4'>
                     Financial Overview
                 </Text>
@@ -530,7 +571,7 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Status Distribution */}
-                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
                     <Text className='text-lg font-bold text-gray-900 mb-4'>
                         Payment Status
                     </Text>
@@ -586,7 +627,7 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Status Distribution */}
-                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
                     <Text className='text-lg font-bold text-gray-900 mb-4'>
                         Collection Status
                     </Text>
@@ -602,7 +643,7 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Category Breakdown */}
-                <View className='bg-white p-4 rounded-xl shadow-sm'>
+                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
                     <Text className='text-lg font-bold text-gray-900 mb-4'>
                         Amount by Category
                     </Text>
@@ -613,18 +654,54 @@ export default function AnalysisScreen() {
     };
 
     return (
-        <View className='flex-1 bg-gray-50'>
+        <View className='flex-1 bg-[#f2f6fc]'>
             {/* Header - Fixed */}
-            <View className='px-6 pt-6 pb-4 bg-gray-50'>
-                <Text className='text-2xl font-bold text-gray-900 mb-2'>
-                    Financial Analysis
-                </Text>
-                <Text className='text-gray-600'>
-                    Track your pay and collect book performance
-                </Text>
+            <View
+                className='px-4 pt-6 pb-5 bg-[#f2f6fc]'
+                style={{ elevation: 4, shadowColor: "#00000011", zIndex: 5 }}
+            >
+                <View className='mb-4'>
+                    <View className='flex-row items-start justify-between mb-2'>
+                        <View className='flex-1'>
+                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                Analytics
+                            </Text>
+                            <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                                Financial Analysis
+                            </Text>
+                        </View>
+                        <View className='flex-row gap-2 ml-4'>
+                            <Link href='/pay-book' asChild>
+                                <Pressable className='bg-[#2563eb] px-3 py-2 rounded-xl flex-row items-center gap-1.5 shadow-md shadow-[#2563eb]/30'>
+                                    <BanknoteArrowDownIcon
+                                        size={16}
+                                        color='white'
+                                    />
+                                    <Text className='text-white text-xs font-semibold'>
+                                        Pay
+                                    </Text>
+                                </Pressable>
+                            </Link>
+                            <Link href='/collect-book' asChild>
+                                <Pressable className='bg-[#2563eb] px-3 py-2 rounded-xl flex-row items-center gap-1.5 shadow-md shadow-[#2563eb]/30'>
+                                    <BanknoteArrowUpIcon
+                                        size={16}
+                                        color='white'
+                                    />
+                                    <Text className='text-white text-xs font-semibold'>
+                                        Collect
+                                    </Text>
+                                </Pressable>
+                            </Link>
+                        </View>
+                    </View>
+                    <Text className='text-sm text-stone-600'>
+                        Track your pay and collect book performance
+                    </Text>
+                </View>
 
                 {/* Tab Navigation */}
-                <View className='flex-row gap-2 mt-4'>
+                <View className='flex-row gap-2 mt-4 bg-white rounded-full p-1 border border-[#e3e9f5] shadow-sm'>
                     <TabButton
                         tab='overview'
                         label='Overview'
@@ -647,13 +724,25 @@ export default function AnalysisScreen() {
             </View>
 
             {/* Tab Content with Slide Animation */}
-            <View className='flex-1' style={{ overflow: "hidden" }}>
+            <View
+                className='flex-1 bg-[#f2f6fc]'
+                style={{
+                    overflow: "hidden",
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    marginTop: -12,
+                    paddingTop: 12,
+                    elevation: 2,
+                    shadowColor: "#0000000d",
+                }}
+            >
                 <ScrollView
                     ref={scrollViewRef}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
                     onScroll={handleScroll}
+                    onMomentumScrollEnd={handleScrollEnd}
                     scrollEventThrottle={16}
                     decelerationRate='fast'
                     snapToInterval={screenWidth}

@@ -50,9 +50,9 @@ export default function FloatingActionButton({
             case "blue":
                 return "bg-blue-600";
             case "green":
-                return "bg-green-600";
+                return "bg-[#10b981]";
             case "red":
-                return "bg-red-600";
+                return "bg-[#ef4444]";
             case "purple":
                 return "bg-purple-600";
             default:
@@ -63,15 +63,15 @@ export default function FloatingActionButton({
     const getPositionClasses = () => {
         switch (position) {
             case "bottom-right":
-                return "absolute bottom-6 right-6";
+                return "absolute bottom-8 right-6 z-50";
             case "bottom-left":
-                return "absolute bottom-6 left-6";
+                return "absolute bottom-8 left-6 z-50";
             case "top-right":
-                return "absolute top-6 right-6";
+                return "absolute top-6 right-6 z-50";
             case "top-left":
-                return "absolute top-6 left-6";
+                return "absolute top-6 left-6 z-50";
             default:
-                return "absolute bottom-6 right-6";
+                return "absolute bottom-8 right-6 z-50";
         }
     };
 

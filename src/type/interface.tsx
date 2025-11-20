@@ -39,6 +39,7 @@ export interface BaseBookRecord {
     name: string;
     amount: number;
     category: string;
+    purpose?: string | null;
     status: Status;
     remaining: number;
     avatar: string | null;

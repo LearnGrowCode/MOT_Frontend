@@ -16,6 +16,13 @@ export default function PayBookLayout() {
                     animation: "slide_from_right",
                 }}
             />
+            <Stack.Screen
+                name='edit-record'
+                options={{
+                    title: "Edit Record",
+                    animation: "slide_from_right",
+                }}
+            />
         </Stack>
     );
 }

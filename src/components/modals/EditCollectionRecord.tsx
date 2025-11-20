@@ -3,12 +3,15 @@ import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { CollectionRecord } from "../../type/interface";
-import { formatAmountInput } from "@/utils/utils";
+import { formatAmountInput, formatCurrency, formatDate } from "@/utils/utils";
 
 interface EditCollectionRecordProps {
     visible: boolean;
     onClose: () => void;
-    onSaveRecord: (record: CollectionRecord) => void;
+    onSaveRecord: (
+        record: CollectionRecord,
+        options?: { deleteSettlementIds?: string[] }
+    ) => void;
     record: CollectionRecord | null;
 }
 
@@ -24,14 +27,18 @@ export default function EditCollectionRecord({
         purpose: "",
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [pendingSettlementDeletes, setPendingSettlementDeletes] = useState<
+        Set<string>
+    >(new Set());
 
     useEffect(() => {
         if (record) {
             setFormData({
                 name: record.name,
                 amount: record.amount.toString(),
-                purpose: record.category,
+                purpose: record.purpose ?? "",
             });
+            setPendingSettlementDeletes(new Set());
         }
     }, [record]);
 
@@ -60,11 +67,15 @@ export default function EditCollectionRecord({
             ...record,
             name: formData.name.trim(),
             amount: parseFloat(formData.amount) || 0,
-            category: formData.purpose,
+            purpose: formData.purpose.trim(),
             remaining: parseFloat(formData.amount) || 0,
         };
 
-        onSaveRecord(updatedRecord);
+        const deleteSettlementIds = Array.from(pendingSettlementDeletes);
+        onSaveRecord(
+            updatedRecord,
+            deleteSettlementIds.length ? { deleteSettlementIds } : undefined
+        );
         onClose();
     };
 
@@ -157,18 +168,100 @@ export default function EditCollectionRecord({
                                 />
                             </View>
 
-                            {/* Additional Details */}
-                            <Pressable className='flex-row items-center justify-between p-3 border border-gray-300 rounded-md'>
-                                <View className='flex-row items-center'>
-                                    <Text className='text-gray-600 mr-2'>
-                                        📄
-                                    </Text>
-                                    <Text className='text-sm text-gray-600'>
-                                        Additional Details
-                                    </Text>
+                            {/* Settlement Management */}
+                            <View className='bg-red-50 border border-red-100 rounded-xl p-4 gap-3'>
+                                <View className='flex-row items-center gap-2'>
+                                    <Text className='text-lg'>⚠️</Text>
+                                    <View className='flex-1'>
+                                        <Text className='text-sm font-semibold text-red-700'>
+                                            Delete settlements
+                                        </Text>
+                                        <Text className='text-xs text-red-600 mt-1'>
+                                            Tap a settlement below to mark it
+                                            for deletion. Nothing is removed
+                                            until you hit Save Changes.
+                                        </Text>
+                                    </View>
                                 </View>
-                                <Text className='text-gray-400'>▼</Text>
-                            </Pressable>
+                                {record.trx_history?.length ? (
+                                    record.trx_history.map((item) => {
+                                        const isMarked =
+                                            pendingSettlementDeletes.has(
+                                                item.id
+                                            );
+                                        return (
+                                            <Pressable
+                                                key={item.id}
+                                                onPress={() =>
+                                                    setPendingSettlementDeletes(
+                                                        (prev) => {
+                                                            const next =
+                                                                new Set(prev);
+                                                            if (
+                                                                next.has(
+                                                                    item.id
+                                                                )
+                                                            ) {
+                                                                next.delete(
+                                                                    item.id
+                                                                );
+                                                            } else {
+                                                                next.add(
+                                                                    item.id
+                                                                );
+                                                            }
+                                                            return next;
+                                                        }
+                                                    )
+                                                }
+                                                className={`flex-row items-center justify-between px-3 py-2 rounded-lg border ${
+                                                    isMarked
+                                                        ? "border-red-400 bg-white"
+                                                        : "border-transparent"
+                                                }`}
+                                            >
+                                                <View>
+                                                    <Text className='text-sm font-semibold text-gray-800'>
+                                                        {formatCurrency(
+                                                            item.amount,
+                                                            record.category,
+                                                            2
+                                                        )}
+                                                    </Text>
+                                                    <Text className='text-xs text-gray-500'>
+                                                        {formatDate(item.date)}
+                                                    </Text>
+                                                </View>
+                                                <Text
+                                                    className={`text-xs font-semibold ${
+                                                        isMarked
+                                                            ? "text-red-600"
+                                                            : "text-gray-400"
+                                                    }`}
+                                                >
+                                                    {isMarked
+                                                        ? "Will delete"
+                                                        : "Tap to remove"}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })
+                                ) : (
+                                    <Text className='text-xs text-gray-500'>
+                                        No settlements to manage yet.
+                                    </Text>
+                                )}
+                                {pendingSettlementDeletes.size > 0 && (
+                                    <Text className='text-xs text-red-500'>
+                                        {pendingSettlementDeletes.size}{" "}
+                                        settlement
+                                        {pendingSettlementDeletes.size > 1
+                                            ? "s"
+                                            : ""}{" "}
+                                        will be deleted once you save.
+                                    </Text>
+                                )}
+                            </View>
                         </CardContent>
                     </ScrollView>
 

@@ -3,12 +3,15 @@ import { View, Text, Modal, Pressable, ScrollView } from "react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import Input from "../form/Input";
 import { PaymentRecord } from "../../type/interface";
-import { formatAmountInput } from "@/utils/utils";
+import { formatAmountInput, formatCurrency, formatDate } from "@/utils/utils";
 
 interface EditRecordProps {
     visible: boolean;
     onClose: () => void;
-    onSaveRecord: (record: PaymentRecord) => void;
+    onSaveRecord: (
+        record: PaymentRecord,
+        options?: { deleteSettlementIds?: string[] }
+    ) => void;
     record: PaymentRecord | null;
 }
 
@@ -24,14 +27,18 @@ export default function EditRecord({
         purpose: "",
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [pendingSettlementDeletes, setPendingSettlementDeletes] = useState<
+        Set<string>
+    >(new Set());
 
     useEffect(() => {
         if (record) {
             setFormData({
                 name: record.name,
                 amount: record.amount.toString(),
-                purpose: record.category,
+                purpose: record.purpose ?? "",
             });
+            setPendingSettlementDeletes(new Set());
         }
     }, [record]);
 
@@ -67,11 +74,17 @@ export default function EditRecord({
             ...record,
             name: formData.name.trim(),
             amount: newAmount,
-            category: formData.purpose,
+            purpose: formData.purpose.trim(),
             remaining: newRemaining,
         };
 
-        onSaveRecord(updatedRecord);
+        const deleteSettlementIds = Array.from(pendingSettlementDeletes);
+        onSaveRecord(
+            updatedRecord,
+            deleteSettlementIds.length
+                ? { deleteSettlementIds }
+                : undefined
+        );
         onClose();
     };
 
@@ -120,6 +133,7 @@ export default function EditRecord({
                                         handleInputChange("name", value)
                                     }
                                     error={errors.name}
+                                    maxLength={30}
                                 />
                             </View>
 
@@ -139,6 +153,7 @@ export default function EditRecord({
                                             formatAmount(value)
                                         )
                                     }
+                                    maxLength={12}
                                     keyboardType='numeric'
                                     error={errors.amount}
                                 />
@@ -160,22 +175,104 @@ export default function EditRecord({
                                     onChangeText={(value) =>
                                         handleInputChange("purpose", value)
                                     }
+                                    maxLength={30}
                                     error={errors.purpose}
                                 />
                             </View>
 
-                            {/* Additional Details */}
-                            <Pressable className='flex-row items-center justify-between p-3 border border-gray-300 rounded-md'>
-                                <View className='flex-row items-center'>
-                                    <Text className='text-gray-600 mr-2'>
-                                        📄
-                                    </Text>
-                                    <Text className='text-sm text-gray-600'>
-                                        Additional Details
-                                    </Text>
+                            {/* Payment Management */}
+                            <View className='bg-red-50 border border-red-100 rounded-xl p-4 gap-3'>
+                                <View className='flex-row items-center gap-2'>
+                                    <Text className='text-lg'>⚠️</Text>
+                                    <View className='flex-1'>
+                                        <Text className='text-sm font-semibold text-red-700'>
+                                            Delete payments
+                                        </Text>
+                                        <Text className='text-xs text-red-600 mt-1'>
+                                            Tap a payment below to mark it for
+                                            deletion. Nothing is removed until
+                                            you save.
+                                        </Text>
+                                    </View>
                                 </View>
-                                <Text className='text-gray-400'>▼</Text>
-                            </Pressable>
+                                {record.trx_history?.length ? (
+                                    record.trx_history.map((item) => {
+                                        const isMarked =
+                                            pendingSettlementDeletes.has(
+                                                item.id
+                                            );
+                                        return (
+                                            <Pressable
+                                                key={item.id}
+                                                onPress={() =>
+                                                    setPendingSettlementDeletes(
+                                                        (prev) => {
+                                                            const next =
+                                                                new Set(prev);
+                                                            if (
+                                                                next.has(
+                                                                    item.id
+                                                                )
+                                                            ) {
+                                                                next.delete(
+                                                                    item.id
+                                                                );
+                                                            } else {
+                                                                next.add(
+                                                                    item.id
+                                                                );
+                                                            }
+                                                            return next;
+                                                        }
+                                                    )
+                                                }
+                                                className={`flex-row items-center justify-between px-3 py-2 rounded-lg border ${
+                                                    isMarked
+                                                        ? "border-red-400 bg-white"
+                                                        : "border-transparent"
+                                                }`}
+                                            >
+                                                <View>
+                                                    <Text className='text-sm font-semibold text-gray-800'>
+                                                        {formatCurrency(
+                                                            item.amount,
+                                                            record.category,
+                                                            2
+                                                        )}
+                                                    </Text>
+                                                    <Text className='text-xs text-gray-500'>
+                                                        {formatDate(item.date)}
+                                                    </Text>
+                                                </View>
+                                                <Text
+                                                    className={`text-xs font-semibold ${
+                                                        isMarked
+                                                            ? "text-red-600"
+                                                            : "text-gray-400"
+                                                    }`}
+                                                >
+                                                    {isMarked
+                                                        ? "Will delete"
+                                                        : "Tap to remove"}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })
+                                ) : (
+                                    <Text className='text-xs text-gray-500'>
+                                        No payments to manage yet.
+                                    </Text>
+                                )}
+                                {pendingSettlementDeletes.size > 0 && (
+                                    <Text className='text-xs text-red-500'>
+                                        {pendingSettlementDeletes.size} payment
+                                        {pendingSettlementDeletes.size > 1
+                                            ? "s"
+                                            : ""}{" "}
+                                        will be deleted once you save.
+                                    </Text>
+                                )}
+                            </View>
                         </CardContent>
                     </ScrollView>
 

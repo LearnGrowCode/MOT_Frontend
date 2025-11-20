@@ -64,7 +64,11 @@ export default function Layout() {
                         <Drawer.Screen
                             name='onboarding/index'
                             options={{
-                                drawerItemStyle: { display: "none" },
+                                title: "Onboarding",
+                                drawerLabel: "Onboarding",
+                                drawerItemStyle: {
+                                    display: "none",
+                                }
                             }}
                         />
                     </Drawer>

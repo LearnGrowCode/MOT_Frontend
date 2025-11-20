@@ -1,30 +1,32 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Alert, Share } from "react-native";
 import CollectionRecordCard from "@/components/cards/CollectionRecordCard";
 import { CollectionRecord } from "@/type/interface";
 import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
+import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 
-import EditCollectionRecord from "@/components/modals/EditCollectionRecord";
 import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
 import CollectionConfirmation from "@/components/modals/CollectionConfirmation";
-import { Link, useFocusEffect } from "expo-router";
-import GreetingCard from "@/components/cards/GreetingCard";
-import AmountSummaryCard from "@/components/cards/AmountSummaryCard";
+import { Link, useFocusEffect, useRouter } from "expo-router";
 import { BanknoteArrowUpIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import CollectionOption from "@/components/modals/CollectionOption";
+import ReminderModal from "@/components/modals/ReminderModal";
 import {
     getCollectBookEntries,
     getTotalCollectRemaining,
 } from "@/services/book/book-entry.service";
-import { addSettlement, updateBookEntryWithPrincipal } from "@/db/models/Book";
+import { addSettlement, softDeleteBookEntry } from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 
 const DEFAULT_USER_ID = "1";
 
 export default function ToCollectScreen() {
+    const router = useRouter();
+    const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterAndSort, setFilterAndSort] = useState<{
         filter: string;
@@ -34,12 +36,12 @@ export default function ToCollectScreen() {
         sort: "date_desc",
     });
 
-    const [showEditRecord, setShowEditRecord] = useState(false);
     const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showCollectionConfirmation, setShowCollectionConfirmation] =
         useState(false);
     const [showFilterAndSort, setShowFilterAndSort] = useState(false);
     const [showOption, setShowOption] = useState(false);
+    const [showReminderModal, setShowReminderModal] = useState(false);
     const [selectedRecord, setSelectedRecord] =
         useState<CollectionRecord | null>(null);
 
@@ -51,9 +53,7 @@ export default function ToCollectScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // User data state
-    const [user, setUser] = useState<User | null>(null);
-    const [userName, setUserName] = useState<string>("");
-    const [userAvatar, setUserAvatar] = useState<string | null>(null);
+    const [, setUser] = useState<User | null>(null);
 
     const fetchRecords = useCallback(async () => {
         const [records, total] = await Promise.all([
@@ -72,10 +72,6 @@ export default function ToCollectScreen() {
 
             if (userData) {
                 setUser(userData);
-                const username = userData.username || "";
-                setUserName(username);
-                // Avatar would come from user preferences or user data if available
-                setUserAvatar(null);
             }
         } catch (error) {
             console.error("Error fetching user data:", error);
@@ -126,35 +122,21 @@ export default function ToCollectScreen() {
         }
     };
 
-    const handleSaveRecord = async (updatedRecord: CollectionRecord) => {
+    const handleDeleteRecord = async (recordId: string) => {
         try {
-            await updateBookEntryWithPrincipal({
-                id: updatedRecord.id,
-                counterparty: updatedRecord.name,
-                principalAmount: updatedRecord.amount,
-                currency: updatedRecord.category,
-            });
+            await softDeleteBookEntry(recordId);
             const { records, total } = await fetchRecords();
             setCollectionRecords(records);
             setTotalToCollect(total);
-        } catch {
+        } catch (error) {
+            console.error("Error deleting record:", error);
             setCollectionRecords((prev) =>
-                prev.map((record) =>
-                    record.id === updatedRecord.id ? updatedRecord : record
-                )
+                prev.filter((record) => record.id !== recordId)
             );
         } finally {
-            setShowEditRecord(false);
+            setShowDeleteRecord(false);
             setSelectedRecord(null);
         }
-    };
-
-    const handleDeleteRecord = (recordId: string) => {
-        setCollectionRecords((prev) =>
-            prev.filter((record) => record.id !== recordId)
-        );
-        setShowDeleteRecord(false);
-        setSelectedRecord(null);
     };
 
     const handleConfirmCollection = async (
@@ -216,11 +198,38 @@ export default function ToCollectScreen() {
 
     const handleEdit = () => {
         setShowOption(false);
-        setShowEditRecord(true);
+        if (selectedRecord) {
+            router.push({
+                pathname: "/collect-book/edit-record",
+                params: { id: selectedRecord.id },
+            } as any);
+        }
+        setSelectedRecord(null);
     };
     const handleDelete = () => {
         setShowDeleteRecord(true);
         setShowOption(false);
+    };
+    const handleSendReminderPress = () => {
+        setShowOption(false);
+        setShowReminderModal(true);
+    };
+    const handleSendReminder = async (message: string) => {
+        if (!selectedRecord || !message) {
+            setShowReminderModal(false);
+            return;
+        }
+        try {
+            await Share.share({ message });
+        } catch (error) {
+            console.error("Error sharing reminder:", error);
+            Alert.alert(
+                "Unable to share reminder",
+                "Please try again in a moment."
+            );
+        } finally {
+            setShowReminderModal(false);
+        }
     };
     const handleOption = (recordId: string) => {
         setShowOption(true);
@@ -272,53 +281,86 @@ export default function ToCollectScreen() {
     });
 
     return (
-        <View className='flex-1'>
+        <View className='flex-1 bg-[#f0fdf4]'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 96 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
             >
-                <View className='px-6 flex flex-col gap-6 py-6'>
-                    <GreetingCard
-                        userName={userName || "User"}
-                        userAvatar={userAvatar}
-                        greet={
-                            userName
-                                ? `Hi, ${userName.split(" ")[0]}`
-                                : "Hi there"
-                        }
-                        subGreet="Let's see how much you need to collect"
-                    />
-                    {/* Amount to Collect Summary */}
-                    <AmountSummaryCard
-                        amount={totalToCollect}
-                        message={"Total remaining to collect"}
-                    />
+                <View className='px-4 pt-2'>
+                    {/* Header Section */}
+                    <View className='mb-6'>
+                        <View className='flex-row items-start justify-between mb-2'>
+                            <View className='flex-1'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                    Collections
+                                </Text>
+                                <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                                    Collect Book
+                                </Text>
+                            </View>
+                            <Link href='/pay-book' asChild>
+                                <Pressable className='bg-[#ef4444] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#ef4444]/30 ml-4'>
+                                    <BanknoteArrowUpIcon
+                                        size={18}
+                                        color='white'
+                                    />
+                                    <Text className='text-white text-sm font-semibold'>
+                                        Pay
+                                    </Text>
+                                </Pressable>
+                            </Link>
+                        </View>
+                    </View>
+
+                    {/* Hero Summary Card */}
+                    <View className='mb-6'>
+                        <View className='rounded-3xl border border-[#bbf7d0] bg-[#f0fdf4] px-5 py-6 shadow-lg shadow-[#86efac]/40'>
+                            <View className='flex-1'>
+                                <Text className='text-sm font-medium text-[#16a34a] mb-1'>
+                                    Total Remaining to Collect
+                                </Text>
+                                <Text className='text-3xl font-bold text-[#166534] mb-1'>
+                                    {isLoading
+                                        ? "Loading..."
+                                        : formatCurrency(
+                                              totalToCollect,
+                                              currency,
+                                              2,
+                                              ""
+                                          )}
+                                </Text>
+                                <Text className='text-sm text-[#22c55e] mt-1'>
+                                    {collectionRecords.length}{" "}
+                                    {collectionRecords.length === 1
+                                        ? "entry"
+                                        : "entries"}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
                 </View>
 
                 {/* Collection Records Section */}
-                <View className='px-6 pb-6'>
-                    <View className='flex-row items-center justify-between mb-4'>
-                        <Text className='text-lg font-bold text-gray-900'>
+                <View className='px-4 pb-6'>
+                    <View className='mb-4'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500 mb-2'>
+                            Records
+                        </Text>
+                        <Text className='text-xl font-bold text-stone-900'>
                             Collection Entries
                         </Text>
-                        <Link href='/pay-book' asChild>
-                            <Pressable className='bg-blue-600 px-4 py-2 rounded-full flex-row items-center gap-2'>
-                                <BanknoteArrowUpIcon size={16} color='white' />
-                                <Text className='text-white text-sm font-semibold'>
-                                    Pay Book
-                                </Text>
-                            </Pressable>
-                        </Link>
                     </View>
 
-                    <SearchAndFilter
-                        searchQuery={searchQuery}
-                        totalRecords={collectionRecords.length}
-                        filteredRecords={visibleRecords.length}
-                        onSearch={(q) => setSearchQuery(q)}
-                        setShowFilterAndSort={setShowFilterAndSort}
-                    />
+                    <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm mb-4'>
+                        <SearchAndFilter
+                            searchQuery={searchQuery}
+                            totalRecords={collectionRecords.length}
+                            filteredRecords={visibleRecords.length}
+                            onSearch={(q) => setSearchQuery(q)}
+                            setShowFilterAndSort={setShowFilterAndSort}
+                        />
+                    </View>
 
                     {/* Collection Record Cards */}
                     <View className='flex gap-3 w-full'>
@@ -345,18 +387,13 @@ export default function ToCollectScreen() {
             <Link href='/collect-book/add-record' asChild>
                 <FloatingActionButton
                     icon='+'
-                    size='md'
+                    size='lg'
                     color='green'
                     position='bottom-right'
+                    className='shadow-2xl shadow-green-500/50'
                 />
             </Link>
 
-            <EditCollectionRecord
-                visible={showEditRecord}
-                onClose={() => setShowEditRecord(false)}
-                onSaveRecord={handleSaveRecord}
-                record={selectedRecord}
-            />
             <DeleteCollectionRecord
                 visible={showDeleteRecord}
                 onClose={() => setShowDeleteRecord(false)}
@@ -380,7 +417,14 @@ export default function ToCollectScreen() {
                 onClose={() => setShowOption(false)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onSendReminder={handleSendReminderPress}
                 record={selectedRecord}
+            />
+            <ReminderModal
+                visible={showReminderModal}
+                onClose={() => setShowReminderModal(false)}
+                record={selectedRecord}
+                onSendReminder={handleSendReminder}
             />
         </View>
     );

@@ -176,6 +176,62 @@ export async function addSettlement(
     });
 }
 
+export async function deleteSettlement(settlementId: string): Promise<void> {
+    const db = await getDb();
+    const ts = nowTs();
+
+    await db.withTransactionAsync(async () => {
+        const settlement = await db.getFirstAsync<any>(
+            `SELECT * FROM settlements WHERE id = ? AND (deleted_at IS NULL OR deleted_at = 0);`,
+            [settlementId]
+        );
+        if (!settlement) return;
+
+        await db.runAsync(
+            `UPDATE settlements
+             SET deleted_at = ?, updated_at = ?, is_dirty = 1
+             WHERE id = ?;`,
+            [ts, ts, settlementId]
+        );
+
+        const bookRow = await db.getFirstAsync<any>(
+            `SELECT principal_amount, settlement_amount
+             FROM book_entries
+             WHERE id = ?;`,
+            [settlement.book_entry_id]
+        );
+
+        if (!bookRow) return;
+
+        const principal = Number(bookRow.principal_amount) || 0;
+        let settlementTotal = Math.max(
+            0,
+            Number(bookRow.settlement_amount) - Number(settlement.amount)
+        );
+        const interest =
+            settlementTotal > principal ? settlementTotal - principal : 0;
+        const remaining = Math.max(0, principal - settlementTotal);
+
+        let status: BookEntryStatus = "PENDING";
+        if (remaining === 0) status = "SETTLED";
+        else if (remaining < principal) status = "PARTIALLY_SETTLED";
+
+        await db.runAsync(
+            `UPDATE book_entries
+             SET remaining_amount = ?, settlement_amount = ?, interest_amount = ?, status = ?, is_dirty = 1, updated_at = ?
+             WHERE id = ?;`,
+            [
+                remaining,
+                settlementTotal,
+                interest,
+                status,
+                ts,
+                settlement.book_entry_id,
+            ]
+        );
+    });
+}
+
 export async function getSettlements(
     bookEntryId: string
 ): Promise<Settlement[]> {

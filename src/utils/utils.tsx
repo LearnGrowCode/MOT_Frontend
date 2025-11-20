@@ -3,10 +3,20 @@ import { getLocaleForCurrency, DEFAULT_CURRENCY } from "./currency-locale";
 
 /**
  * Format currency amount with automatic locale detection
+ *
+ * Regional Number Formatting (handled automatically by Intl.NumberFormat):
+ * - USA/UK/CA: 1,234,567.89 (comma thousands, period decimal)
+ * - India/Bangladesh: 12,34,567.89 (2-3-2 grouping, period decimal) - automatically handled by "en-IN" locale
+ * - Most of Europe: 1.234.567,89 or 1 234 567,89 (period/space thousands, comma decimal)
+ * - Switzerland: 1'234'567.89 (apostrophe thousands, period decimal) - automatically handled by "de-CH" locale
+ * - China/Japan/Korea: 1,234,567.89 (comma or none, period decimal)
+ * - Middle East Arabic: ١٬٢٣٤٬٥٦٧٫٨٩ (Arabic-Indic numerals) - uses arabext numbering system
+ *
  * @param amount - Amount to format
  * @param currency - Currency code (e.g., "INR", "USD")
  * @param fractionDigits - Number of decimal places (optional)
  * @param type - Special formatting type like "K" for thousands (optional)
+ * @param userLocale - Optional user's preferred locale override
  * @returns Formatted currency string
  */
 
@@ -31,9 +41,10 @@ export const formatCurrency = (
     currency: string = DEFAULT_CURRENCY,
     fractionDigits?: number,
     type?: string,
-    autoManage?: boolean
+    autoManage?: boolean,
+    userLocale?: string | null
 ) => {
-    const locale = getLocaleForCurrency(currency);
+    const locale = getLocaleForCurrency(currency, userLocale);
     let displayAmount = amount;
 
     if (autoManage) {
@@ -67,11 +78,20 @@ export const formatCurrency = (
         !isNaN(fractionDigits) &&
         isFinite(fractionDigits)
     ) {
-        maxFractionDigits = Math.max(0, Math.min(20, Math.floor(fractionDigits)));
+        maxFractionDigits = Math.max(
+            0,
+            Math.min(20, Math.floor(fractionDigits))
+        );
     } else {
         maxFractionDigits = isWholeNumber ? 0 : 2;
     }
 
+    // Intl.NumberFormat automatically handles regional formatting:
+    // - Indian (en-IN): 12,34,567.89 (2-3-2 grouping)
+    // - European (de-DE, fr-FR, etc.): 1.234.567,89 or 1 234 567,89
+    // - Swiss (de-CH): 1'234'567.89 (apostrophe separator)
+    // - Arabic (ar-SA, ar-AE): ١٬٢٣٤٬٥٦٧٫٨٩ (Arabic-Indic numerals with Arabic separators)
+    // No need to specify numberingSystem - default Arabic uses Arabic-Indic numerals (١, ٢, ٣)
     const formattedAmount = new Intl.NumberFormat(locale, {
         style: "currency",
         currency: currency.toUpperCase(),
@@ -94,9 +114,13 @@ export const formatCurrency = (
 export const formatNumber = (
     amount: number,
     currency: string = DEFAULT_CURRENCY,
-    fractionDigits?: number
+    fractionDigits?: number,
+    userLocale?: string | null
 ): string => {
-    const locale = getLocaleForCurrency(currency);
+    const locale = getLocaleForCurrency(currency, userLocale);
+
+    // Intl.NumberFormat automatically handles regional formatting
+    // No need to specify numberingSystem - default Arabic uses Arabic-Indic numerals
     return new Intl.NumberFormat(locale, {
         minimumFractionDigits:
             fractionDigits !== undefined ? fractionDigits : 0,
@@ -309,8 +333,8 @@ export const formatAmountInput = (value: string): string => {
     }
 
     // Limit integer part to 15 digits (max reasonable amount)
-    if (parts[0].length > 15) {
-        cleaned = parts[0].substring(0, 15) + (parts[1] ? "." + parts[1] : "");
+    if (parts[0].length > 12) {
+        cleaned = parts[0].substring(0, 12) + (parts[1] ? "." + parts[1] : "");
     }
 
     return cleaned;
