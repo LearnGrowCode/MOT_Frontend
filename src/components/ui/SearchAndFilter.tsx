@@ -1,91 +1,82 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
-import { ListFilter, LucideIcon, Search, SortAsc } from "lucide-react-native";
-import { Option } from "@/type/interface";
+import { ListFilter, Search, XCircle } from "lucide-react-native";
 
 interface SearchAndFilterProps {
     searchQuery: string;
     totalRecords: number;
     filteredRecords: number;
-    onSearch: () => void;
+    onSearch: (query: string) => void;
     setShowFilterAndSort: (show: boolean) => void;
 }
 
-const STATUS_OPTIONS = [
-    { label: "All", value: "all" },
-    { label: "Unpaid", value: "unpaid" },
-    { label: "Paid", value: "paid" },
-    { label: "Partial Paid", value: "partial" },
-    { label: "Completed", value: "completed" },
-    { label: "Overdue", value: "overdue" },
-    { label: "In Date", value: "in_date" },
-] as Option[];
+// Reserved for future inline filter options
 
-const SORT_OPTIONS = [
-    { label: "Name (A-Z)", value: "name_asc" },
-    { label: "Name (Z-A)", value: "name_desc" },
-    { label: "Date (Newest)", value: "date_desc" },
-    { label: "Date (Oldest)", value: "date_asc" },
-] as Option[];
-
-type FilterType = "status" | "sort";
-
-const FILTER_OPTIONS: {
-    type: FilterType;
-    options: Option[];
-    icon: LucideIcon;
-}[] = [
-    {
-        type: "status",
-        options: STATUS_OPTIONS,
-        icon: ListFilter,
-    },
-    {
-        type: "sort",
-        options: SORT_OPTIONS,
-        icon: SortAsc,
-    },
-];
+const DEBOUNCE_DELAY = 400;
 
 export default function SearchAndFilter({
     searchQuery,
-
     totalRecords,
     filteredRecords,
     onSearch,
     setShowFilterAndSort,
 }: SearchAndFilterProps) {
-    const [searchandfilter, setSearchandfilter] = useState<{
-        search: string;
-        status: Option;
-        sort: Option;
-    }>({
-        search: "",
-        status: STATUS_OPTIONS[0],
-        sort: SORT_OPTIONS[0],
-    });
     const [search, setSearch] = useState(searchQuery);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastEmitted = useRef(searchQuery);
+
     useEffect(() => {
         setSearch(searchQuery);
+        lastEmitted.current = searchQuery;
     }, [searchQuery]);
+
+    useEffect(() => {
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+        debounceRef.current = setTimeout(() => {
+            if (search === lastEmitted.current) return;
+            lastEmitted.current = search;
+            onSearch(search);
+        }, DEBOUNCE_DELAY);
+
+        return () => {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, [search, onSearch]);
+
+    const handleClearSearch = () => {
+        setSearch("");
+        lastEmitted.current = "";
+        onSearch("");
+    };
+
     return (
-        <View className='flex flex-col gap-3 pb-3'>
-            <View className='flex-row items-center bg-white rounded-xl shadow-sm border border-gray-100 w-full h-fit '>
-                <View className='flex-1 flex-row items-center px-4  h-fit'>
-                    <TextInput
-                        placeholder='Search records...'
-                        value={search}
-                        onChangeText={setSearch}
-                        className='flex-1 text-base text-gray-900 ml-2 border-none outline-none focus:ring-0 focus:ring-offset-0'
-                        placeholderTextColor='#9CA3AF'
-                    />
-                </View>
-                <Pressable
-                    className='bg-blue-600 p-3 rounded-r-xl h-fit flex items-center justify-center'
-                    onPress={onSearch}
-                >
-                    <Search size={24} color='#fff' />
-                </Pressable>
+        <View className='flex flex-row flex-wrap gap-3 pb-3'>
+            <View className='flex-row  items-center bg-white rounded-2xl shadow-sm border border-gray-100 w-full h-fit px-4 py-2'>
+                <Search size={20} color='#6b7280' />
+                <TextInput
+                    placeholder='Search records...'
+                    value={search}
+                    onChangeText={setSearch}
+                    className='flex-1 text-base text-gray-900 ml-3 border-none outline-none focus:ring-0 focus:ring-offset-0'
+                    placeholderTextColor='#9CA3AF'
+                    returnKeyType='search'
+                />
+                {search.length > 0 && (
+                    <Pressable
+                        onPress={handleClearSearch}
+                        className='flex-row items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-full'
+                        accessibilityLabel='Clear search'
+                    >
+                        <XCircle size={16} color='#4b5563' />
+                        <Text className='text-sm font-medium text-gray-600'>
+                            Clear
+                        </Text>
+                    </Pressable>
+                )}
             </View>
 
             <View className='flex gap-2'>
@@ -99,7 +90,7 @@ export default function SearchAndFilter({
                     }}
                 >
                     <Pressable
-                        key={'filter-and-sort'}
+                        key={"filter-and-sort"}
                         onPress={() => setShowFilterAndSort(true)}
                         className='bg-white border border-gray-200 rounded-lg px-4 py-2 flex-row items-center gap-2'
                     >
@@ -109,10 +100,6 @@ export default function SearchAndFilter({
                         </Text>
                     </Pressable>
                 </ScrollView>
-
-                <Text className='text-sm font-medium text-gray-500'>
-                    {filteredRecords} of {totalRecords} records
-                </Text>
             </View>
         </View>
     );

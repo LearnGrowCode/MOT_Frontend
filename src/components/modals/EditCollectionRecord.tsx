@@ -1,0 +1,291 @@
+import React, { useState, useEffect } from "react";
+import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import Input from "../form/Input";
+import { CollectionRecord } from "../../type/interface";
+import { formatAmountInput, formatCurrency, formatDate } from "@/utils/utils";
+
+interface EditCollectionRecordProps {
+    visible: boolean;
+    onClose: () => void;
+    onSaveRecord: (
+        record: CollectionRecord,
+        options?: { deleteSettlementIds?: string[] }
+    ) => void;
+    record: CollectionRecord | null;
+}
+
+export default function EditCollectionRecord({
+    visible,
+    onClose,
+    onSaveRecord,
+    record,
+}: EditCollectionRecordProps) {
+    const [formData, setFormData] = useState({
+        name: "",
+        amount: "",
+        purpose: "",
+    });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [pendingSettlementDeletes, setPendingSettlementDeletes] = useState<
+        Set<string>
+    >(new Set());
+
+    useEffect(() => {
+        if (record) {
+            setFormData({
+                name: record.name,
+                amount: record.amount.toString(),
+                purpose: record.purpose ?? "",
+            });
+            setPendingSettlementDeletes(new Set());
+        }
+    }, [record]);
+
+    const handleInputChange = (field: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: "" }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.name.trim()) newErrors.name = "Borrower name is required";
+        if (!formData.amount.trim()) newErrors.amount = "Amount is required";
+        if (!formData.purpose.trim()) newErrors.purpose = "Purpose is required";
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = () => {
+        if (!validateForm() || !record) return;
+
+        const updatedRecord: CollectionRecord = {
+            ...record,
+            name: formData.name.trim(),
+            amount: parseFloat(formData.amount) || 0,
+            purpose: formData.purpose.trim(),
+            remaining: parseFloat(formData.amount) || 0,
+        };
+
+        const deleteSettlementIds = Array.from(pendingSettlementDeletes);
+        onSaveRecord(
+            updatedRecord,
+            deleteSettlementIds.length ? { deleteSettlementIds } : undefined
+        );
+        onClose();
+    };
+
+    const formatAmount = (value: string) => {
+        return formatAmountInput(value);
+    };
+
+    if (!record) return null;
+
+    return (
+        <Modal
+            visible={visible}
+            animationType='slide'
+            transparent={true}
+            onRequestClose={onClose}
+        >
+            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
+                <Card className='w-full max-w-md max-h-[90%]'>
+                    <CardHeader className='flex-row items-center justify-between'>
+                        <CardTitle className='text-lg font-semibold'>
+                            Edit Collection Record
+                        </CardTitle>
+                        <Pressable onPress={onClose} className='p-1'>
+                            <Text className='text-xl font-bold text-gray-500'>
+                                ×
+                            </Text>
+                        </Pressable>
+                    </CardHeader>
+
+                    <ScrollView showsVerticalScrollIndicator={true}>
+                        <CardContent className='gap-4'>
+                            {/* Borrower Name */}
+                            <View>
+                                <View className='flex-row items-center mb-1'>
+                                    <Text className='text-gray-600 mr-2'>
+                                        👤
+                                    </Text>
+                                    <Text className='text-sm text-gray-600'>
+                                        Borrower Name
+                                    </Text>
+                                </View>
+                                <Input
+                                    placeholder="Enter borrower's name"
+                                    value={formData.name}
+                                    onChangeText={(value) =>
+                                        handleInputChange("name", value)
+                                    }
+                                    error={errors.name}
+                                />
+                            </View>
+
+                            {/* Amount to Collect */}
+                            <View>
+                                <View className='flex-row items-center mb-1'>
+                                    <Text className='text-sm text-gray-600'>
+                                        Amount to Collect
+                                    </Text>
+                                </View>
+                                <Input
+                                    placeholder='0.00'
+                                    value={formData.amount}
+                                    onChangeText={(value) =>
+                                        handleInputChange(
+                                            "amount",
+                                            formatAmount(value)
+                                        )
+                                    }
+                                    keyboardType='numeric'
+                                    error={errors.amount}
+                                />
+                            </View>
+
+                            {/* Purpose */}
+                            <View>
+                                <View className='flex-row items-center mb-1'>
+                                    <Text className='text-gray-600 mr-2'>
+                                        📄
+                                    </Text>
+                                    <Text className='text-sm text-gray-600'>
+                                        Purpose
+                                    </Text>
+                                </View>
+                                <Input
+                                    placeholder='Enter purpose'
+                                    value={formData.purpose}
+                                    onChangeText={(value) =>
+                                        handleInputChange("purpose", value)
+                                    }
+                                    error={errors.purpose}
+                                />
+                            </View>
+
+                            {/* Settlement Management */}
+                            <View className='bg-red-50 border border-red-100 rounded-xl p-4 gap-3'>
+                                <View className='flex-row items-center gap-2'>
+                                    <Text className='text-lg'>⚠️</Text>
+                                    <View className='flex-1'>
+                                        <Text className='text-sm font-semibold text-red-700'>
+                                            Delete settlements
+                                        </Text>
+                                        <Text className='text-xs text-red-600 mt-1'>
+                                            Tap a settlement below to mark it
+                                            for deletion. Nothing is removed
+                                            until you hit Save Changes.
+                                        </Text>
+                                    </View>
+                                </View>
+                                {record.trx_history?.length ? (
+                                    record.trx_history.map((item) => {
+                                        const isMarked =
+                                            pendingSettlementDeletes.has(
+                                                item.id
+                                            );
+                                        return (
+                                            <Pressable
+                                                key={item.id}
+                                                onPress={() =>
+                                                    setPendingSettlementDeletes(
+                                                        (prev) => {
+                                                            const next =
+                                                                new Set(prev);
+                                                            if (
+                                                                next.has(
+                                                                    item.id
+                                                                )
+                                                            ) {
+                                                                next.delete(
+                                                                    item.id
+                                                                );
+                                                            } else {
+                                                                next.add(
+                                                                    item.id
+                                                                );
+                                                            }
+                                                            return next;
+                                                        }
+                                                    )
+                                                }
+                                                className={`flex-row items-center justify-between px-3 py-2 rounded-lg border ${
+                                                    isMarked
+                                                        ? "border-red-400 bg-white"
+                                                        : "border-transparent"
+                                                }`}
+                                            >
+                                                <View>
+                                                    <Text className='text-sm font-semibold text-gray-800'>
+                                                        {formatCurrency(
+                                                            item.amount,
+                                                            record.category,
+                                                            2
+                                                        )}
+                                                    </Text>
+                                                    <Text className='text-xs text-gray-500'>
+                                                        {formatDate(item.date)}
+                                                    </Text>
+                                                </View>
+                                                <Text
+                                                    className={`text-xs font-semibold ${
+                                                        isMarked
+                                                            ? "text-red-600"
+                                                            : "text-gray-400"
+                                                    }`}
+                                                >
+                                                    {isMarked
+                                                        ? "Will delete"
+                                                        : "Tap to remove"}
+                                                </Text>
+                                            </Pressable>
+                                        );
+                                    })
+                                ) : (
+                                    <Text className='text-xs text-gray-500'>
+                                        No settlements to manage yet.
+                                    </Text>
+                                )}
+                                {pendingSettlementDeletes.size > 0 && (
+                                    <Text className='text-xs text-red-500'>
+                                        {pendingSettlementDeletes.size}{" "}
+                                        settlement
+                                        {pendingSettlementDeletes.size > 1
+                                            ? "s"
+                                            : ""}{" "}
+                                        will be deleted once you save.
+                                    </Text>
+                                )}
+                            </View>
+                        </CardContent>
+                    </ScrollView>
+
+                    {/* Action Buttons */}
+                    <View className='flex-row gap-3 p-6 pt-0'>
+                        <Pressable
+                            onPress={onClose}
+                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
+                        >
+                            <Text className='text-gray-700 font-medium'>
+                                Cancel
+                            </Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={handleSubmit}
+                            className='flex-1 py-3 px-4 bg-green-600 rounded-md items-center'
+                        >
+                            <Text className='text-white font-medium'>
+                                Save Changes
+                            </Text>
+                        </Pressable>
+                    </View>
+                </Card>
+            </View>
+        </Modal>
+    );
+}

@@ -1,0 +1,408 @@
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
+import { PaymentRecord } from "@/type/interface";
+import SearchAndFilter from "@/components/ui/SearchAndFilter";
+import FloatingActionButton from "@/components/ui/FloatingActionButton";
+import { formatCurrency } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
+
+import DeleteRecord from "@/components/modals/DeleteRecord";
+import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
+import { Link, useFocusEffect, useRouter } from "expo-router";
+import { BanknoteArrowDownIcon } from "lucide-react-native";
+import FilterAndSort from "@/components/modals/FilterAndSort";
+import Option from "@/components/modals/Option";
+import {
+    getPayBookEntries,
+    getTotalPayRemaining,
+} from "@/services/book/book-entry.service";
+import {
+    addSettlement,
+    updateBookEntryWithPrincipal,
+    softDeleteBookEntry,
+    deleteSettlement,
+} from "@/db/models/Book";
+import { uuidv4 } from "@/utils/uuid";
+import { getUser, getUserPreferences, User } from "@/db/models/User";
+
+const DEFAULT_USER_ID = "1";
+
+export default function ToPayScreen() {
+    const router = useRouter();
+    const { currency } = useUserCurrency();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterAndSort, setFilterAndSort] = useState<{
+        filter: string;
+        sort: string;
+    }>({
+        filter: "all",
+        sort: "date_desc",
+    });
+
+    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
+    const [showPaymentConfirmation, setShowPaymentConfirmation] =
+        useState(false);
+    const [showFilterAndSort, setShowFilterAndSort] = useState(false);
+    const [showOption, setShowOption] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
+        null
+    );
+
+    // Payment records state (loaded from DB)
+    const [totalToPay, setTotalToPay] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    // User data state
+    const [user, setUser] = useState<User | null>(null);
+
+    const fetchRecords = useCallback(async () => {
+        const [records, total] = await Promise.all([
+            getPayBookEntries(),
+            getTotalPayRemaining(),
+        ]);
+        return { records, total };
+    }, []);
+
+    const fetchUserData = useCallback(async () => {
+        try {
+            const [userData, userPrefs] = await Promise.all([
+                getUser(DEFAULT_USER_ID),
+                getUserPreferences(DEFAULT_USER_ID),
+            ]);
+
+            if (userData) {
+                setUser(userData);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        let isActive = true;
+        setIsLoading(true);
+        Promise.all([fetchRecords(), fetchUserData()])
+            .then(([{ records, total }]) => {
+                if (!isActive) return;
+                setPaymentRecords(records);
+                setTotalToPay(total);
+            })
+            .finally(() => {
+                if (isActive) setIsLoading(false);
+            });
+        return () => {
+            isActive = false;
+        };
+    }, [fetchRecords, fetchUserData]);
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            setIsLoading(true);
+            Promise.all([fetchRecords(), fetchUserData()])
+                .then(([{ records, total }]) => {
+                    if (!isActive) return;
+                    setPaymentRecords(records);
+                    setTotalToPay(total);
+                })
+                .finally(() => {
+                    if (isActive) setIsLoading(false);
+                });
+            return () => {
+                isActive = false;
+            };
+        }, [fetchRecords, fetchUserData])
+    );
+
+    const handleMarkPayment = (recordId: string) => {
+        const record = paymentRecords.find((r) => r.id === recordId);
+        if (record) {
+            setSelectedRecord(record);
+            setShowPaymentConfirmation(true);
+        }
+    };
+
+    const handleDeleteRecord = async (recordId: string) => {
+        try {
+            await softDeleteBookEntry(recordId);
+            const { records, total } = await fetchRecords();
+            setPaymentRecords(records);
+            setTotalToPay(total);
+        } catch (error) {
+            console.error("Error deleting record:", error);
+            setPaymentRecords((prev) =>
+                prev.filter((record) => record.id !== recordId)
+            );
+        } finally {
+            setShowDeleteRecord(false);
+            setSelectedRecord(null);
+        }
+    };
+
+    const handleConfirmPayment = async (amount: number, payer: string) => {
+        if (selectedRecord && amount > 0) {
+            try {
+                // Create settlement in database
+                await addSettlement({
+                    id: uuidv4(),
+                    bookEntryId: selectedRecord.id,
+                    amount: amount,
+                    date: Date.now(),
+                    description: `Payment from ${payer}`,
+                });
+
+                const { records, total } = await fetchRecords();
+                setPaymentRecords(records);
+                setTotalToPay(total);
+            } catch (error) {
+                console.error("Error adding settlement:", error);
+                // Still update UI even if there's an error (for now)
+                const updatedRecord: PaymentRecord = {
+                    ...selectedRecord,
+                    remaining: Math.max(0, selectedRecord.remaining - amount),
+                    status:
+                        selectedRecord.remaining - amount <= 0
+                            ? "paid"
+                            : "partial",
+                };
+                setPaymentRecords((prev) =>
+                    prev.map((record) =>
+                        record.id === selectedRecord.id ? updatedRecord : record
+                    )
+                );
+            }
+        }
+        setShowPaymentConfirmation(false);
+        setSelectedRecord(null);
+    };
+
+    const handleFilterAndSort = (filters: {
+        filter?: string;
+        sort?: string;
+    }) => {
+        if (filters) {
+            if (filters.filter) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    filter: filters.filter!,
+                }));
+            }
+            if (filters.sort) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    sort: filters.sort!,
+                }));
+            }
+        }
+        setShowFilterAndSort(false);
+    };
+
+    const handleEdit = () => {
+        setShowOption(false);
+        if (selectedRecord) {
+            router.push({
+                pathname: "/pay-book/edit-record",
+                params: { id: selectedRecord.id },
+            } as any);
+        }
+        setSelectedRecord(null);
+    };
+    const handleDelete = () => {
+        setShowDeleteRecord(true);
+        setShowOption(false);
+    };
+    const handleOption = (recordId: string) => {
+        setShowOption(true);
+        setSelectedRecord(
+            paymentRecords.find((r) => r.id === recordId) as PaymentRecord
+        );
+    };
+
+    // Derived visible records based on search/filter/sort
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filtered = paymentRecords.filter((record) => {
+        const matchesQuery =
+            normalizedQuery.length === 0 ||
+            record.name.toLowerCase().includes(normalizedQuery) ||
+            record.category.toLowerCase().includes(normalizedQuery);
+        const matchesStatus =
+            filterAndSort.filter === "all" ||
+            record.status === (filterAndSort.filter as any);
+        return matchesQuery && matchesStatus;
+    });
+
+    const visibleRecords = [...filtered].sort((a, b) => {
+        switch (filterAndSort.sort) {
+            case "name_asc":
+                return a.name.localeCompare(b.name);
+            case "name_desc":
+                return b.name.localeCompare(a.name);
+            case "amount_asc":
+                return a.amount - b.amount;
+            case "amount_desc":
+                return b.amount - a.amount;
+            case "date_asc":
+                return (
+                    new Date(a.borrowedDate).getTime() -
+                    new Date(b.borrowedDate).getTime()
+                );
+            case "date_desc":
+                return (
+                    new Date(b.borrowedDate).getTime() -
+                    new Date(a.borrowedDate).getTime()
+                );
+            default:
+                return 0;
+        }
+    });
+
+    const totalRemainingToPay = formatCurrency(
+        totalToPay ?? 0,
+        currency,
+        2,
+        ""
+    );
+
+    return (
+        <View className='flex-1 bg-white'>
+            <ScrollView
+                className='flex-1'
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 120 }}
+            >
+                <View className='px-4 pt-2'>
+                    {/* Header Section */}
+                    <View className='mb-6'>
+                        <View className='flex-row items-start justify-between mb-2'>
+                            <View className='flex-1'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#9a3412]'>
+                                    Payments
+                                </Text>
+                                <Text className='mt-1 text-3xl font-bold '>
+                                    Pay Book
+                                </Text>
+                            </View>
+                            <Link href='/collect-book' asChild>
+                                <Pressable className='bg-[#0ea5e9] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#0ea5e9]/25 ml-4'>
+                                    <BanknoteArrowDownIcon
+                                        size={18}
+                                        color='white'
+                                    />
+                                    <Text className='text-white text-sm font-semibold'>
+                                        Collect
+                                    </Text>
+                                </Pressable>
+                            </Link>
+                        </View>
+                    </View>
+
+                    {/* Hero Summary Card */}
+                    <View className='mb-6 min-h-2'>
+                        <View className='rounded-3xl border border-[#fed7aa] bg-[#fff5eb] py-3 shadow-lg shadow-[#fdba74]/40 flex flex-row items-center justify-between px-4 flex-wrap'>
+                            <Text
+                                className='text-sm font-semibold text-[#b45309] mb-1 uppercase'
+                                numberOfLines={1}
+                            >
+                                Total to Pay
+                            </Text>
+                            <Text className='text-2xl font-bold text-[#7c2d12] mb-1'>
+                                {totalRemainingToPay}
+                            </Text>
+                            {isLoading && (
+                                <Text className='text-xs font-semibold text-[#fb923c]'>
+                                    Refreshing…
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                </View>
+
+                {/* Payment Records Section */}
+                <View className='px-4 pb-6'>
+                    <View className='mb-4'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#78350f] mb-2'>
+                            Records
+                        </Text>
+                        <Text className='text-xl font-bold text-[#1f2937]'>
+                            Payment Entries
+                        </Text>
+                    </View>
+
+                    <View className='rounded-2xl border border-[#ffe4d6] bg-white/90 px-4 py-4 shadow-sm mb-4'>
+                        <SearchAndFilter
+                            searchQuery={searchQuery}
+                            totalRecords={paymentRecords.length}
+                            filteredRecords={visibleRecords.length}
+                            onSearch={(q) => setSearchQuery(q)}
+                            setShowFilterAndSort={setShowFilterAndSort}
+                        />
+                    </View>
+                    <View className='flex flex-row items-center justify-between mb-4'>
+                        <Text className='mt-1 text-sml font-bold text-[#1e1b4b]'>
+                            {visibleRecords.length} of{" "}
+                            {paymentRecords.length} records
+                        </Text>
+                    </View>
+
+                    {/* Payment Record Cards */}
+                    <View className='flex gap-3 w-full'>
+                        {isLoading ? (
+                            <Text className='text-gray-500'>Loading...</Text>
+                        ) : visibleRecords.length === 0 ? (
+                            <Text className='text-gray-500'>
+                                No payment entries.
+                            </Text>
+                        ) : (
+                            visibleRecords.map((record) => (
+                                <PaymentRecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onMarkPayment={handleMarkPayment}
+                                    onOption={handleOption}
+                                />
+                            ))
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+            {/* Floating Action Button */}
+            <Link href='/pay-book/add-record' asChild>
+                <FloatingActionButton
+                    icon='+'
+                    size='lg'
+                    color='orange'
+                    position='bottom-right'
+                    className='shadow-2xl shadow-orange-500/40'
+                />
+            </Link>
+
+            <DeleteRecord
+                visible={showDeleteRecord}
+                onClose={() => setShowDeleteRecord(false)}
+                onDeleteRecord={handleDeleteRecord}
+                record={selectedRecord}
+            />
+            <PaymentConfirmation
+                visible={showPaymentConfirmation}
+                onClose={() => setShowPaymentConfirmation(false)}
+                onConfirmPayment={handleConfirmPayment}
+                record={selectedRecord}
+            />
+            <FilterAndSort
+                visible={showFilterAndSort}
+                onClose={() => setShowFilterAndSort(false)}
+                onFilterAndSort={handleFilterAndSort}
+                filterAndSort={filterAndSort}
+            />
+            <Option
+                visible={showOption}
+                onClose={() => setShowOption(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                record={selectedRecord}
+            />
+        </View>
+    );
+}

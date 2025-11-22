@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Text } from "react-native";
 import { Card, CardContent } from "@/components/ui/card";
 import PrimaryButton from "@/components/button/PrimaryButton";
 import { PaymentRecord } from "@/type/interface";
@@ -10,41 +10,39 @@ import {
     getTimeAgo,
     formatCurrency,
 } from "@/utils/utils";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
 import { MoreVertical } from "lucide-react-native";
 
 interface PaymentRecordCardProps {
     record: PaymentRecord;
     onMarkPayment: (recordId: string) => void;
+    onOption: (recordId: string) => void;
 }
 
 export default function PaymentRecordCard({
     record,
     onMarkPayment,
+    onOption,
 }: PaymentRecordCardProps) {
+    const { currency } = useUserCurrency();
     const getCardColorClasses = (status: PaymentRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-orange-50 border-orange-200";
+                return "bg-[#fff1e6] border-[#fcd34d]";
             case "paid":
-                return "bg-green-50 border-green-200";
+                return "bg-[#ecfdf5] border-[#a7f3d0]";
             case "partial":
-                return "bg-yellow-50 border-yellow-200";
+                return "bg-[#fffbeb] border-[#fcd34d]";
             case "overdue":
-                return "bg-red-50 border-red-200";
+                return "bg-[#fff1f2] border-[#fecdd3]";
             default:
-                return "bg-gray-50 border-gray-200";
+                return "bg-[#fff7ed] border-[#fed7aa]";
         }
     };
     return (
@@ -52,10 +50,10 @@ export default function PaymentRecordCard({
             className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)} p-2`}
         >
             <CardContent className='p-2'>
-                <View className='flex-row items-start justify-between mb-4'>
+                <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-12 h-12 bg-blue-100 border border-blue-200 rounded-xl items-center justify-center mr-4 relative'>
-                            <Text className='text-blue-700 text-base font-semibold'>
+                        <View className='w-12 h-12 bg-[#fff0e6] border border-[#fdba74] rounded-xl items-center justify-center mr-4 relative'>
+                            <Text className='text-[#9a3412] text-base font-semibold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -71,17 +69,17 @@ export default function PaymentRecordCard({
                                 {record.name}
                             </Text>
                             <Text className='text-xl font-bold text-gray-900'>
-                                {formatCurrency(
-                                    record.amount,
-                                    "INR",
-                                    "en-IN",
-                                    0
-                                )}
+                                {formatCurrency(record.amount, currency, 0)}
                             </Text>
                         </View>
                     </View>
 
-                    <View className='items-end flex-row gap-2'>
+                    <View className='items-end flex gap-2'>
+                        <MoreVertical
+                            size={20}
+                            color='#666'
+                            onPress={() => onOption(record.id)}
+                        />
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
@@ -89,34 +87,26 @@ export default function PaymentRecordCard({
                                 {getStatusText(record.status)}
                             </Text>
                         </View>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <Pressable className='p-2'>
-                                    <MoreVertical size={20} color='#666' />
-                                </Pressable>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onPress={() => {}}>
-                                    <Text>Edit</Text>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onPress={() => {}}>
-                                    <Text>Delete</Text>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </View>
                 </View>
 
-                {/* Category line to reflect simple text like in the screenshot */}
-                <View className='mb-3'>
-                    <Text className='text-sm text-gray-700'>
-                        {record.category}
-                    </Text>
+                {/* Purpose line */}
+                <View className='gap-1'>
+                    {record.purpose?.trim() ? (
+                        <View className='self-start px-3 py-1 rounded-full bg-white/80 border border-gray-100'>
+                            <Text
+                                className='text-xs font-medium text-gray-600'
+                                numberOfLines={1}
+                            >
+                                {record.purpose.trim()}
+                            </Text>
+                        </View>
+                    ) : null}
                 </View>
                 {record.trx_history && record.trx_history.length > 0 && (
                     <Accordion type='single' collapsible>
                         <AccordionItem value='transaction-history'>
-                            <AccordionTrigger className='border-b-2 rounded-none border-gray-200  p-3 flex-row justify-between items-center'>
+                            <AccordionTrigger className='border-b-1 rounded-none border-gray-200  p-3 flex-row justify-between items-center'>
                                 <View className='flex-row items-center gap-2'>
                                     <Text className='text-sm font-semibold text-gray-900'>
                                         Payment History
@@ -128,32 +118,26 @@ export default function PaymentRecordCard({
                                     </View>
                                 </View>
                             </AccordionTrigger>
-                            <AccordionContent className='bg-gray-50 rounded-b-xl'>
-                                <FlatList
-                                    data={record.trx_history}
-                                    renderItem={({ item }) => (
-                                        <View className='flex-row justify-between items-center p-3 border-b border-gray-100'>
-                                            <View className='flex-row items-center gap-2'>
-                                                <View>
-                                                    <Text className='text-sm font-medium text-gray-700'>
-                                                        {formatDate(item.date)}
-                                                    </Text>
-                                                </View>
-                                            </View>
+                            <AccordionContent className='bg-white pb-0'>
+                                <View className='divide-y divide-gray-100'>
+                                    {record.trx_history.map((item) => (
+                                        <View
+                                            key={item.id}
+                                            className='flex-row justify-between items-center p-3'
+                                        >
+                                            <Text className='text-sm font-medium text-gray-700'>
+                                                {formatDate(item.date)}
+                                            </Text>
                                             <Text className='text-sm font-semibold text-gray-700'>
                                                 {formatCurrency(
                                                     item.amount,
-                                                    "INR",
-                                                    "en-IN",
+                                                    currency,
                                                     2
                                                 )}
                                             </Text>
                                         </View>
-                                    )}
-                                    ItemSeparatorComponent={() => (
-                                        <View className='h-[1px] bg-gray-100' />
-                                    )}
-                                />
+                                    ))}
+                                </View>
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
@@ -169,7 +153,7 @@ export default function PaymentRecordCard({
                     </View>
                     <Text className='text-sm font-medium text-gray-700'>
                         Remaining:{" "}
-                        {formatCurrency(record.remaining, "INR", "en-IN", 2)}
+                        {formatCurrency(record.remaining, currency, 2)}
                     </Text>
                 </View>
 
@@ -177,7 +161,7 @@ export default function PaymentRecordCard({
                     <PrimaryButton
                         title='Add Payment Record'
                         onPress={() => onMarkPayment(record.id)}
-                        className='bg-blue-600 shadow-sm shadow-blue-200 rounded-lg  py-2 font-thin'
+                        className='bg-[#2563eb] shadow-sm shadow-[#93c5fd] rounded-lg  py-2 font-thin'
                     />
                 )}
             </CardContent>

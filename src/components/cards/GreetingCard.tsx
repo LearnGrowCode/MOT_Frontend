@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 
 interface GreetingCardProps {
     userName: string;
-    userAvatar: string;
+    userAvatar: string | null;
     greet: string;
     subGreet: string;
 }
@@ -17,7 +17,7 @@ export default function GreetingCard({
     return (
         <View className='flex-row items-center  gap-3'>
             <Avatar alt={userName} className='w-14 h-14'>
-                <AvatarImage source={{ uri: userAvatar }} />
+                {userAvatar && <AvatarImage source={{ uri: userAvatar }} />}
                 <AvatarFallback>
                     <Text className='text-xl font-regular '>
                         {userName.charAt(0)}
