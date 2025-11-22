@@ -7,7 +7,6 @@ import {
     Easing,
     ActivityIndicator,
 } from "react-native";
-
 import { useRouter, useFocusEffect } from "expo-router";
 import {
     BanknoteArrowDownIcon,
@@ -93,7 +92,7 @@ export default function HomeScreen() {
                 onPress={onPress}
             >
                 <Animated.View style={{ transform: [{ scale }] }}>
-                    <View className='items-center justify-center gap-2 px-2'>
+                    <View className='items-center justify-between gap-2 px-2'>
                         <Icon size={32} color='white' />
                         <Text className='text-white text-base font-semibold'>
                             {title}
@@ -131,13 +130,13 @@ export default function HomeScreen() {
                     <View className='flex-row gap-4'>
                         <Tile
                             title='Pay Book'
-                            bgClass='bg-blue-600'
+                            bgClass='bg-orange-600'
                             Icon={BanknoteArrowUpIcon}
                             onPress={() => router.push("/pay-book")}
                         />
                         <Tile
                             title='Collect Book'
-                            bgClass='bg-green-600'
+                            bgClass='bg-indigo-600'
                             Icon={BanknoteArrowDownIcon}
                             onPress={() => router.push("/collect-book")}
                         />

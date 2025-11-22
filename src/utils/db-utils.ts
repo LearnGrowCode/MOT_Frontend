@@ -23,8 +23,6 @@ export async function clearDatabase(): Promise<void> {
             // Users last
             await db.execAsync(`DELETE FROM users;`);
         });
-
-        console.log("✅ Database cleared successfully");
     } catch (error) {
         console.error("❌ Error clearing database:", error);
         throw error;
@@ -45,12 +43,10 @@ export async function resetAppData(): Promise<void> {
         // Clear onboarding flag
         try {
             await SecureStore.deleteItemAsync("onboarding_complete");
-        } catch (error) {
+        } catch {
             // Ignore if key doesn't exist
             console.log("Onboarding flag not found, skipping...");
         }
-
-        console.log("✅ App data reset successfully");
     } catch (error) {
         console.error("❌ Error resetting app data:", error);
         throw error;

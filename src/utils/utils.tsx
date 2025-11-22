@@ -369,17 +369,17 @@ export const getTimeAgo = (dateString: string) => {
 export const getStatusColor = (status: Status) => {
     switch (status) {
         case "unpaid":
-            return "bg-orange-100 text-orange-700";
+            return "bg-[#ffe4da] text-[#9a3412]";
         case "paid":
-            return "bg-green-100 text-green-700";
+            return "bg-[#dcfce7] text-[#166534]";
         case "collected":
-            return "bg-green-100 text-green-700";
+            return "bg-[#dcfce7] text-[#166534]";
         case "partial":
-            return "bg-yellow-100 text-yellow-700";
+            return "bg-[#fef3c7] text-[#b45309]";
         case "overdue":
-            return "bg-red-100 text-red-700";
+            return "bg-[#fee2e2] text-[#b91c1c]";
         default:
-            return "bg-gray-100 text-gray-700";
+            return "bg-[#e5e7eb] text-[#374151]";
     }
 };
 

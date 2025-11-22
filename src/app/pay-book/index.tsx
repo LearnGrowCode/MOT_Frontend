@@ -124,7 +124,6 @@ export default function ToPayScreen() {
         }
     };
 
-
     const handleDeleteRecord = async (recordId: string) => {
         try {
             await softDeleteBookEntry(recordId);
@@ -259,8 +258,15 @@ export default function ToPayScreen() {
         }
     });
 
+    const totalRemainingToPay = formatCurrency(
+        totalToPay ?? 0,
+        currency,
+        2,
+        ""
+    );
+
     return (
-        <View className='flex-1 bg-[#fef5f5]'>
+        <View className='flex-1 bg-white'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
@@ -271,15 +277,15 @@ export default function ToPayScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#9a3412]'>
                                     Payments
                                 </Text>
-                                <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                                <Text className='mt-1 text-3xl font-bold '>
                                     Pay Book
                                 </Text>
                             </View>
                             <Link href='/collect-book' asChild>
-                                <Pressable className='bg-[#10b981] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#10b981]/30 ml-4'>
+                                <Pressable className='bg-[#0ea5e9] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#0ea5e9]/25 ml-4'>
                                     <BanknoteArrowDownIcon
                                         size={18}
                                         color='white'
@@ -293,26 +299,22 @@ export default function ToPayScreen() {
                     </View>
 
                     {/* Hero Summary Card */}
-                    <View className='mb-6'>
-                        <View className='rounded-3xl border border-[#fecaca] bg-[#fef2f2] px-5 py-6 shadow-lg shadow-[#fca5a5]/40'>
-                            <View className='flex-1'>
-                                <Text className='text-sm font-medium text-[#dc2626] mb-1'>
-                                    Total Remaining to Pay
+                    <View className='mb-6 min-h-2'>
+                        <View className='rounded-3xl border border-[#fed7aa] bg-[#fff5eb] py-3 shadow-lg shadow-[#fdba74]/40 flex flex-row items-center justify-between px-4 flex-wrap'>
+                            <Text
+                                className='text-sm font-semibold text-[#b45309] mb-1 uppercase'
+                                numberOfLines={1}
+                            >
+                                Total to Pay
+                            </Text>
+                            <Text className='text-2xl font-bold text-[#7c2d12] mb-1'>
+                                {totalRemainingToPay}
+                            </Text>
+                            {isLoading && (
+                                <Text className='text-xs font-semibold text-[#fb923c]'>
+                                    Refreshing…
                                 </Text>
-                                <Text className='text-3xl font-bold text-[#991b1b] mb-1'>
-                                    {isLoading ? (
-                                        "Loading..."
-                                    ) : (
-                                        formatCurrency(totalToPay, currency, 2, "")
-                                    )}
-                                </Text>
-                                <Text className='text-sm text-[#ef4444] mt-1'>
-                                    {paymentRecords.length}{" "}
-                                    {paymentRecords.length === 1
-                                        ? "entry"
-                                        : "entries"}
-                                </Text>
-                            </View>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -320,15 +322,15 @@ export default function ToPayScreen() {
                 {/* Payment Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500 mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#78350f] mb-2'>
                             Records
                         </Text>
-                        <Text className='text-xl font-bold text-stone-900'>
+                        <Text className='text-xl font-bold text-[#1f2937]'>
                             Payment Entries
                         </Text>
                     </View>
 
-                    <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm mb-4'>
+                    <View className='rounded-2xl border border-[#ffe4d6] bg-white/90 px-4 py-4 shadow-sm mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={paymentRecords.length}
@@ -336,6 +338,12 @@ export default function ToPayScreen() {
                             onSearch={(q) => setSearchQuery(q)}
                             setShowFilterAndSort={setShowFilterAndSort}
                         />
+                    </View>
+                    <View className='flex flex-row items-center justify-between mb-4'>
+                        <Text className='mt-1 text-sml font-bold text-[#1e1b4b]'>
+                            {visibleRecords.length} of{" "}
+                            {paymentRecords.length} records
+                        </Text>
                     </View>
 
                     {/* Payment Record Cards */}
@@ -364,9 +372,9 @@ export default function ToPayScreen() {
                 <FloatingActionButton
                     icon='+'
                     size='lg'
-                    color='red'
+                    color='orange'
                     position='bottom-right'
-                    className='shadow-2xl shadow-red-500/50'
+                    className='shadow-2xl shadow-orange-500/40'
                 />
             </Link>
 

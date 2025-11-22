@@ -280,8 +280,15 @@ export default function ToCollectScreen() {
         }
     });
 
+    const totalRemainingToCollect = formatCurrency(
+        totalToCollect ?? 0,
+        currency,
+        2,
+        ""
+    );
+
     return (
-        <View className='flex-1 bg-[#f0fdf4]'>
+        <View className='flex-1 bg-white'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
@@ -292,15 +299,15 @@ export default function ToCollectScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#4f46e5]'>
                                     Collections
                                 </Text>
-                                <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                                <Text className='mt-1 text-3xl font-bold text-[#1e1b4b]'>
                                     Collect Book
                                 </Text>
                             </View>
                             <Link href='/pay-book' asChild>
-                                <Pressable className='bg-[#ef4444] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#ef4444]/30 ml-4'>
+                                <Pressable className='bg-[#f97316] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#f97316]/25 ml-4'>
                                     <BanknoteArrowUpIcon
                                         size={18}
                                         color='white'
@@ -314,29 +321,22 @@ export default function ToCollectScreen() {
                     </View>
 
                     {/* Hero Summary Card */}
-                    <View className='mb-6'>
-                        <View className='rounded-3xl border border-[#bbf7d0] bg-[#f0fdf4] px-5 py-6 shadow-lg shadow-[#86efac]/40'>
-                            <View className='flex-1'>
-                                <Text className='text-sm font-medium text-[#16a34a] mb-1'>
-                                    Total Remaining to Collect
+                    <View className='mb-6 min-h-2'>
+                        <View className='rounded-3xl border border-[#dbeafe] bg-[#eef2ff] py-3 shadow-lg shadow-[#c7d2fe]/40 flex flex-row items-center justify-between px-4 flex-wrap'>
+                            <Text
+                                className='text-sm font-semibold text-[#4338ca] mb-1 uppercase'
+                                numberOfLines={1}
+                            >
+                                Total to Collect
+                            </Text>
+                            <Text className='text-2xl font-bold text-[#1e1b4b] mb-1'>
+                                {totalRemainingToCollect}
+                            </Text>
+                            {isLoading && (
+                                <Text className='text-xs font-semibold text-[#6366f1]'>
+                                    Refreshing…
                                 </Text>
-                                <Text className='text-3xl font-bold text-[#166534] mb-1'>
-                                    {isLoading
-                                        ? "Loading..."
-                                        : formatCurrency(
-                                              totalToCollect,
-                                              currency,
-                                              2,
-                                              ""
-                                          )}
-                                </Text>
-                                <Text className='text-sm text-[#22c55e] mt-1'>
-                                    {collectionRecords.length}{" "}
-                                    {collectionRecords.length === 1
-                                        ? "entry"
-                                        : "entries"}
-                                </Text>
-                            </View>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -344,15 +344,15 @@ export default function ToCollectScreen() {
                 {/* Collection Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500 mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#4338ca] mb-2'>
                             Records
                         </Text>
-                        <Text className='text-xl font-bold text-stone-900'>
+                        <Text className='text-xl font-bold text-[#1f2937]'>
                             Collection Entries
                         </Text>
                     </View>
 
-                    <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm mb-4'>
+                    <View className='rounded-2xl border border-[#dbeafe] bg-white/90 px-4 py-4 shadow-sm mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={collectionRecords.length}
@@ -360,6 +360,12 @@ export default function ToCollectScreen() {
                             onSearch={(q) => setSearchQuery(q)}
                             setShowFilterAndSort={setShowFilterAndSort}
                         />
+                    </View>
+                    <View className='flex flex-row items-center justify-between mb-4'>
+                        <Text className='mt-1 text-sml font-bold text-[#1e1b4b]'>
+                            {visibleRecords.length} of{" "}
+                            {collectionRecords.length} records
+                        </Text>
                     </View>
 
                     {/* Collection Record Cards */}
@@ -388,9 +394,9 @@ export default function ToCollectScreen() {
                 <FloatingActionButton
                     icon='+'
                     size='lg'
-                    color='green'
+                    color='blue'
                     position='bottom-right'
-                    className='shadow-2xl shadow-green-500/50'
+                    className='shadow-2xl shadow-indigo-600/40'
                 />
             </Link>
 

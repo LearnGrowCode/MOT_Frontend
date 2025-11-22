@@ -688,7 +688,7 @@ export default function MyAccountScreen() {
     }
 
     return (
-        <View className='flex-1 bg-[#f2f6fc]'>
+        <View className='flex-1 bg-white'>
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 160 }}

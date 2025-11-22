@@ -16,7 +16,6 @@ export async function login(
     });
     const data = await parseJson(response);
     await SecureStore.setItemAsync("token", data.access_token ?? "");
-    console.log("data", data);
     return { success: response.ok, data };
 }
 

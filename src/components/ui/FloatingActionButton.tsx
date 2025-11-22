@@ -1,12 +1,12 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import { cn } from "@/lib/utils";
 
 interface FloatingActionButtonProps {
     onPress?: () => void;
     icon?: string;
     size?: "sm" | "md" | "lg";
-    color?: "blue" | "green" | "red" | "purple";
+    color?: "blue" | "green" | "red" | "purple" | "indigo" | "orange";
     position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
     className?: string;
 }
@@ -48,13 +48,17 @@ export default function FloatingActionButton({
     const getColorClasses = () => {
         switch (color) {
             case "blue":
-                return "bg-blue-600";
+                return "bg-blue-700";
             case "green":
                 return "bg-[#10b981]";
             case "red":
                 return "bg-[#ef4444]";
             case "purple":
                 return "bg-purple-600";
+            case "indigo":
+                return "bg-[#4338ca]";
+            case "orange":
+                return "bg-[#ea580c]";
             default:
                 return "bg-blue-600";
         }

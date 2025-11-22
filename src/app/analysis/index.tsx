@@ -22,10 +22,7 @@ import {
     Coins,
     Users,
     Calendar,
-    BanknoteArrowDownIcon,
-    BanknoteArrowUpIcon,
 } from "lucide-react-native";
-import { Link } from "expo-router";
 import { NavigationContext } from "@react-navigation/native";
 import {
     getPayBookEntries,
@@ -654,10 +651,10 @@ export default function AnalysisScreen() {
     };
 
     return (
-        <View className='flex-1 bg-[#f2f6fc]'>
+        <View className='flex-1 bg-white'>
             {/* Header - Fixed */}
             <View
-                className='px-4 pt-6 pb-5 bg-[#f2f6fc]'
+                className='px-4 pt-6 pb-5 bg-white'
                 style={{ elevation: 4, shadowColor: "#00000011", zIndex: 5 }}
             >
                 <View className='mb-4'>
@@ -669,30 +666,6 @@ export default function AnalysisScreen() {
                             <Text className='mt-1 text-3xl font-bold text-stone-900'>
                                 Financial Analysis
                             </Text>
-                        </View>
-                        <View className='flex-row gap-2 ml-4'>
-                            <Link href='/pay-book' asChild>
-                                <Pressable className='bg-[#2563eb] px-3 py-2 rounded-xl flex-row items-center gap-1.5 shadow-md shadow-[#2563eb]/30'>
-                                    <BanknoteArrowDownIcon
-                                        size={16}
-                                        color='white'
-                                    />
-                                    <Text className='text-white text-xs font-semibold'>
-                                        Pay
-                                    </Text>
-                                </Pressable>
-                            </Link>
-                            <Link href='/collect-book' asChild>
-                                <Pressable className='bg-[#2563eb] px-3 py-2 rounded-xl flex-row items-center gap-1.5 shadow-md shadow-[#2563eb]/30'>
-                                    <BanknoteArrowUpIcon
-                                        size={16}
-                                        color='white'
-                                    />
-                                    <Text className='text-white text-xs font-semibold'>
-                                        Collect
-                                    </Text>
-                                </Pressable>
-                            </Link>
                         </View>
                     </View>
                     <Text className='text-sm text-stone-600'>
@@ -725,7 +698,7 @@ export default function AnalysisScreen() {
 
             {/* Tab Content with Slide Animation */}
             <View
-                className='flex-1 bg-[#f2f6fc]'
+                className='flex-1 bg-white'
                 style={{
                     overflow: "hidden",
                     borderTopLeftRadius: 24,

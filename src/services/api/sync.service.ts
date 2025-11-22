@@ -242,7 +242,6 @@ export async function syncPush(
     payload: SyncPushRequest
 ): Promise<SyncPushResponse> {
     const token = await SecureStore.getItemAsync("token");
-    console.log("token", token);
     return http<SyncPushResponse>("/settlement/sync/push", {
         method: "POST",
         headers: {

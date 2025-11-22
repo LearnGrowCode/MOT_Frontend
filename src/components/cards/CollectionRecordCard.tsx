@@ -34,15 +34,15 @@ export default function CollectionRecordCard({
     const getCardColorClasses = (status: CollectionRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-[#fff7ed] border-[#fed7aa]";
+                return "bg-[#fff1e6] border-[#fcd34d]";
             case "collected":
-                return "bg-[#f0fdf4] border-[#bbf7d0]";
+                return "bg-[#ecfdf5] border-[#a7f3d0]";
             case "partial":
-                return "bg-[#fefce8] border-[#fde047]";
+                return "bg-[#fffbeb] border-[#fcd34d]";
             case "overdue":
-                return "bg-[#fef2f2] border-[#fecaca]";
+                return "bg-[#fff1f2] border-[#fecdd3]";
             default:
-                return "bg-[#eef3ff] border-[#dbe4ff]";
+                return "bg-[#fff7ed] border-[#fed7aa]";
         }
     };
     return (
@@ -52,8 +52,8 @@ export default function CollectionRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-12 h-12 bg-[#dbe4ff] border border-[#93c5fd] rounded-xl items-center justify-center mr-4 relative'>
-                            <Text className='text-[#1d4ed8] text-base font-semibold'>
+                        <View className='w-12 h-12 bg-[#fff0e6] border border-[#fdba74] rounded-xl items-center justify-center mr-4 relative'>
+                            <Text className='text-[#9a3412] text-base font-semibold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -90,11 +90,8 @@ export default function CollectionRecordCard({
                     </View>
                 </View>
 
-                {/* Category line to reflect simple text like in the screenshot */}
+                {/* Purpose line */}
                 <View className='gap-1'>
-                    <Text className='text-sm text-gray-700'>
-                        {record.category}
-                    </Text>
                     {record.purpose?.trim() ? (
                         <View className='self-start px-3 py-1 rounded-full bg-white/80 border border-gray-100'>
                             <Text
