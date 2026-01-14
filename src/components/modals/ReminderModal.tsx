@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
-import {
-    View,
-    Text,
-    TextInput,
-    Pressable,
-    KeyboardAvoidingView,
-    Platform,
-} from "react-native";
-import BottomModal from "../ui/BottomModal";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { CollectionRecord } from "@/type/interface";
 import { formatCurrency } from "@/utils/utils";
-import { useUserCurrency } from "@/hooks/useUserCurrency";
+import React, { useEffect, useState } from "react";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    Text,
+    TextInput,
+    View,
+} from "react-native";
 import PrimaryButton from "../button/PrimaryButton";
+import BottomModal from "../ui/BottomModal";
 
 type ReminderTone = "gentle" | "appreciative" | "direct";
 
@@ -53,16 +53,18 @@ const buildMessage = (
         currency,
         0
     );
-    const name = record.name.split(" ")[0];
+    const firstName = record.name.trim().split(/\s+/)[0] || "there";
+    const item = record.purpose || record.category || "the pending amount";
 
     switch (tone) {
         case "appreciative":
-            return `Hi ${name}! 😊 Thank you again for trusting me. A tiny reminder that ${amount} is still pending — could you please send it when you're free? Appreciate you!`;
+            return `Hi ${firstName}! 😊 Thank you again for trusting me. A tiny reminder that ${amount} is still pending for ${item} — could you please send it when you're free? Appreciate you!`;
         case "direct":
-            return `Hey ${name}, hope you're doing well. Just a quick check-in about the ${amount} that's due for ${record.category}. Can you let me know when I can expect it? Thanks!`;
+            return `Hey ${firstName}, hope you're doing well. Just a quick check-in about the ${amount} that's due for ${item}. Can you let me know when I can expect it? Thanks!`;
         case "gentle":
+            return `Hi ${firstName}! 👋 Just a soft nudge about the ${amount} for ${item}. No rush at all, just wanted to keep it on your radar. Whenever you're ready! ✨`;
         default:
-            return `Hey ${name}! Just a sweet reminder that ${amount} is still open for ${record.category}. Pay it whenever you're ready — thank you!`;
+            return `Hey ${firstName}! Just a friendly reminder that ${amount} is still open for ${item}. Pay it whenever you're ready — thank you!`;
     }
 };
 
@@ -158,18 +160,16 @@ export default function ReminderModal({
                                             onPress={() =>
                                                 handleToneChange(tone)
                                             }
-                                            className={`px-4 py-2 rounded-full border ${
-                                                isActive
+                                            className={`px-4 py-2 rounded-full border ${isActive
                                                     ? "bg-indigo-600 border-indigo-600"
                                                     : "bg-gray-100 border-gray-200"
-                                            }`}
+                                                }`}
                                         >
                                             <Text
-                                                className={`text-sm font-semibold ${
-                                                    isActive
+                                                className={`text-sm font-semibold ${isActive
                                                         ? "text-white"
                                                         : "text-gray-700"
-                                                }`}
+                                                    }`}
                                             >
                                                 {toneMeta[tone].emoji}{" "}
                                                 {toneMeta[tone].label}

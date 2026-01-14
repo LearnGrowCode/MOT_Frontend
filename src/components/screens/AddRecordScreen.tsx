@@ -1,16 +1,16 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
-import { useForm, Controller } from "react-hook-form";
-import { CardContent } from "@/components/ui/card";
 import Input from "@/components/form/Input";
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { useRouter } from "expo-router";
 import ContactList from "@/components/modals/ContactList";
-import { usePermissionStore } from "@/store/usePermissionStore";
+import { CardContent } from "@/components/ui/card";
 import { createBookEntry } from "@/db/models/Book";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
-import { getAmountInWords, formatAmountInput } from "@/utils/utils";
+import { usePermissionStore } from "@/store/usePermissionStore";
+import { formatAmountInput, getAmountInWords } from "@/utils/utils";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type BookType = "COLLECT" | "PAY";
 
@@ -102,7 +102,8 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const handleContactSelect = useCallback(
         (name: string, phone: string) => {
             setValue("name", name);
-            setValue("phone", phone);
+            const sanitizedPhone = phone.replace(/[^\d+]/g, "");
+            setValue("phone", sanitizedPhone);
             setContactsVisible(false);
         },
         [setValue]
@@ -230,11 +231,15 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                             label='Phone Number'
                                             placeholder='Phone Number (Optional)'
                                             value={value}
-                                            onChangeText={onChange}
+                                            onChangeText={(text) =>
+                                                onChange(
+                                                    text.replace(/[^\d+]/g, "")
+                                                )
+                                            }
                                             keyboardType='phone-pad'
                                             error={errors.phone?.message}
                                             returnKeyType='next'
-                                            maxLength={12}
+                                            maxLength={15}
                                         />
                                     )}
                                 />
@@ -310,7 +315,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                                         ) => {
                                                             if (
                                                                 event.type ===
-                                                                    "set" &&
+                                                                "set" &&
                                                                 date
                                                             ) {
                                                                 setSelectedDate(
@@ -378,9 +383,8 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                     <Pressable
                         onPress={() => router.back()}
                         disabled={isSubmitting}
-                        className={`mr-3 flex-1 items-center justify-center rounded-xl border border-slate-300 px-4 py-3 ${
-                            isSubmitting ? "opacity-60" : "active:opacity-80"
-                        }`}
+                        className={`mr-3 flex-1 items-center justify-center rounded-xl border border-slate-300 px-4 py-3 ${isSubmitting ? "opacity-60" : "active:opacity-80"
+                            }`}
                     >
                         <Text className='text-base font-semibold text-slate-700'>
                             Cancel
@@ -389,11 +393,10 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                     <Pressable
                         onPress={handleSubmit(onSubmit)}
                         disabled={isSubmitting}
-                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${
-                            isSubmitting
+                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${isSubmitting
                                 ? "bg-[#93c5fd]"
                                 : "bg-[#2563eb] active:bg-[#1d4ed8]"
-                        }`}
+                            }`}
                     >
                         {isSubmitting ? (
                             <ActivityIndicator size='small' color='white' />
