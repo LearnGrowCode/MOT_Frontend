@@ -1,10 +1,10 @@
+import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { formatCurrency } from "@/utils/utils";
 import React from "react";
-import { View, Text, Pressable } from "react-native";
-import { Card, CardContent } from "../ui/card";
+import { Pressable, Text, View } from "react-native";
 import { PaymentRecord } from "../../type/interface";
 import BottomModal from "../ui/BottomModal";
-import { formatCurrency } from "@/utils/utils";
-import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { Card, CardContent } from "../ui/card";
 
 interface OptionProps {
     visible: boolean;
@@ -45,11 +45,11 @@ export default function Option({
             <Card className='border-0'>
                 <CardContent>
                     {/* Record Info */}
-                    <View className='mb-3 px-4 py-2 bg-gray-50 rounded-lg'>
-                        <Text className='text-lg font-semibold text-gray-800'>
+                    <View className='mb-3 px-4 py-2 bg-muted rounded-lg'>
+                        <Text className='text-lg font-semibold text-foreground'>
                             {record.name}
                         </Text>
-                        <Text className='text-sm text-gray-600'>
+                        <Text className='text-sm text-muted-foreground'>
                             {formatCurrency(record.amount, currency, 0)} •{" "}
                             {record.category}
                         </Text>
@@ -60,35 +60,35 @@ export default function Option({
                         {/* Edit Button */}
                         <Pressable
                             onPress={handleEdit}
-                            className='flex-row items-center px-4 py-2  w-1/2 bg-blue-100 rounded-lg'
+                            className='flex-row items-center px-4 py-2  w-1/2 bg-paid/10 dark:bg-paid/20 rounded-lg'
                         >
-                            <View className='w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3'>
-                                <Text className='text-blue-700 text-lg'>
+                            <View className='w-10 h-10 bg-paid/10 rounded-full items-center justify-center mr-3'>
+                                <Text className='text-paid-foreground text-lg'>
                                     ✏️
                                 </Text>
                             </View>
                             <View className='flex-1'>
-                                <Text className='text-md font-semibold text-blue-800'>
+                                <Text className='text-md font-semibold text-paid-foreground'>
                                     Edit
                                 </Text>
                             </View>
-                            <Text className='text-blue-400 text-lg'>›</Text>
+                            <Text className='text-paid-foreground/50 text-lg'>›</Text>
                         </Pressable>
 
                         {/* Delete Button */}
                         <Pressable
                             onPress={handleDelete}
-                            className='flex-row items-center px-4 py-2 w-1/2 bg-red-100 rounded-lg'
+                            className='flex-row items-center px-4 py-2 w-1/2 bg-overdue/10 dark:bg-overdue/20 rounded-lg'
                         >
-                            <View className='w-10 h-10 bg-red-100 rounded-full items-center justify-center mr-3'>
-                                <Text className='text-red-800 text-lg'>🗑️</Text>
+                            <View className='w-10 h-10 bg-overdue/10 rounded-full items-center justify-center mr-3'>
+                                <Text className='text-overdue-foreground text-lg'>🗑️</Text>
                             </View>
                             <View className='flex-1'>
-                                <Text className='text-md font-semibold text-red-800 '>
+                                <Text className='text-md font-semibold text-overdue-foreground '>
                                     Delete
                                 </Text>
                             </View>
-                            <Text className='text-red-400 text-lg'>›</Text>
+                            <Text className='text-overdue-foreground/50 text-lg'>›</Text>
                         </Pressable>
                     </View>
                 </CardContent>

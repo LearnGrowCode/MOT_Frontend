@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { View, Text, Modal, Pressable } from "react-native";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import Input from "../form/Input";
-import { BaseBookRecord } from "@/type/interface";
-import { getAmountInWords, formatAmountInput } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { BaseBookRecord } from "@/type/interface";
+import { formatAmountInput, getAmountInWords } from "@/utils/utils";
+import React, { useState } from "react";
+import { Modal, Pressable, Text, View } from "react-native";
 import RecordInfoCard from "../common/RecordInfoCard";
+import Input from "../form/Input";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 type TransactionType = "collection" | "payment";
 
@@ -41,7 +41,6 @@ export default function TransactionConfirmation({
 
     const isCollection = type === "collection";
     const variant = isCollection ? "green" : "blue";
-    const buttonColor = isCollection ? "bg-green-600" : "bg-blue-600";
     const title = isCollection
         ? "Collection Confirmation"
         : "Payment Confirmation";
@@ -58,19 +57,19 @@ export default function TransactionConfirmation({
             onRequestClose={onClose}
         >
             <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md'>
-                    <CardHeader className='flex-row items-center justify-between'>
+                <Card className='w-full max-w-md bg-card border-border'>
+                    <CardHeader className='flex-row items-center justify-between border-b border-border mb-4'>
                         <View className='flex-row items-center'>
-                            <Text className='text-blue-600 text-xl mr-2'>
+                            <Text className='text-primary text-xl mr-2'>
                                 💳
                             </Text>
-                            <CardTitle className='text-lg font-semibold'>
+                            <CardTitle className='text-lg font-semibold text-foreground'>
                                 {title}
                             </CardTitle>
                         </View>
 
                         <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-gray-500'>
+                            <Text className='text-xl font-bold text-muted-foreground'>
                                 ×
                             </Text>
                         </Pressable>
@@ -82,7 +81,7 @@ export default function TransactionConfirmation({
 
                         {/* Enter Amount */}
                         <View>
-                            <Text className='mb-2 text-sm text-gray-600'>
+                            <Text className='mb-2 text-sm text-muted-foreground'>
                                 {inputLabel}
                             </Text>
                             <View className='flex-row items-center'>
@@ -96,11 +95,11 @@ export default function TransactionConfirmation({
                                         maxLength={12}
                                         autoFocus
                                         keyboardType='numeric'
-                                        className='text-2xl font-bold text-center'
+                                        className='text-2xl font-bold text-center text-foreground'
                                     />
                                 </View>
                             </View>
-                            <Text className='mt-1 text-xs text-gray-500 text-center capitalize'>
+                            <Text className='mt-1 text-xs text-muted-foreground text-center capitalize'>
                                 {getAmountInWords(amount, currency)}
                             </Text>
                         </View>
@@ -110,17 +109,17 @@ export default function TransactionConfirmation({
                     <View className='flex-row gap-3 p-6 pt-0'>
                         <Pressable
                             onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
+                            className='flex-1 py-3 px-4 border border-border rounded-md items-center'
                         >
-                            <Text className='text-gray-700 font-medium'>
+                            <Text className='text-muted-foreground font-medium'>
                                 Cancel
                             </Text>
                         </Pressable>
                         <Pressable
                             onPress={handleConfirm}
-                            className={`flex-1 py-3 px-4 ${buttonColor} rounded-md items-center`}
+                            className={`flex-1 py-3 px-4 rounded-md items-center ${isCollection ? 'bg-paid' : 'bg-primary'}`}
                         >
-                            <Text className='text-white font-medium'>
+                            <Text className={`${isCollection ? 'text-paid-foreground' : 'text-primary-foreground'} font-medium`}>
                                 Confirm
                             </Text>
                         </Pressable>

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { ListFilter, Search, XCircle } from "lucide-react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 interface SearchAndFilterProps {
     searchQuery: string;
@@ -55,24 +55,24 @@ export default function SearchAndFilter({
 
     return (
         <View className='flex flex-row flex-wrap gap-3 pb-3'>
-            <View className='flex-row  items-center bg-white rounded-2xl shadow-sm border border-gray-100 w-full h-fit px-4 py-2'>
-                <Search size={20} color='#6b7280' />
+            <View className='flex-row  items-center bg-card rounded-2xl shadow-sm border border-border w-full h-fit px-4 py-2'>
+                <Search size={20} className='text-muted-foreground' />
                 <TextInput
                     placeholder='Search records...'
                     value={search}
                     onChangeText={setSearch}
-                    className='flex-1 text-base text-gray-900 ml-3 border-none outline-none focus:ring-0 focus:ring-offset-0'
+                    className='flex-1 text-base text-foreground ml-3 border-none outline-none focus:ring-0 focus:ring-offset-0'
                     placeholderTextColor='#9CA3AF'
                     returnKeyType='search'
                 />
                 {search.length > 0 && (
                     <Pressable
                         onPress={handleClearSearch}
-                        className='flex-row items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-full'
+                        className='flex-row items-center gap-1 bg-muted px-3 py-1.5 rounded-full'
                         accessibilityLabel='Clear search'
                     >
-                        <XCircle size={16} color='#4b5563' />
-                        <Text className='text-sm font-medium text-gray-600'>
+                        <XCircle size={16} className='text-muted-foreground' />
+                        <Text className='text-sm font-medium text-muted-foreground'>
                             Clear
                         </Text>
                     </Pressable>
@@ -92,10 +92,10 @@ export default function SearchAndFilter({
                     <Pressable
                         key={"filter-and-sort"}
                         onPress={() => setShowFilterAndSort(true)}
-                        className='bg-white border border-gray-200 rounded-lg px-4 py-2 flex-row items-center gap-2'
+                        className='bg-card border border-border rounded-lg px-4 py-2 flex-row items-center gap-2 active:bg-accent'
                     >
-                        <ListFilter size={24} color='#000' />
-                        <Text className='text-sm text-gray-700'>
+                        <ListFilter size={24} className='text-foreground' />
+                        <Text className='text-sm text-foreground'>
                             Filter and sort
                         </Text>
                     </Pressable>

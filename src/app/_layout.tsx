@@ -1,14 +1,14 @@
 import { Drawer } from "expo-router/drawer";
 import "react-native-get-random-values";
 
-import "@/global.css";
-import { ThemeProvider } from "@react-navigation/native";
-import { NAV_THEME } from "@/lib/theme";
-import { useColorScheme } from "react-native";
-import { PortalHost } from "@rn-primitives/portal";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import React from "react";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import "@/global.css";
+import { NAV_THEME } from "@/lib/theme";
+import { ThemeProvider } from "@react-navigation/native";
+import { PortalHost } from "@rn-primitives/portal";
+import React from "react";
+import { useColorScheme } from "react-native";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function Layout() {
     const colorScheme = useColorScheme();
@@ -21,9 +21,11 @@ export default function Layout() {
                     <Drawer
                         screenOptions={{
                             headerShown: true,
-                            drawerStyle: { backgroundColor: "#1f2937" },
-                            drawerActiveTintColor: "#3b82f6",
-                            drawerInactiveTintColor: "#9ca3af",
+                            drawerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
+                            drawerActiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.primary,
+                            drawerInactiveTintColor: colorScheme === 'dark' ? '#9ca3af' : '#4b5563',
+                            headerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
+                            headerTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text,
                         }}
                     >
                         <Drawer.Screen

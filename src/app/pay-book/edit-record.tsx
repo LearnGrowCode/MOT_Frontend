@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { CardContent } from "@/components/ui/card";
 import Input from "@/components/form/Input";
+import { CardContent } from "@/components/ui/card";
+import {
+    deleteSettlement,
+    updateBookEntryWithPrincipal,
+} from "@/db/models/Book";
+import {
+    getPayBookEntries
+} from "@/services/book/book-entry.service";
 import { PaymentRecord } from "@/type/interface";
 import {
     formatAmountInput,
     formatCurrency,
     formatDate,
 } from "@/utils/utils";
-import {
-    getPayBookEntries,
-    getTotalPayRemaining,
-} from "@/services/book/book-entry.service";
-import {
-    updateBookEntryWithPrincipal,
-    deleteSettlement,
-} from "@/db/models/Book";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function EditPayRecordScreen() {
     const router = useRouter();
@@ -35,11 +34,7 @@ export default function EditPayRecordScreen() {
         Set<string>
     >(new Set());
 
-    useEffect(() => {
-        loadRecord();
-    }, [id]);
-
-    const loadRecord = async () => {
+    const loadRecord = React.useCallback(async () => {
         if (!id) {
             router.back();
             return;
@@ -64,7 +59,11 @@ export default function EditPayRecordScreen() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [id, router]);
+
+    useEffect(() => {
+        loadRecord();
+    }, [loadRecord]);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -134,8 +133,8 @@ export default function EditPayRecordScreen() {
 
     if (isLoading) {
         return (
-            <View className='flex-1 items-center justify-center bg-[#f2f6fc]'>
-                <ActivityIndicator size='large' color='#2563eb' />
+            <View className='flex-1 items-center justify-center bg-background'>
+                <ActivityIndicator size='large' color='hsl(var(--primary))' />
             </View>
         );
     }
@@ -145,7 +144,7 @@ export default function EditPayRecordScreen() {
     }
 
     return (
-        <View className='flex-1 bg-[#f2f6fc]'>
+        <View className='flex-1 bg-background'>
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 160 }}
@@ -154,17 +153,17 @@ export default function EditPayRecordScreen() {
             >
                 <CardContent className='flex flex-col px-0 pt-2'>
                     <View className='mb-6 px-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-muted-foreground'>
                             Pay Book
                         </Text>
-                        <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                        <Text className='mt-1 text-3xl font-bold text-foreground'>
                             Edit Record
                         </Text>
                     </View>
 
                     <View className='mb-6 px-4'>
-                        <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm'>
-                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <View className='rounded-2xl border border-border bg-card px-4 py-4 shadow-sm'>
+                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-muted-foreground'>
                                 Record details
                             </Text>
                             <View className='mt-2'>
@@ -209,14 +208,14 @@ export default function EditPayRecordScreen() {
 
                     {record.trx_history && record.trx_history.length > 0 && (
                         <View className='mb-6 px-4'>
-                            <View className='rounded-2xl border border-[#fee2e2] bg-[#fef2f2] px-4 py-4 shadow-sm'>
+                            <View className='rounded-2xl border border-destructive/20 bg-destructive/5 dark:bg-destructive/10 px-4 py-4 shadow-sm'>
                                 <View className='flex-row items-center gap-2 mb-3'>
                                     <Text className='text-lg'>⚠️</Text>
                                     <View className='flex-1'>
-                                        <Text className='text-sm font-semibold text-red-700'>
+                                        <Text className='text-sm font-semibold text-destructive'>
                                             Delete payments
                                         </Text>
-                                        <Text className='text-xs text-red-600 mt-1'>
+                                        <Text className='text-xs text-destructive/80 mt-1'>
                                             Tap a payment below to mark it for
                                             deletion. Nothing is removed until
                                             you save.
@@ -248,30 +247,28 @@ export default function EditPayRecordScreen() {
                                                         }
                                                     )
                                                 }
-                                                className={`flex-row items-center justify-between px-4 py-3 rounded-xl border ${
-                                                    isMarked
-                                                        ? "border-red-400 bg-white"
-                                                        : "border-red-200 bg-white/50"
-                                                }`}
+                                                className={`flex-row items-center justify-between px-4 py-3 rounded-xl border ${isMarked
+                                                    ? "border-destructive bg-card"
+                                                    : "border-destructive/20 bg-card/50"
+                                                    }`}
                                             >
                                                 <View>
-                                                    <Text className='text-sm font-semibold text-gray-800'>
+                                                    <Text className='text-sm font-semibold text-foreground'>
                                                         {formatCurrency(
                                                             item.amount,
                                                             record.category,
                                                             2
                                                         )}
                                                     </Text>
-                                                    <Text className='text-xs text-gray-500 mt-0.5'>
+                                                    <Text className='text-xs text-muted-foreground mt-0.5'>
                                                         {formatDate(item.date)}
                                                     </Text>
                                                 </View>
                                                 <Text
-                                                    className={`text-xs font-semibold ${
-                                                        isMarked
-                                                            ? "text-red-600"
-                                                            : "text-gray-400"
-                                                    }`}
+                                                    className={`text-xs font-semibold ${isMarked
+                                                        ? "text-destructive"
+                                                        : "text-muted-foreground"
+                                                        }`}
                                                 >
                                                     {isMarked
                                                         ? "Will delete"
@@ -282,7 +279,7 @@ export default function EditPayRecordScreen() {
                                     })}
                                 </View>
                                 {pendingSettlementDeletes.size > 0 && (
-                                    <Text className='text-xs text-red-500 mt-3'>
+                                    <Text className='text-xs text-destructive mt-3'>
                                         {pendingSettlementDeletes.size} payment
                                         {pendingSettlementDeletes.size > 1
                                             ? "s"
@@ -296,32 +293,30 @@ export default function EditPayRecordScreen() {
                 </CardContent>
             </KeyboardAwareScrollView>
 
-            <View className='border-t border-[#e3e9f5] bg-white px-4 py-3 shadow-lg shadow-black/5'>
+            <View className='border-t border-border bg-card px-4 py-3 shadow-lg'>
                 <View className='flex-row'>
                     <Pressable
                         onPress={() => router.back()}
                         disabled={isSaving}
-                        className={`mr-3 flex-1 items-center justify-center rounded-xl border border-slate-300 px-4 py-3 ${
-                            isSaving ? "opacity-60" : "active:opacity-80"
-                        }`}
+                        className={`mr-3 flex-1 items-center justify-center rounded-xl border border-border px-4 py-3.5 ${isSaving ? "opacity-60" : "active:bg-accent"
+                            }`}
                     >
-                        <Text className='text-base font-semibold text-slate-700'>
+                        <Text className='text-base font-semibold text-foreground'>
                             Cancel
                         </Text>
                     </Pressable>
                     <Pressable
                         onPress={handleSubmit}
                         disabled={isSaving}
-                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${
-                            isSaving
-                                ? "bg-[#93c5fd]"
-                                : "bg-[#2563eb] active:bg-[#1d4ed8]"
-                        }`}
+                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3.5 bg-primary ${isSaving
+                            ? "opacity-60"
+                            : "active:opacity-90"
+                            }`}
                     >
                         {isSaving ? (
-                            <ActivityIndicator size='small' color='white' />
+                            <ActivityIndicator size='small' color='hsl(var(--primary-foreground))' />
                         ) : (
-                            <Text className='text-base font-semibold text-white'>
+                            <Text className='text-base font-semibold text-primary-foreground'>
                                 Save changes
                             </Text>
                         )}

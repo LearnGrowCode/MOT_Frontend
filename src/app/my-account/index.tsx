@@ -1,39 +1,39 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-    View,
-    Text,
-    Pressable,
-    Alert,
-    ScrollView,
-    ActivityIndicator,
-} from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { useFocusEffect, useRouter } from "expo-router";
 import Input from "@/components/form/Input";
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
-import { CardContent } from "@/components/ui/card";
 import BottomModal from "@/components/ui/BottomModal";
-import { CheckCircle2, RefreshCw, User } from "lucide-react-native";
+import { CardContent } from "@/components/ui/card";
+import { useCurrency } from "@/context/CurrencyContext";
 import {
     getUser,
     getUserPreferences,
     upsertUser,
     upsertUserPreferences,
 } from "@/db/models/User";
-import { DEFAULT_USER_ID } from "@/utils/constants";
-import { uuidv4 } from "@/utils/uuid";
-import { useCurrency } from "@/context/CurrencyContext";
-import { getDeviceLocale } from "@/utils/currency-locale";
-import * as SecureStore from "expo-secure-store";
-import { resetAppData } from "@/utils/db-utils";
 import { login, signup } from "@/services/api/auth.service";
 import {
+    SyncPullCursor,
+    applySyncPull,
     buildSyncTablesFromLocal,
     syncPull,
     syncPush,
-    SyncPullCursor,
-    applySyncPull,
 } from "@/services/api/sync.service";
+import { DEFAULT_USER_ID } from "@/utils/constants";
+import { getDeviceLocale } from "@/utils/currency-locale";
+import { resetAppData } from "@/utils/db-utils";
+import { uuidv4 } from "@/utils/uuid";
+import { useFocusEffect, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import { CheckCircle2, RefreshCw, User } from "lucide-react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
+} from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const currencyOptions = [
     { label: "INR - Indian Rupee", value: "INR" },
@@ -688,7 +688,7 @@ export default function MyAccountScreen() {
     }
 
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1 bg-background'>
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 160 }}
@@ -696,54 +696,54 @@ export default function MyAccountScreen() {
                 style={{ flex: 1 }}
             >
                 <CardContent className='flex flex-col px-0 pt-2'>
-                    <View className='mb-6 px-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                    <View className='mb-6 px-6'>
+                        <Text className='text-xs font-bold uppercase tracking-[2px] text-primary'>
                             Settings
                         </Text>
-                        <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                        <Text className='mt-2 text-4xl font-black text-foreground tracking-tight'>
                             My Account
                         </Text>
                     </View>
 
-                    <View className='mb-6 px-4'>
-                        <View className='rounded-3xl border border-[#d4e0ff] bg-[#e7efff] px-5 py-6 shadow-lg shadow-[#9db8ff]/40'>
+                    <View className='mb-8 px-6'>
+                        <View className='rounded-3xl border border-primary/20 bg-primary/10 px-6 py-8 shadow-xl shadow-primary/10'>
                             <View className='flex-row items-center'>
                                 <Avatar
-                                    className='h-16 w-16 border-2 border-white bg-white/90'
+                                    className='h-20 w-20 border-4 border-background bg-card shadow-lg'
                                     alt={profile.fullName || "User avatar"}
                                 >
-                                    <AvatarFallback className='bg-white/80'>
-                                        <Text className='text-lg font-semibold text-[#1d4ed8]'>
+                                    <AvatarFallback className='bg-background'>
+                                        <Text className='text-2xl font-black text-primary'>
                                             {profileInitials}
                                         </Text>
                                     </AvatarFallback>
                                 </Avatar>
-                                <View className='ml-4 flex-1'>
-                                    <Text className='text-[#111827] text-xl font-semibold'>
+                                <View className='ml-6 flex-1'>
+                                    <Text className='text-foreground text-2xl font-black tracking-tight'>
                                         {profile.fullName || "Add your name"}
                                     </Text>
-                                    <Text className='text-[#4b5563] text-sm'>
+                                    <Text className='text-muted-foreground text-sm font-medium'>
                                         {profile.email || "Add your email"}
                                     </Text>
                                 </View>
                             </View>
                             <View className='mt-4 flex-row flex-wrap'>
-                                <View className='mr-2 mb-2 rounded-full bg-white/90 px-3 py-1'>
-                                    <Text className='text-xs font-semibold text-[#1d4ed8]'>
+                                <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
+                                    <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
                                         {isLoggedIn
                                             ? "Sync enabled"
                                             : "Offline mode"}
                                     </Text>
                                 </View>
-                                <View className='mr-2 mb-2 rounded-full bg-white/90 px-3 py-1'>
-                                    <Text className='text-xs font-semibold text-[#1d4ed8]'>
+                                <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
+                                    <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
                                         Currency:{" "}
                                         {profile.currency || "Set currency"}
                                     </Text>
                                 </View>
                                 {lastSyncAt && (
-                                    <View className='mr-2 mb-2 rounded-full bg-white/90 px-3 py-1'>
-                                        <Text className='text-xs font-semibold text-[#2563eb]'>
+                                    <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
+                                        <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
                                             Last sync {lastSyncAt}
                                         </Text>
                                     </View>
@@ -753,9 +753,9 @@ export default function MyAccountScreen() {
                     </View>
 
                     {isEditing ? (
-                        <View className='mb-6 px-4'>
-                            <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <View className='mb-6 px-6'>
+                            <View className='rounded-2xl border border-border bg-card px-5 py-6 shadow-sm'>
+                                <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground mb-4'>
                                     Personal details
                                 </Text>
                                 <View className='mt-2'>
@@ -800,24 +800,23 @@ export default function MyAccountScreen() {
                                         returnKeyType='done'
                                     />
                                     <View className='w-full mb-1'>
-                                        <Text className='mb-1 text-sm text-gray-600'>
+                                        <Text className='mb-1.5 text-sm font-bold text-muted-foreground uppercase tracking-wider'>
                                             Preferred Currency
                                         </Text>
                                         <Pressable
                                             onPress={() =>
                                                 setShowCurrencyModal(true)
                                             }
-                                            className='w-full flex-row items-center justify-between rounded-xl border border-[#dbe4ff] bg-white px-4 py-3'
+                                            className='w-full flex-row items-center justify-between rounded-xl border border-input bg-background px-4 py-4 active:bg-accent'
                                             accessibilityRole='button'
                                             accessibilityLabel='Select currency'
                                             accessibilityHint='Opens currency selection modal'
                                         >
                                             <Text
-                                                className={`text-base ${
-                                                    draft.currency
-                                                        ? "text-gray-900"
-                                                        : "text-gray-400"
-                                                }`}
+                                                className={`text-base font-medium ${draft.currency
+                                                        ? "text-foreground"
+                                                        : "text-muted-foreground"
+                                                    }`}
                                             >
                                                 {selectedCurrencyLabel}
                                             </Text>
@@ -830,40 +829,40 @@ export default function MyAccountScreen() {
                             </View>
                         </View>
                     ) : (
-                        <View className='mb-6 px-4'>
-                            <View className='rounded-2xl border border-[#e3e9f5] bg-white p-4 shadow-sm'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <View className='mb-6 px-6'>
+                            <View className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
+                                <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground mb-4'>
                                     Personal info
                                 </Text>
                                 <View className='mt-4'>
-                                    <View className='flex-row items-center justify-between py-3'>
+                                    <View className='flex-row items-center justify-between py-4'>
                                         <View>
-                                            <Text className='text-xs uppercase text-slate-400'>
+                                            <Text className='text-[10px] uppercase font-bold text-muted-foreground tracking-widest'>
                                                 Mobile
                                             </Text>
-                                            <Text className='mt-0.5 text-base text-stone-900'>
+                                            <Text className='mt-1 text-lg font-bold text-foreground'>
                                                 {profile.mobileNumber ||
                                                     "Add a number"}
                                             </Text>
                                         </View>
-                                        <Text className='text-[#2563eb] text-sm font-medium'>
+                                        <Text className='text-primary text-xs font-bold uppercase tracking-wider'>
                                             {profile.mobileNumber
                                                 ? "Saved"
                                                 : "Missing"}
                                         </Text>
                                     </View>
-                                    <View className='h-px bg-slate-100' />
-                                    <View className='flex-row items-center justify-between py-3'>
+                                    <View className='h-px bg-border' />
+                                    <View className='flex-row items-center justify-between py-4'>
                                         <View>
-                                            <Text className='text-xs uppercase text-slate-400'>
+                                            <Text className='text-[10px] uppercase font-bold text-muted-foreground tracking-widest'>
                                                 Preferred currency
                                             </Text>
-                                            <Text className='mt-0.5 text-base text-stone-900'>
+                                            <Text className='mt-1 text-lg font-bold text-foreground'>
                                                 {profile.currency || "Not set"}
                                             </Text>
                                         </View>
-                                        <View className='rounded-full bg-[#e0e9ff] px-3 py-1'>
-                                            <Text className='text-[#1d4ed8] text-xs font-semibold'>
+                                        <View className='rounded-full bg-primary/10 px-4 py-1.5 border border-primary/20'>
+                                            <Text className='text-primary text-[10px] font-bold uppercase tracking-wider'>
                                                 {profile.currency || "Set now"}
                                             </Text>
                                         </View>
@@ -873,18 +872,17 @@ export default function MyAccountScreen() {
                         </View>
                     )}
 
-                    <View className='mb-6 px-4'>
+                    <View className='mb-6 px-6'>
                         {!isEditing ? (
                             isLoggedIn ? (
-                                <View className='rounded-2xl border border-[#e3e9f5] bg-white p-4 shadow-sm'>
-                                    <View className='flex-row items-center justify-between'>
+                                <View className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
+                                    <View className='flex-row items-center justify-between mb-2'>
                                         <View>
-                                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                                            <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground'>
                                                 Sync
                                             </Text>
-                                            <Text className='mt-1 text-base text-stone-900'>
-                                                Keep your books backed up
-                                                securely
+                                            <Text className='mt-2 text-base font-medium text-foreground'>
+                                                Keep your books backed up securely
                                             </Text>
                                         </View>
                                         {isSyncing && (
@@ -897,36 +895,30 @@ export default function MyAccountScreen() {
                                     <Pressable
                                         onPress={handleSyncNow}
                                         disabled={isSyncing}
-                                        className={`mt-4 flex-row items-center justify-between rounded-xl border border-[#dbe4ff] px-4 py-3 ${
-                                            isSyncing
-                                                ? "bg-slate-100 opacity-60"
-                                                : "bg-[#eef3ff] active:opacity-90"
-                                        }`}
+                                        className={`mt-4 flex-row items-center justify-between rounded-xl border border-border px-4 py-4 ${isSyncing
+                                                ? "bg-muted opacity-60"
+                                                : "bg-primary/5 active:opacity-90 border-primary/20"
+                                            }`}
                                         accessibilityRole='button'
                                         accessibilityLabel='Sync data with server'
                                     >
                                         <View className='flex-row items-center'>
                                             <RefreshCw
                                                 size={20}
-                                                color={
-                                                    isSyncing
-                                                        ? "#94a3b8"
-                                                        : "#2563eb"
-                                                }
+                                                className={isSyncing ? "text-muted-foreground" : "text-primary"}
                                             />
                                             <Text
-                                                className={`ml-3 text-sm font-semibold ${
-                                                    isSyncing
-                                                        ? "text-gray-500"
-                                                        : "text-[#2563eb]"
-                                                }`}
+                                                className={`ml-3 text-sm font-bold uppercase tracking-wider ${isSyncing
+                                                        ? "text-muted-foreground"
+                                                        : "text-primary"
+                                                    }`}
                                             >
                                                 {isSyncing
                                                     ? "Syncing..."
                                                     : "Sync now"}
                                             </Text>
                                         </View>
-                                        <Text className='text-sm font-semibold text-[#1d4ed8]'>
+                                        <Text className='text-sm font-bold text-primary'>
                                             ↻
                                         </Text>
                                     </Pressable>
@@ -1016,15 +1008,14 @@ export default function MyAccountScreen() {
                 </CardContent>
             </KeyboardAwareScrollView>
 
-            <View className='border-t border-[#e3e9f5] bg-white px-4 py-3 shadow-lg shadow-black/5'>
+            <View className='border-t border-border bg-card px-6 py-5 shadow-lg'>
                 {isEditing ? (
                     <View className='flex-row'>
                         <Pressable
                             onPress={handleCancelEdit}
                             disabled={saving}
-                            className={`mr-3 flex-1 items-center justify-center rounded-xl border border-stone-300 px-4 py-3 ${
-                                saving ? "opacity-60" : "active:opacity-80"
-                            }`}
+                            className={`mr-3 flex-1 items-center justify-center rounded-xl border border-stone-300 px-4 py-3 ${saving ? "opacity-60" : "active:opacity-80"
+                                }`}
                         >
                             <Text className='text-base font-semibold text-slate-700'>
                                 Cancel
@@ -1033,11 +1024,10 @@ export default function MyAccountScreen() {
                         <Pressable
                             onPress={handleSave}
                             disabled={saving || !isDirty}
-                            className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${
-                                saving || !isDirty
+                            className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${saving || !isDirty
                                     ? "bg-slate-200"
                                     : "bg-[#2563eb] active:bg-[#1e4fd5]"
-                            }`}
+                                }`}
                         >
                             <Text className='text-base font-semibold text-white'>
                                 {saving ? "Saving..." : "Save changes"}
@@ -1079,11 +1069,10 @@ export default function MyAccountScreen() {
                                 }));
                                 setShowCurrencyModal(false);
                             }}
-                            className={`px-6 py-4 border-b border-gray-100 active:bg-gray-50 ${
-                                draft.currency === option.value
+                            className={`px-6 py-4 border-b border-gray-100 active:bg-gray-50 ${draft.currency === option.value
                                     ? "bg-[#eef3ff]"
                                     : "bg-white"
-                            }`}
+                                }`}
                             accessibilityRole='button'
                             accessibilityLabel={`Select ${option.label}`}
                             accessibilityState={{
@@ -1093,11 +1082,10 @@ export default function MyAccountScreen() {
                             <View className='flex-row items-center justify-between'>
                                 <View className='flex-1'>
                                     <Text
-                                        className={`text-base font-medium ${
-                                            draft.currency === option.value
+                                        className={`text-base font-medium ${draft.currency === option.value
                                                 ? "text-[#2563eb]"
                                                 : "text-gray-900"
-                                        }`}
+                                            }`}
                                     >
                                         {option.label}
                                     </Text>
@@ -1150,9 +1138,8 @@ export default function MyAccountScreen() {
                     <Pressable
                         onPress={handleLogin}
                         disabled={isLoggingIn}
-                        className={`mt-4 rounded-md bg-[#2563eb] px-4 py-3 items-center ${
-                            isLoggingIn ? "opacity-60" : "active:opacity-90"
-                        }`}
+                        className={`mt-4 rounded-md bg-[#2563eb] px-4 py-3 items-center ${isLoggingIn ? "opacity-60" : "active:opacity-90"
+                            }`}
                         accessibilityRole='button'
                         accessibilityLabel='Login button'
                     >
@@ -1254,9 +1241,8 @@ export default function MyAccountScreen() {
                     <Pressable
                         onPress={handleSignup}
                         disabled={isSigningUp}
-                        className={`mt-4 rounded-md bg-[#2563eb] px-4 py-3 items-center ${
-                            isSigningUp ? "opacity-60" : "active:opacity-90"
-                        }`}
+                        className={`mt-4 rounded-md bg-[#2563eb] px-4 py-3 items-center ${isSigningUp ? "opacity-60" : "active:opacity-90"
+                            }`}
                         accessibilityRole='button'
                         accessibilityLabel='Sign up button'
                     >

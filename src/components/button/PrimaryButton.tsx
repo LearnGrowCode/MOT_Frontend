@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, ActivityIndicator, ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, Text, ViewStyle } from "react-native";
 import { cn } from "../../lib/utils";
 
 type PrimaryButtonProps = {
@@ -26,15 +26,15 @@ export default function PrimaryButton({
             disabled={disabled || loading}
             style={style}
             className={cn(
-                "w-full items-center justify-center rounded-md bg-blue-600 px-4 py-3",
+                "w-full items-center justify-center rounded-xl bg-primary px-4 py-3.5",
                 disabled || loading ? "opacity-60" : "active:opacity-90",
                 className
             )}
         >
             {loading ? (
-                <ActivityIndicator color={"#FFFFFF"} />
+                <ActivityIndicator color={"hsl(var(--primary-foreground))"} />
             ) : (
-                <Text className='text-base font-semibold text-white'>
+                <Text className='text-base font-bold text-primary-foreground'>
                     {title}
                 </Text>
             )}

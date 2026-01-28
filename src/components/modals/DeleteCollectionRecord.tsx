@@ -1,9 +1,9 @@
-import React from "react";
-import { View, Text, Modal, Pressable } from "react-native";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { CollectionRecord } from "../../type/interface";
-import { formatCurrency } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { formatCurrency } from "@/utils/utils";
+import React from "react";
+import { Modal, Pressable, Text, View } from "react-native";
+import { CollectionRecord } from "../../type/interface";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface DeleteCollectionRecordProps {
     visible: boolean;
@@ -37,45 +37,45 @@ export default function DeleteCollectionRecord({
             onRequestClose={onClose}
         >
             <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md'>
-                    <CardHeader className='flex-row items-center justify-between'>
+                <Card className='w-full max-w-md bg-card border-border'>
+                    <CardHeader className='flex-row items-center justify-between border-b border-border mb-4'>
                         <View className='flex-row items-center'>
-                            <Text className='text-red-600 text-xl mr-2'>
+                            <Text className='text-destructive text-xl mr-2'>
                                 ⚠️
                             </Text>
-                            <CardTitle className='text-lg font-semibold'>
+                            <CardTitle className='text-lg font-semibold text-foreground'>
                                 Delete Collection Record
                             </CardTitle>
                         </View>
                         <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-gray-500'>
+                            <Text className='text-xl font-bold text-muted-foreground'>
                                 ×
                             </Text>
                         </Pressable>
                     </CardHeader>
 
                     <CardContent className='gap-4'>
-                        <Text className='text-gray-600 text-center'>
+                        <Text className='text-muted-foreground text-center'>
                             Are you sure you want to delete this collection
                             record?
                         </Text>
 
                         {/* Record Details */}
-                        <View className='bg-gray-50 p-4 rounded-lg border border-gray-200'>
+                        <View className='bg-muted p-4 rounded-lg border border-border'>
                             <View className='flex-row items-center mb-2'>
-                                <Text className='text-gray-600 text-lg mr-2'>
+                                <Text className='text-muted-foreground text-lg mr-2'>
                                     👤
                                 </Text>
-                                <Text className='text-lg font-semibold text-gray-800'>
+                                <Text className='text-lg font-semibold text-foreground'>
                                     {record.name}
                                 </Text>
                             </View>
                             <View className='flex-row items-center justify-between'>
                                 <View>
-                                    <Text className='text-sm text-gray-600 font-medium'>
+                                    <Text className='text-sm text-muted-foreground font-medium'>
                                         Amount
                                     </Text>
-                                    <Text className='text-lg font-bold text-gray-800'>
+                                    <Text className='text-lg font-bold text-foreground'>
                                         {formatCurrency(
                                             record.amount,
                                             currency,
@@ -84,17 +84,17 @@ export default function DeleteCollectionRecord({
                                     </Text>
                                 </View>
                                 <View className='items-end'>
-                                    <Text className='text-sm text-gray-600 font-medium'>
+                                    <Text className='text-sm text-muted-foreground font-medium'>
                                         Category
                                     </Text>
-                                    <Text className='text-sm font-semibold text-gray-700'>
+                                    <Text className='text-sm font-semibold text-foreground'>
                                         {record.category}
                                     </Text>
                                 </View>
                             </View>
                         </View>
 
-                        <Text className='text-sm text-red-600 text-center'>
+                        <Text className='text-sm text-destructive text-center font-medium'>
                             This action cannot be undone.
                         </Text>
                     </CardContent>
@@ -103,17 +103,17 @@ export default function DeleteCollectionRecord({
                     <View className='flex-row gap-3 p-6 pt-0'>
                         <Pressable
                             onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
+                            className='flex-1 py-3 px-4 border border-border rounded-md items-center'
                         >
-                            <Text className='text-gray-700 font-medium'>
+                            <Text className='text-muted-foreground font-medium'>
                                 Cancel
                             </Text>
                         </Pressable>
                         <Pressable
                             onPress={handleDelete}
-                            className='flex-1 py-3 px-4 bg-red-600 rounded-md items-center'
+                            className='flex-1 py-3 px-4 bg-destructive rounded-md items-center'
                         >
-                            <Text className='text-white font-medium'>
+                            <Text className='text-destructive-foreground font-medium'>
                                 Delete
                             </Text>
                         </Pressable>

@@ -1,35 +1,36 @@
-import React, {
-    useState,
-    useMemo,
-    useCallback,
-    useEffect,
-    useRef,
-    useContext,
-} from "react";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
 import {
-    View,
-    Text,
-    ScrollView,
-    Pressable,
-    Dimensions,
-    ActivityIndicator,
-} from "react-native";
-import { PieChart } from "react-native-chart-kit";
-import { PaymentRecord, CollectionRecord } from "@/type/interface";
-import {
-    TrendingUp,
-    TrendingDown,
-    Coins,
-    Users,
-    Calendar,
-} from "lucide-react-native";
+    getCollectBookEntries,
+    getPayBookEntries,
+} from "@/services/book/book-entry.service";
+import { CollectionRecord, PaymentRecord } from "@/type/interface";
+import { formatCurrency } from "@/utils/utils";
 import { NavigationContext } from "@react-navigation/native";
 import {
-    getPayBookEntries,
-    getCollectBookEntries,
-} from "@/services/book/book-entry.service";
-import { formatCurrency } from "@/utils/utils";
-import { useUserCurrency } from "@/hooks/useUserCurrency";
+    Calendar,
+    Coins,
+    TrendingDown,
+    TrendingUp,
+    Users,
+} from "lucide-react-native";
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import {
+    ActivityIndicator,
+    Dimensions,
+    Pressable,
+    ScrollView,
+    Text,
+    useColorScheme,
+    View,
+} from "react-native";
+import { PieChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 const chartWidth = Math.max(screenWidth - 80, 220);
@@ -92,6 +93,7 @@ function buildStatusPieData(statusData: Record<string, number>) {
 
 export default function AnalysisScreen() {
     const { currency } = useUserCurrency();
+    const isDark = useColorScheme() === 'dark';
     const [activeTab, setActiveTab] = useState<"overview" | "pay" | "collect">(
         "overview"
     );
@@ -291,19 +293,19 @@ export default function AnalysisScreen() {
 
     if (isLoading) {
         return (
-            <View className='flex-1 items-center justify-center bg-white'>
-                <ActivityIndicator size='large' color='#2563eb' />
+            <View className='flex-1 items-center justify-center bg-background'>
+                <ActivityIndicator size='large' color='hsl(var(--primary))' />
             </View>
         );
     }
 
     const pieChartConfig = {
-        backgroundColor: "#ffffff",
-        backgroundGradientFrom: "#ffffff",
-        backgroundGradientTo: "#ffffff",
+        backgroundColor: "transparent",
+        backgroundGradientFrom: "transparent",
+        backgroundGradientTo: "transparent",
         decimalPlaces: 0,
-        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+        color: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
+        labelColor: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
         style: {
             borderRadius: 16,
         },
@@ -369,12 +371,12 @@ export default function AnalysisScreen() {
         trend?: "up" | "down" | "neutral";
     }) => (
         <View
-            className={`p-4 rounded-2xl border-l-4 ${color} bg-white border border-[#e3e9f5] shadow-sm`}
+            className={`p-5 rounded-3xl border-l-[6px] ${color} bg-card border border-border shadow-sm shadow-black/5 mb-2`}
         >
             <View className='flex-row items-center justify-between'>
                 <View className='flex-1'>
-                    <Text className='text-sm text-gray-600 mb-1'>{title}</Text>
-                    <Text className='text-2xl font-bold text-gray-900'>
+                    <Text className='text-xs font-bold text-muted-foreground mb-1 uppercase tracking-wider'>{title}</Text>
+                    <Text className='text-3xl font-black text-foreground'>
                         {value}
                     </Text>
                 </View>
@@ -385,8 +387,8 @@ export default function AnalysisScreen() {
                             trend === "up"
                                 ? "#10b981"
                                 : trend === "down"
-                                  ? "#ef4444"
-                                  : "#6b7280"
+                                    ? "#ef4444"
+                                    : "#6b7280"
                         }
                     />
                     {trend && (
@@ -416,14 +418,12 @@ export default function AnalysisScreen() {
     }) => (
         <Pressable
             onPress={onPress}
-            className={`px-4 py-2 rounded-lg ${
-                isActive ? "bg-[#2563eb]" : "bg-transparent"
-            }`}
+            className={`px-5 py-2.5 rounded-full ${isActive ? "bg-primary" : "bg-transparent"
+                }`}
         >
             <Text
-                className={`font-semibold text-sm ${
-                    isActive ? "text-white" : "text-stone-600"
-                }`}
+                className={`font-bold text-sm tracking-tight ${isActive ? "text-primary-foreground" : "text-muted-foreground"
+                    }`}
             >
                 {label}
             </Text>
@@ -481,8 +481,8 @@ export default function AnalysisScreen() {
                         generalStats.netAmount > 0
                             ? "up"
                             : generalStats.netAmount < 0
-                              ? "down"
-                              : "neutral"
+                                ? "down"
+                                : "neutral"
                     }
                 />
                 <StatCard
@@ -506,32 +506,33 @@ export default function AnalysisScreen() {
             </View>
 
             {/* Summary Charts */}
-            <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
-                <Text className='text-lg font-bold text-gray-900 mb-4'>
+            <View className='bg-card p-6 rounded-3xl border border-border shadow-sm shadow-black/5'>
+                <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider text-center'>
                     Financial Overview
                 </Text>
-                <View className='flex-row justify-between items-center'>
+                <View className='flex-row justify-around items-center'>
                     <View className='items-center'>
-                        <Text className='text-2xl font-bold text-green-600'>
+                        <Text className='text-2xl font-black text-green-500'>
                             {formatCurrency(
                                 generalStats.totalToCollect,
                                 currency,
                                 2
                             )}
                         </Text>
-                        <Text className='text-sm text-gray-600'>
+                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>
                             To Collect
                         </Text>
                     </View>
+                    <View className='w-[1px] h-12 bg-border' />
                     <View className='items-center'>
-                        <Text className='text-2xl font-bold text-red-600'>
+                        <Text className='text-2xl font-black text-destructive'>
                             {formatCurrency(
                                 generalStats.totalToPay,
                                 currency,
                                 2
                             )}
                         </Text>
-                        <Text className='text-sm text-gray-600'>To Pay</Text>
+                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>To Pay</Text>
                     </View>
                 </View>
             </View>
@@ -568,19 +569,22 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Status Distribution */}
-                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
-                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
+                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
                         Payment Status
                     </Text>
-                    <PieChart
-                        data={statusPieData}
-                        width={chartWidth}
-                        height={200}
-                        chartConfig={pieChartConfig}
-                        accessor='population'
-                        backgroundColor='transparent'
-                        paddingLeft='15'
-                    />
+                    <View className="items-center">
+                        <PieChart
+                            data={statusPieData}
+                            width={chartWidth}
+                            height={200}
+                            chartConfig={pieChartConfig}
+                            accessor='population'
+                            backgroundColor='transparent'
+                            paddingLeft='15'
+                            absolute
+                        />
+                    </View>
                 </View>
 
                 {/* Category Breakdown */}
@@ -624,24 +628,27 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Status Distribution */}
-                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
-                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
+                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
                         Collection Status
                     </Text>
-                    <PieChart
-                        data={statusPieData}
-                        width={chartWidth}
-                        height={200}
-                        chartConfig={pieChartConfig}
-                        accessor='population'
-                        backgroundColor='transparent'
-                        paddingLeft='15'
-                    />
+                    <View className="items-center">
+                        <PieChart
+                            data={statusPieData}
+                            width={chartWidth}
+                            height={200}
+                            chartConfig={pieChartConfig}
+                            accessor='population'
+                            backgroundColor='transparent'
+                            paddingLeft='15'
+                            absolute
+                        />
+                    </View>
                 </View>
 
                 {/* Category Breakdown */}
-                <View className='bg-white p-4 rounded-2xl border border-[#e3e9f5] shadow-sm'>
-                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
+                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
                         Amount by Category
                     </Text>
                     <CategoryTable data={collectAnalysis.categoryData} />
@@ -651,30 +658,30 @@ export default function AnalysisScreen() {
     };
 
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1 bg-background'>
             {/* Header - Fixed */}
             <View
-                className='px-4 pt-6 pb-5 bg-white'
-                style={{ elevation: 4, shadowColor: "#00000011", zIndex: 5 }}
+                className='px-6 pt-10 pb-6 bg-background border-b border-border'
+                style={{ zIndex: 10 }}
             >
-                <View className='mb-4'>
+                <View className='mb-6'>
                     <View className='flex-row items-start justify-between mb-2'>
                         <View className='flex-1'>
-                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                            <Text className='text-xs font-bold uppercase tracking-[2px] text-primary'>
                                 Analytics
                             </Text>
-                            <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                            <Text className='mt-2 text-4xl font-black text-foreground tracking-tight'>
                                 Financial Analysis
                             </Text>
                         </View>
                     </View>
-                    <Text className='text-sm text-stone-600'>
+                    <Text className='text-base text-muted-foreground font-medium'>
                         Track your pay and collect book performance
                     </Text>
                 </View>
 
                 {/* Tab Navigation */}
-                <View className='flex-row gap-2 mt-4 bg-white rounded-full p-1 border border-[#e3e9f5] shadow-sm'>
+                <View className='flex-row gap-1 bg-muted/50 rounded-full p-1.5 border border-border'>
                     <TabButton
                         tab='overview'
                         label='Overview'
@@ -698,15 +705,13 @@ export default function AnalysisScreen() {
 
             {/* Tab Content with Slide Animation */}
             <View
-                className='flex-1 bg-white'
+                className='flex-1 bg-background'
                 style={{
                     overflow: "hidden",
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
-                    marginTop: -12,
-                    paddingTop: 12,
-                    elevation: 2,
-                    shadowColor: "#0000000d",
+                    borderTopLeftRadius: 32,
+                    borderTopRightRadius: 32,
+                    marginTop: -20,
+                    paddingTop: 20,
                 }}
             >
                 <ScrollView

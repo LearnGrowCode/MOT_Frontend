@@ -1,8 +1,8 @@
+import { X } from "lucide-react-native";
 import React from "react";
-import { View, Dimensions, Pressable } from "react-native";
+import { Dimensions, Pressable, View } from "react-native";
 import Modal from "react-native-modal";
 import { Card, CardHeader, CardTitle } from "./card";
-import { X } from "lucide-react-native";
 
 interface BottomModalProps {
     visible: boolean;
@@ -48,7 +48,7 @@ export default function BottomModal({
             }}
         >
             <View className='items-stretch'>
-                <Card className='w-full rounded-t-2xl bg-white gap-4'>
+                <Card className='w-full rounded-t-2xl bg-card gap-4 border-b-0'>
                     {(title || showCloseButton) && (
                         <CardHeader className='flex-row items-center justify-between'>
                             {title && (
@@ -58,7 +58,7 @@ export default function BottomModal({
                             )}
                             {showCloseButton && (
                                 <Pressable onPress={onClose} className='p-1'>
-                                    <X size={24} color='#000' strokeWidth={2} />
+                                    <X size={24} className='text-foreground' strokeWidth={2} />
                                 </Pressable>
                             )}
                         </CardHeader>

@@ -1,30 +1,28 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
 import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
-import { PaymentRecord } from "@/type/interface";
-import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
-import { formatCurrency } from "@/utils/utils";
+import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { PaymentRecord } from "@/type/interface";
+import { formatCurrency } from "@/utils/utils";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import DeleteRecord from "@/components/modals/DeleteRecord";
-import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
-import { Link, useFocusEffect, useRouter } from "expo-router";
-import { BanknoteArrowDownIcon } from "lucide-react-native";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import Option from "@/components/modals/Option";
+import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
+import {
+    addSettlement,
+    softDeleteBookEntry
+} from "@/db/models/Book";
+import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
     getPayBookEntries,
     getTotalPayRemaining,
 } from "@/services/book/book-entry.service";
-import {
-    addSettlement,
-    updateBookEntryWithPrincipal,
-    softDeleteBookEntry,
-    deleteSettlement,
-} from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
-import { getUser, getUserPreferences, User } from "@/db/models/User";
+import { Link, useFocusEffect, useRouter } from "expo-router";
+import { BanknoteArrowDownIcon } from "lucide-react-native";
 
 const DEFAULT_USER_ID = "1";
 
@@ -55,7 +53,7 @@ export default function ToPayScreen() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // User data state
-    const [user, setUser] = useState<User | null>(null);
+    const [, setUser] = useState<User | null>(null);
 
     const fetchRecords = useCallback(async () => {
         const [records, total] = await Promise.all([
@@ -67,7 +65,7 @@ export default function ToPayScreen() {
 
     const fetchUserData = useCallback(async () => {
         try {
-            const [userData, userPrefs] = await Promise.all([
+            const [userData] = await Promise.all([
                 getUser(DEFAULT_USER_ID),
                 getUserPreferences(DEFAULT_USER_ID),
             ]);
@@ -266,7 +264,7 @@ export default function ToPayScreen() {
     );
 
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1 bg-background'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
@@ -277,10 +275,10 @@ export default function ToPayScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#9a3412]'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-orange-600 dark:text-orange-400'>
                                     Payments
                                 </Text>
-                                <Text className='mt-1 text-3xl font-bold '>
+                                <Text className='mt-1 text-3xl font-bold text-foreground'>
                                     Pay Book
                                 </Text>
                             </View>
@@ -300,20 +298,20 @@ export default function ToPayScreen() {
 
                     {/* Hero Summary Card */}
                     <View className='mb-6 min-h-2'>
-                        <View className='rounded-3xl border border-[#fed7aa] bg-[#fff5eb] py-3 shadow-lg shadow-[#fdba74]/40 flex flex-row items-center justify-between px-4 flex-wrap'>
-                            <Text
-                                className='text-sm font-semibold text-[#b45309] mb-1 uppercase'
-                                numberOfLines={1}
-                            >
-                                Total to Pay
-                            </Text>
-                            <Text className='text-2xl font-bold text-[#7c2d12] mb-1'>
-                                {totalRemainingToPay}
-                            </Text>
-                            {isLoading && (
-                                <Text className='text-xs font-semibold text-[#fb923c]'>
-                                    Refreshing…
+                        <View className='rounded-3xl border border-orange-200 dark:border-orange-900/50 bg-orange-50 dark:bg-orange-950/20 py-4 shadow-lg shadow-orange-500/10 flex flex-row items-center justify-between px-6 flex-wrap'>
+                            <View>
+                                <Text
+                                    className='text-xs font-bold text-orange-600 dark:text-orange-400 mb-1 uppercase tracking-wider'
+                                    numberOfLines={1}
+                                >
+                                    Total to Pay
                                 </Text>
+                                <Text className='text-3xl font-bold text-orange-950 dark:text-orange-50'>
+                                    {totalRemainingToPay}
+                                </Text>
+                            </View>
+                            {isLoading && (
+                                <ActivityIndicator size="small" color="#f97316" />
                             )}
                         </View>
                     </View>
@@ -322,15 +320,15 @@ export default function ToPayScreen() {
                 {/* Payment Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#78350f] mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-orange-600/70 dark:text-orange-400/70 mb-2'>
                             Records
                         </Text>
-                        <Text className='text-xl font-bold text-[#1f2937]'>
+                        <Text className='text-xl font-bold text-foreground'>
                             Payment Entries
                         </Text>
                     </View>
 
-                    <View className='rounded-2xl border border-[#ffe4d6] bg-white/90 px-4 py-4 shadow-sm mb-4'>
+                    <View className='rounded-2xl border border-border bg-card/50 px-4 py-4 shadow-sm mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={paymentRecords.length}
@@ -340,7 +338,7 @@ export default function ToPayScreen() {
                         />
                     </View>
                     <View className='flex flex-row items-center justify-between mb-4'>
-                        <Text className='mt-1 text-sml font-bold text-[#1e1b4b]'>
+                        <Text className='mt-1 text-sm font-medium text-muted-foreground'>
                             {visibleRecords.length} of{" "}
                             {paymentRecords.length} records
                         </Text>

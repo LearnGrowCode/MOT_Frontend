@@ -153,7 +153,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     );
 
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1 bg-background'>
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 160 }}
@@ -162,17 +162,17 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
             >
                 <CardContent className='flex flex-col px-0 pt-2'>
                     <View className='mb-6 px-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-muted-foreground'>
                             {bookTypeLabel}
                         </Text>
-                        <Text className='mt-1 text-3xl font-bold text-stone-900'>
+                        <Text className='mt-1 text-3xl font-bold text-foreground'>
                             Add Record
                         </Text>
                     </View>
 
                     <View className='mb-6 px-4'>
-                        <View className='rounded-2xl border border-[#e3e9f5] bg-white px-4 py-4 shadow-sm'>
-                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
+                        <View className='rounded-2xl border border-border bg-card px-4 py-4 shadow-sm'>
+                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-muted-foreground'>
                                 Record details
                             </Text>
                             <View className='mt-2'>
@@ -180,9 +180,9 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                     onPress={() => {
                                         setContactsVisible(true);
                                     }}
-                                    className='mb-4 rounded-xl border border-[#dbe4ff] bg-[#eef3ff] px-4 py-3 items-center justify-center'
+                                    className='mb-6 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 items-center justify-center active:opacity-80'
                                 >
-                                    <Text className='text-[#2563eb] font-semibold'>
+                                    <Text className='text-primary font-bold'>
                                         👤 Import Contact
                                     </Text>
                                 </Pressable>
@@ -281,7 +281,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                                 returnKeyType='next'
                                             />
                                             {amountValue && (
-                                                <Text className='mt-2 text-xs text-[#3b82f6] capitalize'>
+                                                <Text className='mt-2 text-xs text-primary dark:text-brand-orange font-medium capitalize'>
                                                     {getAmountInWords(
                                                         amountValue || "",
                                                         currency
@@ -293,7 +293,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                 />
 
                                 <View className='mb-1'>
-                                    <Text className='mb-1 text-sm text-gray-600'>
+                                    <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
                                         {dateLabel}
                                     </Text>
                                     <Controller
@@ -329,12 +329,12 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                                         mode: "date",
                                                     });
                                                 }}
-                                                className='w-full flex-row items-center justify-between rounded-xl border border-[#dbe4ff] bg-white px-4 py-3'
+                                                className='w-full flex-row items-center justify-between rounded-xl border border-input bg-card px-4 py-3 active:bg-accent'
                                             >
-                                                <Text className='text-base text-gray-900'>
+                                                <Text className='text-base text-foreground'>
                                                     {selectedDate.toLocaleDateString()}
                                                 </Text>
-                                                <Text className='text-slate-400'>
+                                                <Text className='text-muted-foreground'>
                                                     📅
                                                 </Text>
                                             </Pressable>
@@ -378,30 +378,30 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                 </CardContent>
             </KeyboardAwareScrollView>
 
-            <View className='border-t border-[#e3e9f5] bg-white px-4 py-3 shadow-lg shadow-black/5'>
-                <View className='flex-row'>
+            <View className='border-t border-border bg-card px-4 py-4 shadow-lg'>
+                <View className='flex-row gap-3'>
                     <Pressable
                         onPress={() => router.back()}
                         disabled={isSubmitting}
-                        className={`mr-3 flex-1 items-center justify-center rounded-xl border border-slate-300 px-4 py-3 ${isSubmitting ? "opacity-60" : "active:opacity-80"
+                        className={`flex-1 items-center justify-center rounded-xl border border-border px-4 py-3.5 bg-background ${isSubmitting ? "opacity-60" : "active:opacity-80"
                             }`}
                     >
-                        <Text className='text-base font-semibold text-slate-700'>
+                        <Text className='text-base font-bold text-foreground'>
                             Cancel
                         </Text>
                     </Pressable>
                     <Pressable
                         onPress={handleSubmit(onSubmit)}
                         disabled={isSubmitting}
-                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${isSubmitting
-                                ? "bg-[#93c5fd]"
-                                : "bg-[#2563eb] active:bg-[#1d4ed8]"
+                        className={`flex-1 items-center justify-center rounded-xl px-4 py-3.5 bg-primary ${isSubmitting
+                            ? "opacity-60"
+                            : "active:opacity-90"
                             }`}
                     >
                         {isSubmitting ? (
                             <ActivityIndicator size='small' color='white' />
                         ) : (
-                            <Text className='text-base font-semibold text-white'>
+                            <Text className='text-base font-bold text-primary-foreground'>
                                 Add Record
                             </Text>
                         )}

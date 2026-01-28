@@ -115,39 +115,40 @@ export default function ReminderModal({
                 className='h-full'
             >
                 <View className='flex-1 px-6 pb-6 gap-5'>
-                    <View className='bg-indigo-50 border border-indigo-100 rounded-xl p-4'>
-                        <Text className='text-xs uppercase tracking-wide text-indigo-500 mb-1'>
+                    <View className='bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4'>
+                        <Text className='text-xs uppercase tracking-wide text-indigo-500 dark:text-indigo-400 mb-1'>
                             Outstanding with {record.name}
                         </Text>
-                        <Text className='text-2xl font-bold text-indigo-900'>
+                        <Text className='text-2xl font-bold text-indigo-900 dark:text-indigo-50'>
                             {amountSummary}
                         </Text>
-                        <Text className='text-sm text-indigo-700 mt-1'>
+                        <Text className='text-sm text-indigo-700 dark:text-indigo-300 mt-1'>
                             {record.category}
                         </Text>
                     </View>
 
                     <View>
-                        <Text className='text-sm font-medium text-gray-800 mb-2'>
+                        <Text className='text-sm font-medium text-foreground mb-2'>
                             Message
                         </Text>
                         <TextInput
                             multiline
                             value={message}
                             onChangeText={setMessage}
-                            className='border border-gray-200 rounded-xl p-4 text-base text-gray-800 bg-white'
+                            className='border border-border rounded-xl p-4 text-base text-foreground bg-card'
                             placeholder='Type a reminder...'
+                            placeholderTextColor='#9CA3AF'
                             textAlignVertical='top'
                             numberOfLines={6}
                         />
-                        <Text className='text-xs text-gray-500 mt-1'>
+                        <Text className='text-xs text-muted-foreground mt-1'>
                             Customize the note before sharing. Recipients will
                             see exactly this text.
                         </Text>
                     </View>
 
                     <View>
-                        <Text className='text-sm font-medium text-gray-800 mb-2'>
+                        <Text className='text-sm font-medium text-foreground mb-2'>
                             Quick tone presets
                         </Text>
                         <View className='flex-row flex-wrap gap-2'>
@@ -161,14 +162,14 @@ export default function ReminderModal({
                                                 handleToneChange(tone)
                                             }
                                             className={`px-4 py-2 rounded-full border ${isActive
-                                                    ? "bg-indigo-600 border-indigo-600"
-                                                    : "bg-gray-100 border-gray-200"
+                                                ? "bg-indigo-600 border-indigo-600"
+                                                : "bg-muted border-border"
                                                 }`}
                                         >
                                             <Text
                                                 className={`text-sm font-semibold ${isActive
-                                                        ? "text-white"
-                                                        : "text-gray-700"
+                                                    ? "text-white"
+                                                    : "text-foreground"
                                                     }`}
                                             >
                                                 {toneMeta[tone].emoji}{" "}
@@ -192,7 +193,7 @@ export default function ReminderModal({
                             onPress={() => handleToneChange("appreciative")}
                             className='items-center py-2'
                         >
-                            <Text className='text-sm text-gray-500'>
+                            <Text className='text-sm text-muted-foreground'>
                                 Reset to warm thanks note
                             </Text>
                         </Pressable>

@@ -1,23 +1,23 @@
-import React, { useState, useCallback } from "react";
+import Input from "@/components/form/Input";
+import BottomModal from "@/components/ui/BottomModal";
+import { Card, CardContent } from "@/components/ui/card";
+import { upsertUser, upsertUserPreferences } from "@/db/models/User";
+import { uuidv4 } from "@/utils/uuid";
+import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import { CheckCircle2, ChevronDown, User, Wallet } from "lucide-react-native";
+import React, { useCallback, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import {
-    View,
-    Text,
-    ScrollView,
-    Pressable,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useForm, Controller } from "react-hook-form";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { Card, CardContent } from "@/components/ui/card";
-import Input from "@/components/form/Input";
-import BottomModal from "@/components/ui/BottomModal";
-import { User, Wallet, CheckCircle2, ChevronDown } from "lucide-react-native";
-import { upsertUser, upsertUserPreferences } from "@/db/models/User";
-import { uuidv4 } from "@/utils/uuid";
-import * as SecureStore from "expo-secure-store";
 
 interface FormData {
     fullName: string;
@@ -117,7 +117,7 @@ export default function OnboardingScreen() {
 
     if (currentStep === "welcome") {
         return (
-            <View className='flex-1 bg-gradient-to-b from-blue-50 to-white'>
+            <View className='flex-1 bg-background'>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     className='flex-1'
@@ -127,26 +127,25 @@ export default function OnboardingScreen() {
                         showsVerticalScrollIndicator={false}
                     >
                         <View className='flex-1 items-center justify-center px-6 py-12'>
-                            <View className='items-center mb-8'>
-                                <View className='w-24 h-24 bg-blue-600 rounded-full items-center justify-center mb-6 shadow-lg'>
-                                    <Wallet size={48} color='white' />
+                            <View className='items-center mb-10'>
+                                <View className='w-24 h-24 bg-primary rounded-3xl items-center justify-center mb-8 shadow-xl shadow-primary/20 transform rotate-3'>
+                                    <Wallet size={48} color='hsl(var(--primary-foreground))' />
                                 </View>
-                                <Text className='text-3xl font-bold text-gray-900 text-center mb-3'>
-                                    Welcome to Money On Track
+                                <Text className='text-4xl font-black text-foreground text-center mb-4 tracking-tight'>
+                                    Money On Track
                                 </Text>
-                                <Text className='text-base text-gray-600 text-center max-w-sm'>
-                                    Let&apos;s set up your profile to get
-                                    started tracking your money
+                                <Text className='text-lg text-muted-foreground text-center max-w-sm leading-6'>
+                                    Your personal finance companion. Let&apos;s set up your profile to start tracking.
                                 </Text>
                             </View>
 
                             <Pressable
                                 onPress={() => setCurrentStep("form")}
-                                className='w-full bg-blue-600 rounded-xl py-4 px-6 items-center active:bg-blue-700'
+                                className='w-full bg-primary rounded-2xl py-5 px-6 items-center active:opacity-90 shadow-lg shadow-primary/20'
                                 accessibilityRole='button'
                                 accessibilityLabel='Get started'
                             >
-                                <Text className='text-white text-lg font-semibold'>
+                                <Text className='text-primary-foreground text-xl font-bold'>
                                     Get Started
                                 </Text>
                             </Pressable>
@@ -159,28 +158,26 @@ export default function OnboardingScreen() {
 
     if (currentStep === "complete") {
         return (
-            <View className='flex-1 bg-gradient-to-b from-green-50 to-white'>
+            <View className='flex-1 bg-background'>
                 <View className='flex-1 items-center justify-center px-6 py-12'>
                     <View className='items-center mb-8'>
-                        <View className='w-24 h-24 bg-green-600 rounded-full items-center justify-center mb-6 shadow-lg'>
+                        <View className='w-24 h-24 bg-green-500 rounded-3xl items-center justify-center mb-8 shadow-xl shadow-green-500/20 transform -rotate-3'>
                             <CheckCircle2 size={48} color='white' />
                         </View>
-                        <Text className='text-3xl font-bold text-gray-900 text-center mb-3'>
+                        <Text className='text-4xl font-black text-foreground text-center mb-4 tracking-tight'>
                             All Set!
                         </Text>
-                        <Text className='text-base text-gray-600 text-center max-w-sm'>
-                            Your profile has been set up successfully.
-                            You&apos;re ready to start tracking your money.
+                        <Text className='text-lg text-muted-foreground text-center max-w-sm leading-6'>
+                            Your profile is ready. You&apos;re now set to take control of your finances.
                         </Text>
                     </View>
-
                     <Pressable
                         onPress={handleComplete}
-                        className='w-full bg-green-600 rounded-xl py-4 px-6 items-center active:bg-green-700'
+                        className='w-full bg-green-500 rounded-2xl py-5 px-6 items-center active:opacity-90 shadow-lg shadow-green-500/20'
                         accessibilityRole='button'
                         accessibilityLabel='Continue to app'
                     >
-                        <Text className='text-white text-lg font-semibold'>
+                        <Text className='text-white text-xl font-bold'>
                             Continue to App
                         </Text>
                     </Pressable>
@@ -190,35 +187,34 @@ export default function OnboardingScreen() {
     }
 
     return (
-        <View className='flex-1 bg-gray-50'>
+        <View className='flex-1 bg-background'>
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
             >
                 <View className='flex-1 px-6 py-8'>
-                    <View className='mb-6'>
-                        <Text className='text-2xl font-bold text-gray-900 mb-2'>
+                    <View className='mb-8'>
+                        <Text className='text-3xl font-black text-foreground mb-2 tracking-tight'>
                             Set Up Your Profile
                         </Text>
-                        <Text className='text-gray-600'>
-                            Tell us a bit about yourself to personalize your
-                            experience
+                        <Text className='text-muted-foreground text-lg leading-6'>
+                            Let&apos;s personalize your experience with a few details.
                         </Text>
                     </View>
-
-                    <Card className='mb-6'>
+                    <Card className='mb-8 border-border bg-card shadow-sm'>
                         <CardContent className='p-6'>
-                            <View className='mb-6'>
-                                <View className='flex-row items-center gap-2 mb-4'>
-                                    <User size={20} color='#4b5563' />
-                                    <Text className='text-lg font-semibold text-gray-900'>
+                            <View className='mb-8'>
+                                <View className='flex-row items-center gap-3 mb-6'>
+                                    <View className='p-2 bg-primary/10 rounded-lg'>
+                                        <User size={20} className="text-primary" />
+                                    </View>
+                                    <Text className='text-xl font-bold text-foreground'>
                                         Personal Information
                                     </Text>
                                 </View>
-
                                 <View className='mb-4'>
-                                    <Text className='mb-2 text-sm font-medium text-gray-700'>
+                                    <Text className='mb-2 text-sm font-bold text-muted-foreground uppercase tracking-wider'>
                                         Full Name
                                     </Text>
                                     <Controller
@@ -248,16 +244,17 @@ export default function OnboardingScreen() {
                                 </View>
                             </View>
 
-                            <View className='border-t border-gray-200 pt-6'>
-                                <View className='flex-row items-center gap-2 mb-4'>
-                                    <Wallet size={20} color='#4b5563' />
-                                    <Text className='text-lg font-semibold text-gray-900'>
+                            <View className='border-t border-border pt-8'>
+                                <View className='flex-row items-center gap-3 mb-6'>
+                                    <View className='p-2 bg-primary/10 rounded-lg'>
+                                        <Wallet size={20} className="text-primary" />
+                                    </View>
+                                    <Text className='text-xl font-bold text-foreground'>
                                         Currency Preference
                                     </Text>
                                 </View>
-
                                 <View className='mb-4'>
-                                    <Text className='mb-2 text-sm font-medium text-gray-700'>
+                                    <Text className='mb-2 text-sm font-bold text-muted-foreground uppercase tracking-wider'>
                                         Default Currency
                                     </Text>
                                     <Controller
@@ -274,23 +271,22 @@ export default function OnboardingScreen() {
                                                             true
                                                         )
                                                     }
-                                                    className='w-full flex-row items-center justify-between border border-gray-300 rounded-md px-3 py-3 bg-white'
+                                                    className='w-full flex-row items-center justify-between border border-input rounded-xl px-4 py-4 bg-background active:bg-accent'
                                                     accessibilityRole='button'
                                                     accessibilityLabel='Select currency'
                                                     accessibilityHint='Opens currency selection modal'
                                                 >
                                                     <Text
-                                                        className={`text-base ${
-                                                            value
-                                                                ? "text-gray-900"
-                                                                : "text-gray-400"
-                                                        }`}
+                                                        className={`text-base font-medium ${value
+                                                            ? "text-foreground"
+                                                            : "text-muted-foreground"
+                                                            }`}
                                                     >
                                                         {selectedCurrencyLabel}
                                                     </Text>
                                                     <ChevronDown
                                                         size={20}
-                                                        color='#6b7280'
+                                                        className="text-muted-foreground"
                                                     />
                                                 </Pressable>
                                                 {errors.currency && (
@@ -312,34 +308,23 @@ export default function OnboardingScreen() {
                     <Pressable
                         onPress={handleSubmit(onSubmit)}
                         disabled={isSubmitting}
-                        className='w-full bg-blue-600 rounded-xl py-4 px-6 items-center active:bg-blue-700 disabled:opacity-50'
+                        className='w-full bg-primary rounded-2xl py-5 px-6 items-center active:opacity-90 disabled:opacity-50 shadow-lg shadow-primary/20'
                         accessibilityRole='button'
                         accessibilityLabel='Complete setup'
                         accessibilityState={{ disabled: isSubmitting }}
                     >
                         {isSubmitting ? (
-                            <ActivityIndicator color='white' />
+                            <ActivityIndicator color='hsl(var(--primary-foreground))' />
                         ) : (
-                            <Text className='text-white text-lg font-semibold'>
+                            <Text className='text-primary-foreground text-xl font-bold'>
                                 Complete Setup
                             </Text>
                         )}
                     </Pressable>
 
-                    <Pressable
-                        onPress={() => router.back()}
-                        className='mt-4 items-center'
-                        accessibilityRole='button'
-                        accessibilityLabel='Go back'
-                    >
-                        <Text className='text-gray-600 text-base'>
-                            I&apos;ll do this later
-                        </Text>
-                    </Pressable>
                 </View>
             </KeyboardAwareScrollView>
 
-            {/* Currency Selection Modal */}
             <BottomModal
                 visible={showCurrencyModal}
                 onClose={() => setShowCurrencyModal(false)}
@@ -360,11 +345,10 @@ export default function OnboardingScreen() {
                                 });
                                 setShowCurrencyModal(false);
                             }}
-                            className={`px-6 py-4 border-b border-gray-100 active:bg-gray-50 ${
-                                selectedCurrency === option.value
-                                    ? "bg-blue-50"
-                                    : "bg-white"
-                            }`}
+                            className={`px-6 py-4 border-b border-border active:bg-accent ${selectedCurrency === option.value
+                                ? "bg-accent"
+                                : "bg-card"
+                                }`}
                             accessibilityRole='button'
                             accessibilityLabel={`Select ${option.label}`}
                             accessibilityState={{
@@ -374,15 +358,14 @@ export default function OnboardingScreen() {
                             <View className='flex-row items-center justify-between'>
                                 <View className='flex-1'>
                                     <Text
-                                        className={`text-base font-medium ${
-                                            selectedCurrency === option.value
-                                                ? "text-blue-600"
-                                                : "text-gray-900"
-                                        }`}
+                                        className={`text-base font-medium ${selectedCurrency === option.value
+                                            ? "text-primary"
+                                            : "text-foreground"
+                                            }`}
                                     >
                                         {option.label}
                                     </Text>
-                                    <Text className='text-sm text-gray-500 mt-0.5'>
+                                    <Text className='text-sm text-muted-foreground mt-0.5'>
                                         {option.value}
                                     </Text>
                                 </View>

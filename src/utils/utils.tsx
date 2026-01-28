@@ -1,5 +1,5 @@
 import { Status } from "@/type/interface";
-import { getLocaleForCurrency, DEFAULT_CURRENCY } from "./currency-locale";
+import { DEFAULT_CURRENCY, getLocaleForCurrency } from "./currency-locale";
 
 /**
  * Format currency amount with automatic locale detection
@@ -369,17 +369,17 @@ export const getTimeAgo = (dateString: string) => {
 export const getStatusColor = (status: Status) => {
     switch (status) {
         case "unpaid":
-            return "bg-[#ffe4da] text-[#9a3412]";
+            return "bg-unpaid text-unpaid-foreground";
         case "paid":
-            return "bg-[#dcfce7] text-[#166534]";
+            return "bg-paid text-paid-foreground";
         case "collected":
-            return "bg-[#dcfce7] text-[#166534]";
+            return "bg-paid text-paid-foreground";
         case "partial":
-            return "bg-[#fef3c7] text-[#b45309]";
+            return "bg-partial text-partial-foreground";
         case "overdue":
-            return "bg-[#fee2e2] text-[#b91c1c]";
+            return "bg-overdue text-overdue-foreground";
         default:
-            return "bg-[#e5e7eb] text-[#374151]";
+            return "bg-muted text-muted-foreground";
     }
 };
 

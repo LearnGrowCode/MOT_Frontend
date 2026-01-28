@@ -1,26 +1,26 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable, Alert, Share } from "react-native";
 import CollectionRecordCard from "@/components/cards/CollectionRecordCard";
-import { CollectionRecord } from "@/type/interface";
-import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import FloatingActionButton from "@/components/ui/FloatingActionButton";
-import { formatCurrency } from "@/utils/utils";
+import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { CollectionRecord } from "@/type/interface";
+import { formatCurrency } from "@/utils/utils";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Share, Text, View } from "react-native";
 
-import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
 import CollectionConfirmation from "@/components/modals/CollectionConfirmation";
-import { Link, useFocusEffect, useRouter } from "expo-router";
-import { BanknoteArrowUpIcon } from "lucide-react-native";
-import FilterAndSort from "@/components/modals/FilterAndSort";
 import CollectionOption from "@/components/modals/CollectionOption";
+import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
+import FilterAndSort from "@/components/modals/FilterAndSort";
 import ReminderModal from "@/components/modals/ReminderModal";
+import { addSettlement, softDeleteBookEntry } from "@/db/models/Book";
+import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
     getCollectBookEntries,
     getTotalCollectRemaining,
 } from "@/services/book/book-entry.service";
-import { addSettlement, softDeleteBookEntry } from "@/db/models/Book";
 import { uuidv4 } from "@/utils/uuid";
-import { getUser, getUserPreferences, User } from "@/db/models/User";
+import { Link, useFocusEffect, useRouter } from "expo-router";
+import { BanknoteArrowUpIcon } from "lucide-react-native";
 
 const DEFAULT_USER_ID = "1";
 
@@ -288,7 +288,7 @@ export default function ToCollectScreen() {
     );
 
     return (
-        <View className='flex-1 bg-white'>
+        <View className='flex-1 bg-background'>
             <ScrollView
                 className='flex-1'
                 showsVerticalScrollIndicator={false}
@@ -299,10 +299,10 @@ export default function ToCollectScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#4f46e5]'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-indigo-600 dark:text-indigo-400'>
                                     Collections
                                 </Text>
-                                <Text className='mt-1 text-3xl font-bold text-[#1e1b4b]'>
+                                <Text className='mt-1 text-3xl font-bold text-foreground'>
                                     Collect Book
                                 </Text>
                             </View>
@@ -322,20 +322,20 @@ export default function ToCollectScreen() {
 
                     {/* Hero Summary Card */}
                     <View className='mb-6 min-h-2'>
-                        <View className='rounded-3xl border border-[#dbeafe] bg-[#eef2ff] py-3 shadow-lg shadow-[#c7d2fe]/40 flex flex-row items-center justify-between px-4 flex-wrap'>
-                            <Text
-                                className='text-sm font-semibold text-[#4338ca] mb-1 uppercase'
-                                numberOfLines={1}
-                            >
-                                Total to Collect
-                            </Text>
-                            <Text className='text-2xl font-bold text-[#1e1b4b] mb-1'>
-                                {totalRemainingToCollect}
-                            </Text>
-                            {isLoading && (
-                                <Text className='text-xs font-semibold text-[#6366f1]'>
-                                    Refreshing…
+                        <View className='rounded-3xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/20 py-4 shadow-lg shadow-indigo-500/10 flex flex-row items-center justify-between px-6 flex-wrap'>
+                            <View>
+                                <Text
+                                    className='text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1 uppercase tracking-wider'
+                                    numberOfLines={1}
+                                >
+                                    Total to Collect
                                 </Text>
+                                <Text className='text-3xl font-bold text-indigo-950 dark:text-indigo-50'>
+                                    {totalRemainingToCollect}
+                                </Text>
+                            </View>
+                            {isLoading && (
+                                <ActivityIndicator size="small" color="#6366f1" />
                             )}
                         </View>
                     </View>
@@ -344,15 +344,15 @@ export default function ToCollectScreen() {
                 {/* Collection Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-[#4338ca] mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-indigo-600/70 dark:text-indigo-400/70 mb-2'>
                             Records
                         </Text>
-                        <Text className='text-xl font-bold text-[#1f2937]'>
+                        <Text className='text-xl font-bold text-foreground'>
                             Collection Entries
                         </Text>
                     </View>
 
-                    <View className='rounded-2xl border border-[#dbeafe] bg-white/90 px-4 py-4 shadow-sm mb-4'>
+                    <View className='rounded-2xl border border-border bg-card/50 px-4 py-4 shadow-sm mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={collectionRecords.length}
@@ -362,7 +362,7 @@ export default function ToCollectScreen() {
                         />
                     </View>
                     <View className='flex flex-row items-center justify-between mb-4'>
-                        <Text className='mt-1 text-sml font-bold text-[#1e1b4b]'>
+                        <Text className='mt-1 text-sm font-medium text-muted-foreground'>
                             {visibleRecords.length} of{" "}
                             {collectionRecords.length} records
                         </Text>
