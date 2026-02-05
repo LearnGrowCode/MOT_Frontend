@@ -28,6 +28,9 @@ export interface BookEntry {
   deletedAt?: number | null;
   isDirty?: 0 | 1;
   notificationId?: string | null;
+  dueDate?: number | null;
+  reminderInterval?: string | null;
+  notificationsEnabled?: boolean;
 }
 
 export interface Settlement {
@@ -74,8 +77,10 @@ export async function createBookEntry(
     `INSERT INTO book_entries (
             id, type, user_id, counterparty, date, description,
             principal_amount, remaining_amount, settlement_amount, interest_amount,
-            currency, mobile_number, status, remote_id, notification_id, created_at, updated_at, deleted_at, is_dirty
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            currency, mobile_number, status, remote_id, notification_id, 
+            due_date, reminder_interval, notifications_enabled,
+            created_at, updated_at, deleted_at, is_dirty
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       id,
       entry.type,
@@ -92,6 +97,9 @@ export async function createBookEntry(
       status,
       entry.remoteId ?? null,
       null, // notification_id initially null
+      entry.dueDate ?? null,
+      entry.reminderInterval ?? null,
+      entry.notificationsEnabled !== false ? 1 : 0,
       ts,
       ts,
       null,
@@ -404,6 +412,9 @@ export async function updateBookEntryWithPrincipal(params: {
   counterparty?: string;
   currency?: string;
   description?: string | null;
+  dueDate?: number | null;
+  reminderInterval?: string | null;
+  notificationsEnabled?: boolean;
 }): Promise<void> {
   const db = await getDb();
   const ts = nowTs();
@@ -443,6 +454,18 @@ export async function updateBookEntryWithPrincipal(params: {
     updates.unshift("description = ?");
     values.unshift(params.description);
   }
+  if (params.dueDate !== undefined) {
+    updates.unshift("due_date = ?");
+    values.unshift(params.dueDate);
+  }
+  if (params.reminderInterval !== undefined) {
+    updates.unshift("reminder_interval = ?");
+    values.unshift(params.reminderInterval);
+  }
+  if (params.notificationsEnabled !== undefined) {
+    updates.unshift("notifications_enabled = ?");
+    values.unshift(params.notificationsEnabled ? 1 : 0);
+  }
 
   const sql = `UPDATE book_entries SET ${updates.join(", ")} WHERE id = ?;`;
   values.push(params.id);
@@ -453,12 +476,10 @@ export async function updateBookEntryWithPrincipal(params: {
     const fullEntry = await getBookEntry(params.id);
     if (fullEntry) {
       const notificationId = await schedulePaymentReminder(fullEntry);
-      if (notificationId) {
-        await db.runAsync(
-          `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
-          [notificationId, params.id],
-        );
-      }
+      await db.runAsync(
+        `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
+        [notificationId ?? null, params.id],
+      );
     }
   } catch (error) {
     console.error("Failed to re-schedule notification:", error);
@@ -486,5 +507,8 @@ function mapBookRow(r: any): BookEntry {
     deletedAt: r.deleted_at ?? undefined,
     isDirty: r.is_dirty ?? 0,
     notificationId: r.notification_id ?? null,
+    dueDate: r.due_date ?? null,
+    reminderInterval: r.reminder_interval ?? null,
+    notificationsEnabled: r.notifications_enabled !== 0,
   } as BookEntry;
 }

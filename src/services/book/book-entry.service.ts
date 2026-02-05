@@ -24,6 +24,9 @@ type DbBookEntry = {
     status: string;
     created_at: number | null;
     updated_at: number | null;
+    due_date: number | null;
+    reminder_interval: string | null;
+    notifications_enabled: number;
 };
 
 async function mapDbToPaymentRecord(row: DbBookEntry): Promise<PaymentRecord> {
@@ -54,6 +57,9 @@ async function mapDbToPaymentRecord(row: DbBookEntry): Promise<PaymentRecord> {
         status,
         remaining: row.remaining_amount ?? 0,
         avatar: null,
+        dueDate: row.due_date,
+        reminderInterval: row.reminder_interval,
+        notificationsEnabled: row.notifications_enabled !== 0,
         trx_history,
     };
 }
@@ -88,6 +94,9 @@ async function mapDbToCollectionRecord(
         status,
         remaining: row.remaining_amount ?? 0,
         avatar: null,
+        dueDate: row.due_date,
+        reminderInterval: row.reminder_interval,
+        notificationsEnabled: row.notifications_enabled !== 0,
         trx_history,
     };
 }

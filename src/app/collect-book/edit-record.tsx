@@ -15,9 +15,18 @@ import {
 } from "@/utils/utils";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
+const REMINDER_INTERVALS = [
+    { label: "1 Day Before", value: "1_day_before" },
+    { label: "2 Days Before", value: "2_days_before" },
+    { label: "3 Days Before", value: "3_days_before" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Monthly", value: "monthly" },
+    { label: "Daily", value: "daily" },
+];
 export default function EditCollectRecordScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,7 +37,12 @@ export default function EditCollectRecordScreen() {
         name: "",
         amount: "",
         purpose: "",
+        dueDate: new Date().toISOString(),
+        reminderInterval: "1_day_before",
+        notificationsEnabled: true,
     });
+    const [selectedDueDate, setSelectedDueDate] = useState<Date>(new Date());
+    const [showDueDatePicker, setShowDueDatePicker] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [pendingSettlementDeletes, setPendingSettlementDeletes] = useState<
         Set<string>
@@ -49,7 +63,13 @@ export default function EditCollectRecordScreen() {
                     name: foundRecord.name,
                     amount: foundRecord.amount.toString(),
                     purpose: foundRecord.purpose ?? "",
+                    dueDate: foundRecord.dueDate ? new Date(foundRecord.dueDate).toISOString() : new Date().toISOString(),
+                    reminderInterval: foundRecord.reminderInterval ?? "1_day_before",
+                    notificationsEnabled: foundRecord.notificationsEnabled ?? true,
                 });
+                if (foundRecord.dueDate) {
+                    setSelectedDueDate(new Date(foundRecord.dueDate));
+                }
             } else {
                 router.back();
             }
@@ -113,6 +133,9 @@ export default function EditCollectRecordScreen() {
                 principalAmount: updatedRecord.amount,
                 currency: updatedRecord.category,
                 description: updatedRecord.purpose ?? null,
+                dueDate: selectedDueDate.getTime(),
+                reminderInterval: formData.reminderInterval,
+                notificationsEnabled: formData.notificationsEnabled,
             });
 
             router.back();
@@ -198,6 +221,85 @@ export default function EditCollectRecordScreen() {
                                     error={errors.purpose}
                                     returnKeyType='done'
                                 />
+
+                                <View className='mb-6 mt-2'>
+                                    <View className='flex-row items-center justify-between bg-accent/5 dark:bg-accent/10 p-3 rounded-2xl border border-accent/20'>
+                                        <View>
+                                            <Text className='font-bold text-foreground'>Enable Notifications</Text>
+                                            <Text className='text-xs text-muted-foreground'>Get reminders for this record</Text>
+                                        </View>
+                                        <Switch
+                                            value={formData.notificationsEnabled}
+                                            onValueChange={(val) => handleInputChange("notificationsEnabled", val as any)}
+                                            trackColor={{ false: "#767577", true: "hsl(var(--primary))" }}
+                                            thumbColor={formData.notificationsEnabled ? "#ffffff" : "#f4f3f4"}
+                                        />
+                                    </View>
+                                </View>
+
+                                {formData.notificationsEnabled && (
+                                    <View className='gap-4 mb-4'>
+                                        <View>
+                                            <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
+                                                Due Date (Expected Collection)
+                                            </Text>
+                                            <View>
+                                                <Pressable
+                                                    onPress={() => setShowDueDatePicker(true)}
+                                                    className='w-full flex-row items-center justify-between rounded-xl border border-input bg-card px-4 py-3 active:bg-accent'
+                                                >
+                                                    <Text className='text-base text-foreground'>
+                                                        {selectedDueDate.toLocaleDateString()}
+                                                    </Text>
+                                                    <Text className='text-muted-foreground'>📅</Text>
+                                                </Pressable>
+                                                {showDueDatePicker && (
+                                                    <DateTimePicker
+                                                        value={selectedDueDate}
+                                                        mode="date"
+                                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                                        onChange={(event, date) => {
+                                                            setShowDueDatePicker(Platform.OS === 'ios');
+                                                            if (event.type === "set" && date) {
+                                                                setSelectedDueDate(date);
+                                                                handleInputChange("dueDate", date.toISOString());
+                                                            }
+                                                        }}
+                                                    />
+                                                )}
+                                            </View>
+                                        </View>
+
+                                        <View>
+                                            <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
+                                                Reminder Interval
+                                            </Text>
+                                            <ScrollView 
+                                                horizontal 
+                                                showsHorizontalScrollIndicator={false}
+                                                contentContainerStyle={{ gap: 8 }}
+                                            >
+                                                {REMINDER_INTERVALS.map((interval) => (
+                                                    <Pressable
+                                                        key={interval.value}
+                                                        onPress={() => handleInputChange("reminderInterval", interval.value)}
+                                                        className={`px-4 py-2 rounded-full border ${
+                                                            formData.reminderInterval === interval.value 
+                                                            ? "bg-primary border-primary" 
+                                                            : "bg-card border-border"
+                                                        }`}
+                                                    >
+                                                        <Text className={`text-xs font-semibold ${
+                                                            formData.reminderInterval === interval.value ? "text-primary-foreground" : "text-foreground"
+                                                        }`}>
+                                                            {interval.label}
+                                                        </Text>
+                                                    </Pressable>
+                                                ))}
+                                            </ScrollView>
+                                        </View>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     </View>

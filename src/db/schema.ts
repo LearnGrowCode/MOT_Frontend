@@ -107,6 +107,17 @@ export const migrations: Migration[] = [
             `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);`,
         ],
     },
+    {
+        id: 4,
+        up: [
+            // Add due_date field to book_entries to store expected collection/payment date
+            `ALTER TABLE book_entries ADD COLUMN due_date INTEGER;`,
+            // Add reminder_interval field to book_entries to store chosen frequency
+            `ALTER TABLE book_entries ADD COLUMN reminder_interval TEXT;`,
+            // Add notifications_enabled field to book_entries (1 for ON, 0 for OFF)
+            `ALTER TABLE book_entries ADD COLUMN notifications_enabled INTEGER DEFAULT 1;`,
+        ],
+    },
 ];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {

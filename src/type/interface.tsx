@@ -26,6 +26,9 @@ export interface BookEntry {
     interestAmount: number;
     currency: string;
     mobileNumber?: string;
+    dueDate?: number | null;
+    reminderInterval?: string | null;
+    notificationsEnabled?: boolean;
 }
 
 export type Status = "unpaid" | "paid" | "partial" | "overdue" | "collected";
@@ -43,6 +46,9 @@ export interface BaseBookRecord {
     status: Status;
     remaining: number;
     avatar: string | null;
+    dueDate?: number | null;
+    reminderInterval?: string | null;
+    notificationsEnabled?: boolean;
     trx_history: TransactionRecord[];
 }
 

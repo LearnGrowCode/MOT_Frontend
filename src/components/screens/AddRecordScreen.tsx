@@ -9,8 +9,17 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+
+const REMINDER_INTERVALS = [
+    { label: "1 Day Before", value: "1_day_before" },
+    { label: "2 Days Before", value: "2_days_before" },
+    { label: "3 Days Before", value: "3_days_before" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Monthly", value: "monthly" },
+    { label: "Daily", value: "daily" },
+];
 
 type BookType = "COLLECT" | "PAY";
 
@@ -20,6 +29,9 @@ interface FormData {
     amount: string;
     date: string;
     purpose: string;
+    dueDate: string;
+    reminderInterval: string;
+    notificationsEnabled: boolean;
 }
 
 interface AddRecordScreenProps {
@@ -49,6 +61,9 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
             amount: "",
             date: new Date().toISOString(),
             purpose: "",
+            dueDate: new Date().toISOString(),
+            reminderInterval: "1_day_before",
+            notificationsEnabled: true,
         },
     });
 
@@ -57,6 +72,8 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [selectedDueDate, setSelectedDueDate] = useState<Date>(new Date());
+    const [showDueDatePicker, setShowDueDatePicker] = useState(false);
 
     const amountValue = watch("amount");
     const dateValue = watch("date");
@@ -69,6 +86,16 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
             }
         }
     }, [dateValue]);
+
+    const dueDateValue = watch("dueDate");
+    useEffect(() => {
+        if (dueDateValue) {
+            const parsed = new Date(dueDateValue);
+            if (!Number.isNaN(parsed.getTime())) {
+                setSelectedDueDate(parsed);
+            }
+        }
+    }, [dueDateValue]);
 
     // Debounce search input to prevent excessive filtering
     useEffect(() => {
@@ -133,6 +160,9 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                     principalAmount: Number(data.amount.replace(/,/g, "")),
                     currency: currency,
                     mobileNumber: data.phone,
+                    dueDate: selectedDueDate.getTime(),
+                    reminderInterval: data.reminderInterval,
+                    notificationsEnabled: data.notificationsEnabled,
                 });
 
                 reset({
@@ -141,8 +171,12 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                     amount: "",
                     date: new Date().toISOString(),
                     purpose: "",
+                    dueDate: new Date().toISOString(),
+                    reminderInterval: "1_day_before",
+                    notificationsEnabled: true,
                 });
                 setSelectedDate(new Date());
+                setSelectedDueDate(new Date());
                 router.back();
             } catch (error) {
                 console.error("❌ Error:", error);
@@ -150,7 +184,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                 setIsSubmitting(false);
             }
         },
-        [reset, router, selectedDate, currency, type]
+        [reset, router, selectedDate, selectedDueDate, currency, type]
     );
 
     return (
@@ -369,6 +403,103 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                         />
                                     )}
                                 />
+
+                                <View className='mb-6 mt-2'>
+                                    <View className='flex-row items-center justify-between bg-accent/5 dark:bg-accent/10 p-3 rounded-2xl border border-accent/20'>
+                                        <View>
+                                            <Text className='font-bold text-foreground'>Enable Notifications</Text>
+                                            <Text className='text-xs text-muted-foreground'>Get reminders for this record</Text>
+                                        </View>
+                                        <Controller
+                                            control={control}
+                                            name='notificationsEnabled'
+                                            render={({ field: { value, onChange } }) => (
+                                                <Switch
+                                                    value={value}
+                                                    onValueChange={onChange}
+                                                    trackColor={{ false: "#767577", true: "hsl(var(--primary))" }}
+                                                    thumbColor={value ? "#ffffff" : "#f4f3f4"}
+                                                />
+                                            )}
+                                        />
+                                    </View>
+                                </View>
+
+                                {watch("notificationsEnabled") && (
+                                    <View className='gap-4 mb-4'>
+                                        <View>
+                                            <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
+                                                Due Date (Expected Collection/Payment)
+                                            </Text>
+                                            <Controller
+                                                control={control}
+                                                name='dueDate'
+                                                render={({ field: { onChange } }) => (
+                                                    <View>
+                                                        <Pressable
+                                                            onPress={() => setShowDueDatePicker(true)}
+                                                            className='w-full flex-row items-center justify-between rounded-xl border border-input bg-card px-4 py-3 active:bg-accent'
+                                                        >
+                                                            <Text className='text-base text-foreground'>
+                                                                {selectedDueDate.toLocaleDateString()}
+                                                            </Text>
+                                                            <Text className='text-muted-foreground'>📅</Text>
+                                                        </Pressable>
+                                                        {showDueDatePicker && (
+                                                            <DateTimePicker
+                                                                value={selectedDueDate}
+                                                                mode="date"
+                                                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                                                onChange={(event, date) => {
+                                                                    setShowDueDatePicker(Platform.OS === 'ios');
+                                                                    if (event.type === "set" && date) {
+                                                                        setSelectedDueDate(date);
+                                                                        onChange(date.toISOString());
+                                                                    }
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </View>
+                                                )}
+                                            />
+                                        </View>
+
+                                        <View>
+                                            <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
+                                                Reminder Interval
+                                            </Text>
+                                            <Controller
+                                                control={control}
+                                                name='reminderInterval'
+                                                render={({ field: { value, onChange } }) => (
+                                                    <ScrollView 
+                                                        horizontal 
+                                                        showsHorizontalScrollIndicator={false}
+                                                        contentContainerStyle={{ gap: 8 }}
+                                                    >
+                                                        {REMINDER_INTERVALS.map((interval) => (
+                                                            <Pressable
+                                                                key={interval.value}
+                                                                onPress={() => onChange(interval.value)}
+                                                                className={`px-4 py-2 rounded-full border ${
+                                                                    value === interval.value 
+                                                                    ? "bg-primary border-primary" 
+                                                                    : "bg-card border-border"
+                                                                }`}
+                                                            >
+                                                                <Text className={`text-xs font-semibold ${
+                                                                    value === interval.value ? "text-primary-foreground" : "text-foreground"
+                                                                }`}>
+                                                                    {interval.label}
+                                                                </Text>
+                                                            </Pressable>
+                                                        ))}
+                                                    </ScrollView>
+                                                )}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     </View>
