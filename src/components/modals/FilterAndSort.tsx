@@ -9,6 +9,7 @@ import {
     AccordionTrigger,
 } from "../ui/accordion";
 import { X } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 // Configuration: Delay before closing modal to show selection (in milliseconds)
 const CLOSE_DELAY_MS = 1000;
@@ -64,6 +65,8 @@ export default function FilterAndSort({
     onFilterAndSort,
     filterAndSort,
 }: FilterAndSortProps) {
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === "dark";
     const handleFilterSelect = (filterId: string) => {
         onFilterAndSort({
             filter: filterId,
@@ -123,7 +126,7 @@ export default function FilterAndSort({
                             Filter & Sort
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
-                            <X size={24} className="text-foreground" strokeWidth={2} />
+                            <X size={24} color={isDark ? "#f8fafc" : "#1e293b"} strokeWidth={2} />
                         </Pressable>
                     </CardHeader>
 

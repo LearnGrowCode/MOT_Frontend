@@ -12,7 +12,6 @@ import { DEFAULT_USER_ID } from "@/utils/constants";
 import {
     DEFAULT_CURRENCY_FALLBACK,
     getDefaultCurrencyFromLocale,
-    getDeviceLocale,
 } from "@/utils/currency-locale";
 import { useColorScheme } from "nativewind";
 import { uuidv4 } from "@/utils/uuid";
@@ -60,7 +59,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
             
             // Sync with NativeWind
             if (savedTheme === "system") {
-                setColorScheme(undefined);
+                setColorScheme("system");
             } else {
                 setColorScheme(savedTheme as any);
             }
@@ -112,7 +111,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         
         // Sync with NativeWind
         if (newTheme === "system") {
-            setColorScheme(undefined);
+            setColorScheme("system");
         } else {
             setColorScheme(newTheme as any);
         }

@@ -426,7 +426,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                 </View>
 
                                 {watch("notificationsEnabled") && (
-                                    <View className='gap-4 mb-4'>
+                                    <View className='gap-4 mb-6'>
                                         <View>
                                             <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
                                                 Due Date (Expected Collection/Payment)

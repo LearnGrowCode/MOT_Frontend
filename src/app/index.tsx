@@ -14,6 +14,7 @@ import {
     Easing,
     Pressable,
     Text,
+    useColorScheme,
     View,
 } from "react-native";
 
@@ -91,8 +92,10 @@ export default function HomeScreen() {
             ? `${bgClass} shadow-md shadow-black/5` 
             : `bg-card border border-border shadow-sm`;
         
-        const textColor = isSolid ? "text-primary-foreground" : "text-foreground";
-        const iconColor = isSolid ? "white" : "hsl(210, 20%, 32%)"; // Corresponding to secondary-700
+        const isDark = useColorScheme() === "dark";
+        
+        const textColor = isSolid ? "text-primary-foreground dark:text-white" : "text-foreground dark:text-white";
+        const iconColor = isSolid ? "white" : (isDark ? "white" : "hsl(210, 20%, 32%)"); // Corresponding to secondary-700
 
         return (
             <Pressable
@@ -158,10 +161,10 @@ export default function HomeScreen() {
                     <View className='flex-row gap-5'>
                         <Tile
                             title='Analysis'
-                            bgClass='bg-secondary-50'
+                            bgClass='bg-success-500'
                             Icon={BarChart3}
                             onPress={() => router.push("/analysis")}
-                            variant="outlined"
+                            variant="solid"
                         />
                         <Tile
                             title='Account'

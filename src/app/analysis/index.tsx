@@ -311,45 +311,52 @@ export default function AnalysisScreen() {
         },
     };
 
-    const CategoryTable = ({ data }: { data: Record<string, number> }) => {
+    const CategoryTable = ({ data, type }: { data: Record<string, number>; type: "PAY" | "COLLECT" }) => {
         const rows = Object.entries(data).sort((a, b) => b[1] - a[1]);
         const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
+        const isCollect = type === "COLLECT";
+        const accentColor = isCollect ? "bg-primary" : "bg-tertiary-500";
+        const textColor = isCollect ? "text-primary-foreground" : "text-tertiary-foreground";
 
         return (
-            <View className='rounded-lg border border-gray-200 overflow-hidden'>
-                <View className='flex-row items-center bg-gray-50 px-4 py-2'>
-                    <Text className='flex-1 font-semibold text-gray-700'>
+            <View className='rounded-2xl border border-border overflow-hidden bg-card'>
+                <View className={`flex-row items-center ${accentColor} px-4 py-3`}>
+                    <Text className={`flex-1 font-bold ${textColor} text-xs uppercase tracking-wider`}>
                         Category
                     </Text>
-                    <Text className='w-24 text-right font-semibold text-gray-700'>
+                    <Text className={`w-24 text-right font-bold ${textColor} text-xs uppercase tracking-wider`}>
                         Amount
                     </Text>
-                    <Text className='w-14 text-right font-semibold text-gray-700'>
+                    <Text className={`w-14 text-right font-bold ${textColor} text-xs uppercase tracking-wider`}>
                         %
                     </Text>
                 </View>
                 {rows.map(([category, amount], index) => (
                     <View
                         key={category}
-                        className={`flex-row items-center px-4 py-3 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                        className={`flex-row items-center px-4 py-4 border-b border-border/50 ${index % 2 === 1 ? "bg-muted/30" : "bg-card"}`}
                     >
-                        <Text className='flex-1 text-gray-900'>{category}</Text>
-                        <Text className='w-24 text-right text-gray-900'>
+                        <Text className='flex-1 text-foreground font-semibold'>{category}</Text>
+                        <Text className='w-24 text-right text-foreground font-bold'>
                             {formatCurrency(amount, currency, 2)}
                         </Text>
-                        <Text className='w-14 text-right text-gray-600'>
-                            {total ? Math.round((amount / total) * 100) : 0}%
-                        </Text>
+                        <View className='w-14 items-end'>
+                            <View className={`rounded-full px-2 py-0.5 ${isCollect ? "bg-primary/10" : "bg-tertiary-500/10"}`}>
+                                <Text className={`text-[10px] font-black ${isCollect ? "text-primary" : "text-tertiary-600 dark:text-tertiary-400"}`}>
+                                    {total ? Math.round((amount / total) * 100) : 0}%
+                                </Text>
+                            </View>
+                        </View>
                     </View>
                 ))}
-                <View className='flex-row items-center px-4 py-3 border-t border-gray-200 bg-white'>
-                    <Text className='flex-1 font-semibold text-gray-900'>
-                        Total
+                <View className='flex-row items-center px-4 py-4 bg-muted/50'>
+                    <Text className='flex-1 font-black text-foreground uppercase text-xs tracking-tighter'>
+                        Total Distribution
                     </Text>
-                    <Text className='w-24 text-right font-semibold text-gray-900'>
+                    <Text className='w-24 text-right font-black text-foreground'>
                         {formatCurrency(total, currency, 2)}
                     </Text>
-                    <Text className='w-14 text-right font-semibold text-gray-900'>
+                    <Text className='w-14 text-right font-black text-foreground text-xs'>
                         100%
                     </Text>
                 </View>
@@ -588,11 +595,11 @@ export default function AnalysisScreen() {
                 </View>
 
                 {/* Category Breakdown */}
-                <View className='bg-white p-4 rounded-xl shadow-sm'>
-                    <Text className='text-lg font-bold text-gray-900 mb-4'>
+                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
+                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
                         Amount by Category
                     </Text>
-                    <CategoryTable data={payAnalysis.categoryData} />
+                    <CategoryTable data={payAnalysis.categoryData} type="PAY" />
                 </View>
             </View>
         );
@@ -651,7 +658,7 @@ export default function AnalysisScreen() {
                     <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
                         Amount by Category
                     </Text>
-                    <CategoryTable data={collectAnalysis.categoryData} />
+                    <CategoryTable data={collectAnalysis.categoryData} type="COLLECT" />
                 </View>
             </View>
         );
@@ -661,7 +668,7 @@ export default function AnalysisScreen() {
         <View className='flex-1 bg-background'>
             {/* Header - Fixed */}
             <View
-                className='px-6 pt-10 pb-6 bg-background border-b border-border'
+                className='px-6 pb-6 bg-background border-b border-border'
                 style={{ zIndex: 10 }}
             >
                 <View className='mb-6'>

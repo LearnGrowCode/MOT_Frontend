@@ -626,7 +626,7 @@ export default function MyAccountScreen() {
                 style={{ flex: 1 }}
             >
                 <CardContent className='flex flex-col px-0 pt-2'>
-                    <View className='mb-6 px-6'>
+                    <View className='mb-6 px-4'>
                         <Text className='text-xs font-bold uppercase tracking-[2px] text-primary'>
                             Settings
                         </Text>
@@ -635,7 +635,7 @@ export default function MyAccountScreen() {
                         </Text>
                     </View>
 
-                    <View className='mb-8 px-6'>
+                    <View className='mb-6 px-4'>
                         <View className='rounded-3xl border border-primary/20 px-6 py-8'>
                             <View className='flex-row items-center'>
                                 <Avatar
@@ -669,7 +669,7 @@ export default function MyAccountScreen() {
                     </View>
 
                     {isEditing ? (
-                        <View className='mb-6 px-6'>
+                        <View className='mb-6 px-4'>
                             <View className='rounded-2xl border border-border bg-card px-5 py-6 shadow-sm'>
                                 <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground mb-4'>
                                     Personal details
@@ -745,7 +745,7 @@ export default function MyAccountScreen() {
                             </View>
                         </View>
                     ) : (
-                        <View className='mb-6 px-6'>
+                        <View className='mb-6 px-4'>
                             <View className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
                                 <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground mb-4'>
                                     Personal info
@@ -806,7 +806,7 @@ export default function MyAccountScreen() {
                 </CardContent>
             </KeyboardAwareScrollView>
 
-            <View className='border-t border-border bg-card px-6 py-5 shadow-lg'>
+            <View className='border-t border-border bg-card px-4 py-5 shadow-lg'>
                 {isEditing ? (
                     <View className='flex-row'>
                         <Pressable
