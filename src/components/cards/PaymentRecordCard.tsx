@@ -55,8 +55,8 @@ export default function PaymentRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-14 h-14 bg-brand-orange/10 dark:bg-brand-orange/20 border border-brand-orange/20 dark:border-brand-orange/30 rounded-2xl items-center justify-center mr-4 relative'>
-                            <Text className='text-brand-orange dark:text-brand-orange text-xl font-bold'>
+                        <View className='w-14 h-14 bg-tertiary/10 dark:bg-tertiary/20 border border-tertiary/20 dark:border-tertiary/30 rounded-2xl items-center justify-center mr-4 relative'>
+                            <Text className='text-tertiary text-xl font-bold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -84,7 +84,7 @@ export default function PaymentRecordCard({
                         >
                             <MoreVertical
                                 size={20}
-                                color={isDark ? "#ffffff" : "#6b7280"}
+                                color={isDark ? "#f8fafc" : "#475569"} // secondary-50 and secondary-600 literals
                             />
                         </Pressable>
                         <View
@@ -168,7 +168,7 @@ export default function PaymentRecordCard({
                     <PrimaryButton
                         title='Add Payment Record'
                         onPress={() => onMarkPayment(record.id)}
-                        className='bg-brand-indigo shadow-md shadow-brand-indigo/20 border-0'
+                        className='bg-primary shadow-md shadow-primary/20 border-0'
                     />
                 )}
             </CardContent>

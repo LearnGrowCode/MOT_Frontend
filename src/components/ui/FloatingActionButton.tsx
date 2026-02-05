@@ -48,17 +48,16 @@ export default function FloatingActionButton({
     const getColorClasses = () => {
         switch (color) {
             case "blue":
+            case "indigo":
                 return "bg-primary";
             case "green":
-                return "bg-paid";
+                return "bg-success-500";
             case "red":
-                return "bg-destructive";
+                return "bg-error-500";
             case "purple":
-                return "bg-purple-600";
-            case "indigo":
-                return "bg-brand-indigo";
+                return "bg-secondary-800";
             case "orange":
-                return "bg-brand-orange";
+                return "bg-tertiary-500";
             default:
                 return "bg-primary";
         }

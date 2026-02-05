@@ -55,8 +55,8 @@ export default function CollectionRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-14 h-14 bg-brand-indigo/10 dark:bg-brand-indigo/20 border border-brand-indigo/20 dark:border-brand-indigo/30 rounded-2xl items-center justify-center mr-4 relative'>
-                            <Text className='text-brand-indigo dark:text-brand-indigo text-xl font-bold'>
+                        <View className='w-14 h-14 bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30 rounded-2xl items-center justify-center mr-4 relative'>
+                            <Text className='text-primary text-xl font-bold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -84,7 +84,7 @@ export default function CollectionRecordCard({
                         >
                             <MoreVertical
                                 size={20}
-                                color={isDark ? "#ffffff" : "#6b7280"}
+                                color={isDark ? "#f8fafc" : "#475569"} // secondary-50 and secondary-600 literals
                             />
                         </Pressable>
                         <View
@@ -168,7 +168,7 @@ export default function CollectionRecordCard({
                     <PrimaryButton
                         title='Add Collection Record'
                         onPress={() => onMarkCollection(record.id)}
-                        className='bg-brand-orange shadow-md shadow-brand-orange/20 border-0'
+                        className='bg-tertiary-500 shadow-md shadow-tertiary-500/20 border-0'
                     />
                 )}
             </CardContent>

@@ -57,11 +57,13 @@ export default function HomeScreen() {
         bgClass,
         Icon,
         onPress,
+        variant = "solid",
     }: {
         title: string;
         bgClass: string;
         Icon: any;
         onPress: () => void;
+        variant?: "solid" | "outlined";
     }) => {
         const scale = useRef(new Animated.Value(1)).current;
 
@@ -84,13 +86,17 @@ export default function HomeScreen() {
             }).start();
         };
 
-        const isLight = bgClass.includes("bg-secondary") || bgClass.includes("bg-white");
-        const textColor = isLight ? "text-foreground" : "text-white";
-        const iconColor = isLight ? "hsl(var(--foreground))" : "white";
+        const isSolid = variant === "solid";
+        const containerClasses = isSolid 
+            ? `${bgClass} shadow-md shadow-black/5` 
+            : `bg-card border border-border shadow-sm`;
+        
+        const textColor = isSolid ? "text-primary-foreground" : "text-foreground";
+        const iconColor = isSolid ? "white" : "hsl(210, 20%, 32%)"; // Corresponding to secondary-700
 
         return (
             <Pressable
-                className={`flex-1 h-40 rounded-3xl ${bgClass} items-center justify-center shadow-xl shadow-black/10 overflow-hidden`}
+                className={`flex-1 h-40 rounded-3xl ${containerClasses} items-center justify-center overflow-hidden`}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
                 onPress={onPress}
@@ -135,30 +141,34 @@ export default function HomeScreen() {
                     <View className='flex-row gap-5'>
                         <Tile
                             title='Pay Book'
-                            bgClass='bg-brand-orange'
+                            bgClass='bg-tertiary-500'
                             Icon={BanknoteArrowUpIcon}
                             onPress={() => router.push("/pay-book")}
+                            variant="solid"
                         />
                         <Tile
                             title='Collect Book'
-                            bgClass='bg-brand-indigo'
+                            bgClass='bg-primary'
                             Icon={BanknoteArrowDownIcon}
                             onPress={() => router.push("/collect-book")}
+                            variant="solid"
                         />
                     </View>
 
                     <View className='flex-row gap-5'>
                         <Tile
                             title='Analysis'
-                            bgClass='bg-purple-600 dark:bg-purple-700'
+                            bgClass='bg-secondary-50'
                             Icon={BarChart3}
                             onPress={() => router.push("/analysis")}
+                            variant="outlined"
                         />
                         <Tile
                             title='Account'
-                            bgClass='bg-blue-600 dark:bg-blue-700'
+                            bgClass='bg-secondary-50'
                             Icon={User}
                             onPress={() => router.push("/my-account")}
+                            variant="outlined"
                         />
                     </View>
                 </View>

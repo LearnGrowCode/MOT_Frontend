@@ -62,7 +62,7 @@ export default function SearchAndFilter({
                     value={search}
                     onChangeText={setSearch}
                     className='flex-1 text-base text-foreground ml-3 border-none outline-none focus:ring-0 focus:ring-offset-0'
-                    placeholderTextColor='#9CA3AF'
+                    placeholderTextColor='hsl(var(--secondary-400))'
                     returnKeyType='search'
                 />
                 {search.length > 0 && (

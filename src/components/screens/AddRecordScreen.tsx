@@ -316,7 +316,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                                 returnKeyType='next'
                                             />
                                             {amountValue && (
-                                                <Text className='mt-2 text-xs text-primary dark:text-brand-orange font-medium capitalize'>
+                                                <Text className='mt-2 text-xs text-primary font-medium capitalize'>
                                                     {getAmountInWords(
                                                         amountValue || "",
                                                         currency
@@ -417,8 +417,8 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                                 <Switch
                                                     value={value}
                                                     onValueChange={onChange}
-                                                    trackColor={{ false: "#767577", true: "hsl(var(--primary))" }}
-                                                    thumbColor={value ? "#ffffff" : "#f4f3f4"}
+                                                    trackColor={{ false: "hsl(var(--secondary-400))", true: "hsl(var(--primary))" }}
+                                                    thumbColor={value ? "hsl(var(--primary-50))" : "hsl(var(--secondary-100))"}
                                                 />
                                             )}
                                         />

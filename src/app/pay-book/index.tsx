@@ -248,7 +248,7 @@ export default function ToPayScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-orange-600 dark:text-orange-400'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600 dark:text-tertiary-400'>
                                     Payments
                                 </Text>
                                 <Text className='mt-1 text-3xl font-bold text-foreground'>
@@ -256,7 +256,7 @@ export default function ToPayScreen() {
                                 </Text>
                             </View>
                             <Link href='/collect-book' asChild>
-                                <Pressable className='bg-brand-indigo px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-brand-indigo/25 ml-4'>
+                                <Pressable className='bg-primary px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-sm shadow-primary/10 ml-4'>
                                     <BanknoteArrowDownIcon
                                         size={18}
                                         color='white'
@@ -271,20 +271,20 @@ export default function ToPayScreen() {
 
                     {/* Hero Summary Card */}
                     <View className='mb-6 min-h-2'>
-                        <View className='rounded-3xl border border-orange-200 dark:border-orange-900/50 bg-orange-50 dark:bg-orange-950/20 py-4 shadow-lg shadow-orange-500/10 flex flex-row items-center justify-between px-6 flex-wrap'>
+                        <View className='rounded-3xl border border-tertiary-200 dark:border-tertiary-900 bg-tertiary-50 dark:bg-tertiary-950/20 py-4 shadow-md shadow-tertiary-500/5 flex flex-row items-center justify-between px-6 flex-wrap'>
                             <View>
                                 <Text
-                                    className='text-xs font-bold text-orange-600 dark:text-orange-400 mb-1 uppercase tracking-wider'
+                                    className='text-xs font-bold text-tertiary-600 dark:text-tertiary-400 mb-1 uppercase tracking-wider'
                                     numberOfLines={1}
                                 >
                                     Total to Pay
                                 </Text>
-                                <Text className='text-3xl font-bold text-orange-950 dark:text-orange-50'>
+                                <Text className='text-3xl font-bold text-tertiary-950 dark:text-tertiary-50'>
                                     {totalRemainingToPay}
                                 </Text>
                             </View>
                             {isLoading && (
-                                <ActivityIndicator size="small" color="#f97316" />
+                                <ActivityIndicator size="small" color="hsl(var(--tertiary-500))" />
                             )}
                         </View>
                     </View>
@@ -293,7 +293,7 @@ export default function ToPayScreen() {
                 {/* Payment Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-orange-600/70 dark:text-orange-400/70 mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600/70 dark:text-tertiary-400/70 mb-2'>
                             Records
                         </Text>
                         <Text className='text-xl font-bold text-foreground'>
@@ -345,7 +345,7 @@ export default function ToPayScreen() {
                     size='lg'
                     color='orange'
                     position='bottom-right'
-                    className='shadow-2xl shadow-orange-500/40'
+                    className='shadow-lg shadow-tertiary-500/20'
                 />
             </Link>
 

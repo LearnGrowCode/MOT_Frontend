@@ -299,7 +299,7 @@ export default function ToCollectScreen() {
                     <View className='mb-6'>
                         <View className='flex-row items-start justify-between mb-2'>
                             <View className='flex-1'>
-                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-indigo-600 dark:text-indigo-400'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-primary-600 dark:text-primary-400'>
                                     Collections
                                 </Text>
                                 <Text className='mt-1 text-3xl font-bold text-foreground'>
@@ -307,7 +307,7 @@ export default function ToCollectScreen() {
                                 </Text>
                             </View>
                             <Link href='/pay-book' asChild>
-                                <Pressable className='bg-brand-orange px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-brand-orange/25 ml-4'>
+                                <Pressable className='bg-tertiary-500 px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-sm shadow-tertiary-500/10 ml-4'>
                                     <BanknoteArrowUpIcon
                                         size={18}
                                         color='white'
@@ -322,20 +322,20 @@ export default function ToCollectScreen() {
 
                     {/* Hero Summary Card */}
                     <View className='mb-6 min-h-2'>
-                        <View className='rounded-3xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/20 py-4 shadow-lg shadow-indigo-500/10 flex flex-row items-center justify-between px-6 flex-wrap'>
+                        <View className='rounded-3xl border border-primary-200 dark:border-primary-900 bg-primary-50 dark:bg-primary-950/20 py-4 shadow-md shadow-primary-500/5 flex flex-row items-center justify-between px-6 flex-wrap'>
                             <View>
                                 <Text
-                                    className='text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1 uppercase tracking-wider'
+                                    className='text-xs font-bold text-primary-600 dark:text-primary-400 mb-1 uppercase tracking-wider'
                                     numberOfLines={1}
                                 >
                                     Total to Collect
                                 </Text>
-                                <Text className='text-3xl font-bold text-indigo-950 dark:text-indigo-50'>
+                                <Text className='text-3xl font-bold text-primary-950 dark:text-primary-50'>
                                     {totalRemainingToCollect}
                                 </Text>
                             </View>
                             {isLoading && (
-                                <ActivityIndicator size="small" color="#6366f1" />
+                                <ActivityIndicator size="small" color="hsl(var(--primary-500))" />
                             )}
                         </View>
                     </View>
@@ -344,7 +344,7 @@ export default function ToCollectScreen() {
                 {/* Collection Records Section */}
                 <View className='px-4 pb-6'>
                     <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-indigo-600/70 dark:text-indigo-400/70 mb-2'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-primary-600/70 dark:text-primary-400/70 mb-2'>
                             Records
                         </Text>
                         <Text className='text-xl font-bold text-foreground'>
@@ -396,7 +396,7 @@ export default function ToCollectScreen() {
                     size='lg'
                     color='indigo'
                     position='bottom-right'
-                    className='shadow-2xl shadow-indigo-600/40'
+                    className='shadow-lg shadow-primary-500/20'
                 />
             </Link>
 
