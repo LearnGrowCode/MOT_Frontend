@@ -301,7 +301,7 @@ export default function ToPayScreen() {
                         </Text>
                     </View>
 
-                    <View className='rounded-2xl border border-border bg-card/50 px-4 py-4 shadow-sm mb-4'>
+                    <View className='rounded-2xl border border-border px-4 py-4 mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={paymentRecords.length}

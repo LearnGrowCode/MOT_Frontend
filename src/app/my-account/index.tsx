@@ -595,76 +595,6 @@ export default function MyAccountScreen() {
         );
     };
 
-    const handleSyncNow = async () => {
-        if (isSyncing) {
-            return;
-        }
-
-        setIsSyncing(true);
-        try {
-            const requestId = uuidv4();
-            const syncTables = await buildSyncTablesFromLocal();
-            const pushResponse = await syncPush({
-                device_id: "dev-device",
-                request_id: requestId,
-                tables: {
-                    pay_book: syncTables.pay_book,
-                    collect_book: syncTables.collect_book,
-                    settlements: syncTables.settlements,
-                },
-            });
-
-            const pullResponse = await syncPull({
-                cursor: syncCursor ?? undefined,
-                limit: 100,
-            });
-
-            // Apply pulled data to database
-            await applySyncPull(pullResponse);
-
-            setSyncCursor(pullResponse.next_cursor ?? null);
-
-            const processedCount = pushResponse.processed_ids?.length ?? 0;
-            const conflictCount = pushResponse.conflicts?.length ?? 0;
-            const payPullCount = (pullResponse.tables.pay_book.upserts ?? [])
-                .length;
-            const collectPullCount = (
-                pullResponse.tables.collect_book.upserts ?? []
-            ).length;
-            const totalPulled = payPullCount + collectPullCount;
-
-            setLastSyncResult(
-                `Processed ${processedCount} ids with ${conflictCount} conflict(s). Pulled ${totalPulled} new/updated entries.`
-            );
-
-            const serverIso =
-                pullResponse.server_time || pushResponse.server_time;
-            if (serverIso) {
-                const parsed = new Date(serverIso);
-                setLastSyncAt(
-                    Number.isNaN(parsed.getTime())
-                        ? serverIso
-                        : parsed.toLocaleString()
-                );
-            } else {
-                setLastSyncAt(new Date().toLocaleString());
-            }
-
-            Alert.alert("Success", "Sync completed successfully!");
-        } catch (error) {
-            console.error("Sync failed:", error);
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "Unable to complete sync.";
-            setLastSyncResult(`Sync failed: ${errorMessage}`);
-            setLastSyncAt(new Date().toLocaleString());
-            Alert.alert("Sync Failed", errorMessage);
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
     const startEdit = () => {
         setDraft(profile);
         setIsEditing(true);
@@ -706,7 +636,7 @@ export default function MyAccountScreen() {
                     </View>
 
                     <View className='mb-8 px-6'>
-                        <View className='rounded-3xl border border-primary/20 bg-primary/10 px-6 py-8 shadow-xl shadow-primary/10'>
+                        <View className='rounded-3xl border border-primary/20 px-6 py-8'>
                             <View className='flex-row items-center'>
                                 <Avatar
                                     className='h-20 w-20 border-4 border-background bg-card shadow-lg'
@@ -730,24 +660,10 @@ export default function MyAccountScreen() {
                             <View className='mt-4 flex-row flex-wrap'>
                                 <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
                                     <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
-                                        {isLoggedIn
-                                            ? "Sync enabled"
-                                            : "Offline mode"}
-                                    </Text>
-                                </View>
-                                <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
-                                    <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
                                         Currency:{" "}
                                         {profile.currency || "Set currency"}
                                     </Text>
                                 </View>
-                                {lastSyncAt && (
-                                    <View className='mr-2 mb-2 rounded-full bg-background/50 px-4 py-1.5 border border-primary/20'>
-                                        <Text className='text-[10px] font-bold uppercase tracking-wider text-primary'>
-                                            Last sync {lastSyncAt}
-                                        </Text>
-                                    </View>
-                                )}
                             </View>
                         </View>
                     </View>

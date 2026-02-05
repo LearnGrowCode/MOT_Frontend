@@ -17,7 +17,8 @@ import {
 } from "@/utils/utils";
 import { MoreVertical } from "lucide-react-native";
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { useColorScheme } from "nativewind";
 
 interface PaymentRecordCardProps {
     record: PaymentRecord;
@@ -31,16 +32,18 @@ export default function PaymentRecordCard({
     onOption,
 }: PaymentRecordCardProps) {
     const { currency } = useUserCurrency();
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === "dark";
     const getCardColorClasses = (status: PaymentRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-unpaid/10 dark:bg-unpaid/10 border-unpaid/20";
+                return "dark:bg-unpaid/10 border-unpaid/20";
             case "paid":
-                return "bg-paid/10 dark:bg-paid/10 border-paid/20";
+                return " dark:bg-paid/10 border-paid/20";
             case "partial":
-                return "bg-partial/10 dark:bg-partial/10 border-partial/20";
+                return " dark:bg-partial/10 border-partial/20";
             case "overdue":
-                return "bg-overdue/10 dark:bg-overdue/10 border-overdue/20";
+                return " dark:bg-overdue/10 border-overdue/20";
             default:
                 return "bg-card border-border";
         }
@@ -75,11 +78,15 @@ export default function PaymentRecordCard({
                     </View>
 
                     <View className='items-end flex gap-2'>
-                        <MoreVertical
-                            size={20}
-                            className='text-muted-foreground'
+                        <Pressable 
                             onPress={() => onOption(record.id)}
-                        />
+                            hitSlop={8}
+                        >
+                            <MoreVertical
+                                size={20}
+                                color={isDark ? "#ffffff" : "#6b7280"}
+                            />
+                        </Pressable>
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >

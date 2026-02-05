@@ -208,7 +208,7 @@ export default function EditPayRecordScreen() {
 
                     {record.trx_history && record.trx_history.length > 0 && (
                         <View className='mb-6 px-4'>
-                            <View className='rounded-2xl border border-destructive/20 bg-destructive/5 dark:bg-destructive/10 px-4 py-4 shadow-sm'>
+                            <View className='rounded-2xl border border-destructive/20 bg-destructive/5 dark:bg-destructive/10 px-4 py-4'>
                                 <View className='flex-row items-center gap-2 mb-3'>
                                     <Text className='text-lg'>⚠️</Text>
                                     <View className='flex-1'>

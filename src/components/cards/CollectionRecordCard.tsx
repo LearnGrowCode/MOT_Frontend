@@ -17,7 +17,8 @@ import {
 } from "@/utils/utils";
 import { MoreVertical } from "lucide-react-native";
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { useColorScheme } from "nativewind";
 
 interface CollectionRecordCardProps {
     record: CollectionRecord;
@@ -31,6 +32,8 @@ export default function CollectionRecordCard({
     onOption,
 }: CollectionRecordCardProps) {
     const { currency } = useUserCurrency();
+    const { colorScheme } = useColorScheme();
+    const isDark = colorScheme === "dark";
     const getCardColorClasses = (status: CollectionRecord["status"]) => {
         switch (status) {
             case "unpaid":
@@ -75,11 +78,15 @@ export default function CollectionRecordCard({
                     </View>
 
                     <View className='items-end flex gap-2'>
-                        <MoreVertical
-                            size={20}
-                            className='text-muted-foreground'
+                        <Pressable 
                             onPress={() => onOption(record.id)}
-                        />
+                            hitSlop={8}
+                        >
+                            <MoreVertical
+                                size={20}
+                                color={isDark ? "#ffffff" : "#6b7280"}
+                            />
+                        </Pressable>
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
