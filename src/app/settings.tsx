@@ -11,10 +11,10 @@ import {
     Check,
     Globe,
     CreditCard,
-    Info,
     ChevronRight,
     Moon,
     Sun,
+    Monitor,
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import BottomModal from "@/components/ui/BottomModal";
@@ -43,9 +43,10 @@ export default function SettingsScreen() {
     const { colorScheme } = useColorScheme();
     const [showCurrencyModal, setShowCurrencyModal] = useState(false);
 
-    const themeOptions: { label: string; value: "light" | "dark"; icon: any }[] = [
+    const themeOptions: { label: string; value: "light" | "dark" | "system"; icon: any }[] = [
         { label: "Light Mode", value: "light", icon: Sun },
         { label: "Dark Mode", value: "dark", icon: Moon },
+        { label: "System Default", value: "system", icon: Monitor },
     ];
 
     return (
@@ -74,7 +75,7 @@ export default function SettingsScreen() {
                             
                             <View className='gap-3'>
                                 {themeOptions.map((option) => {
-                                    const isActive = theme === option.value || (theme === "system" && colorScheme === option.value);
+                                    const isActive = theme === option.value;
                                     return (
                                         <Pressable
                                             key={option.value}
@@ -148,30 +149,7 @@ export default function SettingsScreen() {
                         </View>
                     </View>
 
-                    {/* About Section */}
-                    <View className='mb-6 px-4'>
-                        <View className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
-                            <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground mb-4'>
-                                About
-                            </Text>
-
-                            <View className='space-y-4'>
-                                <View className='flex-row items-center justify-between'>
-                                    <View className='flex-row items-center'>
-                                        <Info size={18} className='text-muted-foreground' />
-                                        <Text className='ml-3 text-foreground'>Version</Text>
-                                    </View>
-                                    <Text className='text-muted-foreground font-medium'>1.0.0 (Alpha)</Text>
-                                </View>
-                                
-                                <View className='h-px bg-border my-2' />
-                                
-                                <Text className='text-[10px] text-muted-foreground text-center mt-2'>
-                                    Built with ❤️ for Financial Management
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
+                    <View className='mb-6 px-4' />
                 </CardContent>
             </ScrollView>
 

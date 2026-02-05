@@ -787,22 +787,6 @@ export default function MyAccountScreen() {
                             </View>
                         </View>
                     )}
-
-                    {!isEditing && isLoggedIn ? (
-                        <View className='mb-24 px-4'>
-                            <Pressable
-                                onPress={handleLogout}
-                                accessibilityRole='button'
-                                className='rounded-2xl border border-red-100 bg-white px-4 py-3 active:opacity-90'
-                            >
-                                <Text className='text-center text-base font-semibold text-red-600'>
-                                    Logout
-                                </Text>
-                            </Pressable>
-                        </View>
-                    ) : (
-                        <View className='mb-24' />
-                    )}
                 </CardContent>
             </KeyboardAwareScrollView>
 

@@ -1,7 +1,6 @@
 import { ListFilter, Search, XCircle } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { useColorScheme } from "nativewind";
+import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 
 interface SearchAndFilterProps {
     searchQuery: string;
@@ -22,8 +21,7 @@ export default function SearchAndFilter({
     onSearch,
     setShowFilterAndSort,
 }: SearchAndFilterProps) {
-    const { colorScheme } = useColorScheme();
-    const isDark = colorScheme === "dark";
+    const isDarkMode = useColorScheme() === "dark";
     const [search, setSearch] = useState(searchQuery);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastEmitted = useRef(searchQuery);
@@ -59,13 +57,13 @@ export default function SearchAndFilter({
     return (
         <View className='flex flex-row flex-wrap gap-3 pb-3'>
             <View className='flex-row  items-center bg-card rounded-2xl shadow-sm border border-border w-full h-fit px-4 py-2'>
-                <Search size={20} color={isDark ? "#94a3b8" : "#64748b"} />
+                <Search size={20} color={isDarkMode ? "#94a3b8" : "#64748b"} />
                 <TextInput
                     placeholder='Search records...'
                     value={search}
                     onChangeText={setSearch}
                     className='flex-1 text-base text-foreground ml-3'
-                    placeholderTextColor={isDark ? "#64748b" : "#94a3b8"}
+                    placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
                     returnKeyType='search'
                 />
                 {search.length > 0 && (
@@ -74,7 +72,7 @@ export default function SearchAndFilter({
                         className='flex-row items-center gap-1 bg-muted px-3 py-1.5 rounded-full'
                         accessibilityLabel='Clear search'
                     >
-                        <XCircle size={16} color={isDark ? "#94a3b8" : "#64748b"} />
+                        <XCircle size={16} color={isDarkMode ? "#94a3b8" : "#64748b"} />
                         <Text className='text-sm font-medium text-muted-foreground'>
                             Clear
                         </Text>
@@ -97,7 +95,7 @@ export default function SearchAndFilter({
                         onPress={() => setShowFilterAndSort(true)}
                         className='bg-card border border-border rounded-lg px-4 py-2 flex-row items-center gap-2 active:bg-accent'
                     >
-                        <ListFilter size={24} color={isDark ? "#f8fafc" : "#1e293b"} />
+                        <ListFilter size={24} color={isDarkMode ? "#f8fafc" : "#1e293b"} />
                         <Text className='text-sm text-foreground'>
                             Filter and sort
                         </Text>

@@ -39,6 +39,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     const [theme, setTheme] = useState<ThemeType>("system");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const { setColorScheme } = useColorScheme();
+    const lastThemeUpdateAt = React.useRef<number>(0);
 
     const fetchPreferences = useCallback(async () => {
         try {
@@ -54,14 +55,18 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
             
             setLocale(prefs?.locale ?? null);
             
-            const savedTheme = (prefs?.theme as ThemeType) || "system";
-            setTheme(savedTheme);
-            
-            // Sync with NativeWind
-            if (savedTheme === "system") {
-                setColorScheme("system");
-            } else {
-                setColorScheme(savedTheme as any);
+            // Check if we manually updated the theme recently (last 5 seconds)
+            // If so, skip updating the state from the DB to avoid flicker
+            if (Date.now() - lastThemeUpdateAt.current > 5000) {
+                const savedTheme = (prefs?.theme as ThemeType) || "system";
+                setTheme(savedTheme);
+                
+                // Sync with NativeWind
+                if (savedTheme === "system") {
+                    setColorScheme("system");
+                } else {
+                    setColorScheme(savedTheme as any);
+                }
             }
         } catch (error) {
             console.error("Error fetching user preferences:", error);
@@ -107,6 +112,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const updateTheme = useCallback(async (newTheme: ThemeType) => {
+        lastThemeUpdateAt.current = Date.now();
         setTheme(newTheme);
         
         // Sync with NativeWind
