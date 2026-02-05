@@ -4,7 +4,7 @@ import SearchAndFilter from "@/components/ui/SearchAndFilter";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { PaymentRecord } from "@/type/interface";
 import { formatCurrency } from "@/utils/utils";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import DeleteRecord from "@/components/modals/DeleteRecord";
@@ -78,22 +78,7 @@ export default function ToPayScreen() {
         }
     }, []);
 
-    useEffect(() => {
-        let isActive = true;
-        setIsLoading(true);
-        Promise.all([fetchRecords(), fetchUserData()])
-            .then(([{ records, total }]) => {
-                if (!isActive) return;
-                setPaymentRecords(records);
-                setTotalToPay(total);
-            })
-            .finally(() => {
-                if (isActive) setIsLoading(false);
-            });
-        return () => {
-            isActive = false;
-        };
-    }, [fetchRecords, fetchUserData]);
+
 
     useFocusEffect(
         useCallback(() => {
@@ -156,20 +141,8 @@ export default function ToPayScreen() {
                 setTotalToPay(total);
             } catch (error) {
                 console.error("Error adding settlement:", error);
-                // Still update UI even if there's an error (for now)
-                const updatedRecord: PaymentRecord = {
-                    ...selectedRecord,
-                    remaining: Math.max(0, selectedRecord.remaining - amount),
-                    status:
-                        selectedRecord.remaining - amount <= 0
-                            ? "paid"
-                            : "partial",
-                };
-                setPaymentRecords((prev) =>
-                    prev.map((record) =>
-                        record.id === selectedRecord.id ? updatedRecord : record
-                    )
-                );
+                // On error, let the user know (could add an alert here)
+                console.error("Failed to save settlement to DB");
             }
         }
         setShowPaymentConfirmation(false);
@@ -283,7 +256,7 @@ export default function ToPayScreen() {
                                 </Text>
                             </View>
                             <Link href='/collect-book' asChild>
-                                <Pressable className='bg-[#0ea5e9] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#0ea5e9]/25 ml-4'>
+                                <Pressable className='bg-brand-indigo px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-brand-indigo/25 ml-4'>
                                     <BanknoteArrowDownIcon
                                         size={18}
                                         color='white'

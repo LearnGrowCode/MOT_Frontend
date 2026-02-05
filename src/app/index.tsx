@@ -156,7 +156,7 @@ export default function HomeScreen() {
                         />
                         <Tile
                             title='Account'
-                            bgClass='bg-secondary dark:bg-secondary/40 border border-border'
+                            bgClass='bg-card border border-border'
                             Icon={User}
                             onPress={() => router.push("/my-account")}
                         />

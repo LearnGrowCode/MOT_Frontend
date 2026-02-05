@@ -98,6 +98,15 @@ export const migrations: Migration[] = [
             `ALTER TABLE user_preferences ADD COLUMN locale TEXT;`,
         ],
     },
+    {
+        id: 3,
+        up: [
+            // Add notification_id field to book_entries to track scheduled reminders
+            `ALTER TABLE book_entries ADD COLUMN notification_id TEXT;`,
+            // Add unique index for user_id in user_preferences to prevent duplicate entries
+            `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_preferences_user_id ON user_preferences(user_id);`,
+        ],
+    },
 ];
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {

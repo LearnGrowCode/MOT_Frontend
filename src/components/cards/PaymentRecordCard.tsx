@@ -52,8 +52,8 @@ export default function PaymentRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-14 h-14 bg-indigo-100/50 dark:bg-brand-indigo/20 border border-indigo-200/50 dark:border-brand-indigo/30 rounded-2xl items-center justify-center mr-4 relative'>
-                            <Text className='text-indigo-700 dark:text-brand-indigo text-xl font-bold'>
+                        <View className='w-14 h-14 bg-brand-orange/10 dark:bg-brand-orange/20 border border-brand-orange/20 dark:border-brand-orange/30 rounded-2xl items-center justify-center mr-4 relative'>
+                            <Text className='text-brand-orange dark:text-brand-orange text-xl font-bold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (

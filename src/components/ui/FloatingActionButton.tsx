@@ -48,19 +48,19 @@ export default function FloatingActionButton({
     const getColorClasses = () => {
         switch (color) {
             case "blue":
-                return "bg-blue-700";
+                return "bg-primary";
             case "green":
-                return "bg-[#10b981]";
+                return "bg-paid";
             case "red":
-                return "bg-[#ef4444]";
+                return "bg-destructive";
             case "purple":
                 return "bg-purple-600";
             case "indigo":
-                return "bg-[#4338ca]";
+                return "bg-brand-indigo";
             case "orange":
-                return "bg-[#ea580c]";
+                return "bg-brand-orange";
             default:
-                return "bg-blue-600";
+                return "bg-primary";
         }
     };
 
@@ -90,7 +90,7 @@ export default function FloatingActionButton({
                 className
             )}
         >
-            <Text className={cn("text-white font-bold", getTextSize())}>
+            <Text className={cn("text-primary-foreground font-bold", getTextSize())}>
                 {icon}
             </Text>
         </Pressable>

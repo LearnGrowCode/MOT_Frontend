@@ -117,13 +117,13 @@ export default function FilterAndSort({
             }}
         >
             <View className='items-stretch'>
-                <Card className=' w-full rounded-t-2xl bg-white'>
+                <Card className=' w-full rounded-t-2xl bg-card'>
                     <CardHeader className='flex-row items-center justify-between'>
                         <CardTitle className='text-lg font-bold'>
                             Filter & Sort
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
-                            <X size={24} color='#000' strokeWidth={2} />
+                            <X size={24} className="text-foreground" strokeWidth={2} />
                         </Pressable>
                     </CardHeader>
 
@@ -138,7 +138,7 @@ export default function FilterAndSort({
                         >
                             <CardContent className='flex flex-col justify-between gap-4'>
                                 <View className='flex flex-col gap-2'>
-                                    <Text className='text-lg font-semibold text-gray-800'>
+                                    <Text className='text-lg font-semibold text-foreground'>
                                         Filter
                                     </Text>
                                     <View
@@ -171,8 +171,8 @@ export default function FilterAndSort({
                                                             active:scale-95
                                                             ${
                                                                 isSelected
-                                                                    ? "bg-blue-50 border-blue-200"
-                                                                    : "bg-white border-gray-200"
+                                                                    ? "bg-primary/10 border-primary/20"
+                                                                    : "bg-card border-border"
                                                             }
                                                         `}
                                                     >
@@ -181,8 +181,8 @@ export default function FilterAndSort({
                                                                 text-sm
                                                                 ${
                                                                     isSelected
-                                                                        ? "text-blue-600 font-medium"
-                                                                        : "text-gray-600"
+                                                                        ? "text-primary font-medium"
+                                                                        : "text-muted-foreground"
                                                                 }
                                                             `}
                                                         >
@@ -195,7 +195,7 @@ export default function FilterAndSort({
                                     </View>
                                 </View>
                                 <View className=''>
-                                    <Text className='text-lg font-semibold text-gray-800'>
+                                    <Text className='text-lg font-semibold text-foreground'>
                                         Sort
                                     </Text>
                                     <Accordion type='single' collapsible>
@@ -206,7 +206,7 @@ export default function FilterAndSort({
                                                     value={sortOption.id}
                                                 >
                                                     <AccordionTrigger>
-                                                        <Text className='text-base font-medium'>
+                                                        <Text className='text-base font-medium text-foreground'>
                                                             {sortOption.label}
                                                         </Text>
                                                     </AccordionTrigger>
@@ -244,8 +244,8 @@ export default function FilterAndSort({
                                                                                 active:scale-95
                                                                                 ${
                                                                                     isSelected
-                                                                                        ? "bg-blue-50 border-blue-200"
-                                                                                        : "bg-white border-gray-200"
+                                                                                        ? "bg-primary/10 border-primary/20"
+                                                                                        : "bg-card border-border"
                                                                                 }
                                                                             `}
                                                                         >
@@ -254,8 +254,8 @@ export default function FilterAndSort({
                                                                                     text-sm
                                                                                     ${
                                                                                         isSelected
-                                                                                            ? "text-blue-600 font-medium"
-                                                                                            : "text-gray-600"
+                                                                                            ? "text-primary font-medium"
+                                                                                            : "text-muted-foreground"
                                                                                     }
                                                                                 `}
                                                                             >

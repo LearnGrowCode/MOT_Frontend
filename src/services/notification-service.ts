@@ -46,7 +46,16 @@ export async function schedulePaymentReminder(entry: BookEntry) {
   const hasPermission = await registerForPushNotificationsAsync();
   if (!hasPermission) return;
 
-  // Calculate negative 1 day
+  // Cancel any existing notification for this entry if we have its ID
+  if (entry.notificationId) {
+    try {
+      await cancelNotification(entry.notificationId);
+    } catch {
+      console.log("Could not cancel previous notification, it may have already fired or been removed.");
+    }
+  }
+
+  // Calculate reminder date: 1 day before the entry date
   const reminderDate = new Date(entry.date - 24 * 60 * 60 * 1000);
 
   // If the reminder date is in the past, don't schedule

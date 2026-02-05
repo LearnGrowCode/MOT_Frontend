@@ -2,7 +2,7 @@ import Input from "@/components/form/Input";
 import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import BottomModal from "@/components/ui/BottomModal";
 import { CardContent } from "@/components/ui/card";
-import { useCurrency } from "@/context/CurrencyContext";
+import { usePreferences } from "@/context/PreferencesContext";
 import {
     getUser,
     getUserPreferences,
@@ -81,7 +81,7 @@ export default function MyAccountScreen() {
         updateCurrency,
         updateLocale,
         refetch: refetchCurrency,
-    } = useCurrency();
+    } = usePreferences();
 
     const profileInitials = useMemo(() => {
         if (!profile.fullName) return "U";
@@ -871,124 +871,6 @@ export default function MyAccountScreen() {
                             </View>
                         </View>
                     )}
-
-                    <View className='mb-6 px-6'>
-                        {!isEditing ? (
-                            isLoggedIn ? (
-                                <View className='rounded-2xl border border-border bg-card p-6 shadow-sm'>
-                                    <View className='flex-row items-center justify-between mb-2'>
-                                        <View>
-                                            <Text className='text-xs font-bold uppercase tracking-[2px] text-muted-foreground'>
-                                                Sync
-                                            </Text>
-                                            <Text className='mt-2 text-base font-medium text-foreground'>
-                                                Keep your books backed up securely
-                                            </Text>
-                                        </View>
-                                        {isSyncing && (
-                                            <ActivityIndicator
-                                                size='small'
-                                                color='#2563eb'
-                                            />
-                                        )}
-                                    </View>
-                                    <Pressable
-                                        onPress={handleSyncNow}
-                                        disabled={isSyncing}
-                                        className={`mt-4 flex-row items-center justify-between rounded-xl border border-border px-4 py-4 ${isSyncing
-                                                ? "bg-muted opacity-60"
-                                                : "bg-primary/5 active:opacity-90 border-primary/20"
-                                            }`}
-                                        accessibilityRole='button'
-                                        accessibilityLabel='Sync data with server'
-                                    >
-                                        <View className='flex-row items-center'>
-                                            <RefreshCw
-                                                size={20}
-                                                className={isSyncing ? "text-muted-foreground" : "text-primary"}
-                                            />
-                                            <Text
-                                                className={`ml-3 text-sm font-bold uppercase tracking-wider ${isSyncing
-                                                        ? "text-muted-foreground"
-                                                        : "text-primary"
-                                                    }`}
-                                            >
-                                                {isSyncing
-                                                    ? "Syncing..."
-                                                    : "Sync now"}
-                                            </Text>
-                                        </View>
-                                        <Text className='text-sm font-bold text-primary'>
-                                            ↻
-                                        </Text>
-                                    </Pressable>
-                                    {lastSyncResult && (
-                                        <View className='mt-3 rounded-xl bg-slate-50 px-3 py-2'>
-                                            <Text className='text-xs text-slate-600'>
-                                                {lastSyncResult}
-                                            </Text>
-                                            {lastSyncAt && (
-                                                <Text className='text-[11px] text-slate-500 mt-1'>
-                                                    Last sync: {lastSyncAt}
-                                                </Text>
-                                            )}
-                                        </View>
-                                    )}
-                                </View>
-                            ) : (
-                                <View className='rounded-2xl border border-[#e3e9f5] bg-white p-4 shadow-sm'>
-                                    <Text className='text-xs font-semibold uppercase tracking-[1px] text-stone-500'>
-                                        Account
-                                    </Text>
-                                    <Text className='mt-1 text-base text-stone-900'>
-                                        Create an account to sync across devices
-                                    </Text>
-                                    <Pressable
-                                        onPress={() => setShowLoginModal(true)}
-                                        className='mt-4 rounded-xl border border-[#dbe4ff] px-4 py-3 active:opacity-90 bg-white'
-                                        accessibilityRole='button'
-                                        accessibilityLabel='Login to enable sync'
-                                    >
-                                        <View className='flex-row items-center justify-between'>
-                                            <View className='flex-row items-center'>
-                                                <RefreshCw
-                                                    size={20}
-                                                    color='#2563eb'
-                                                />
-                                                <Text className='ml-3 text-sm font-semibold text-[#2563eb]'>
-                                                    Login to enable sync
-                                                </Text>
-                                            </View>
-                                            <Text className='text-slate-700 text-sm font-bold'>
-                                                Login
-                                            </Text>
-                                        </View>
-                                    </Pressable>
-                                    <Pressable
-                                        onPress={() => setShowSignupModal(true)}
-                                        className='mt-3 rounded-xl bg-[#2563eb] px-4 py-3 active:opacity-90'
-                                        accessibilityRole='button'
-                                        accessibilityLabel='Sign up to create account'
-                                    >
-                                        <View className='flex-row items-center justify-between'>
-                                            <View className='flex-row items-center'>
-                                                <User
-                                                    size={20}
-                                                    color='#ffffff'
-                                                />
-                                                <Text className='ml-3 text-sm font-semibold text-white'>
-                                                    Create new account
-                                                </Text>
-                                            </View>
-                                            <Text className='text-white text-sm font-semibold'>
-                                                Sign up
-                                            </Text>
-                                        </View>
-                                    </Pressable>
-                                </View>
-                            )
-                        ) : null}
-                    </View>
 
                     {!isEditing && isLoggedIn ? (
                         <View className='mb-24 px-4'>

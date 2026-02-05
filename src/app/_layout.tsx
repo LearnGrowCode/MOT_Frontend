@@ -1,21 +1,20 @@
 import { Drawer } from "expo-router/drawer";
 import "react-native-get-random-values";
 
-import { CurrencyProvider } from "@/context/CurrencyContext";
+import { PreferencesProvider, usePreferences } from "@/context/PreferencesContext";
 import "@/global.css";
 import { NAV_THEME } from "@/lib/theme";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import React from "react";
-import { useColorScheme } from "react-native";
+import { useColorScheme } from "nativewind";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
-export default function Layout() {
-    const colorScheme = useColorScheme();
+function LayoutContent() {
+    const { colorScheme } = useColorScheme();
 
     return (
         <ThemeProvider value={NAV_THEME[colorScheme as "light" | "dark"]}>
-            <CurrencyProvider>
                 <KeyboardProvider>
                     <PortalHost name='root' />
                     <Drawer
@@ -23,7 +22,7 @@ export default function Layout() {
                             headerShown: true,
                             drawerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
                             drawerActiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.primary,
-                            drawerInactiveTintColor: colorScheme === 'dark' ? '#9ca3af' : '#4b5563',
+                            drawerInactiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text + "80", // Opacity 0.5
                             headerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
                             headerTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text,
                         }}
@@ -64,6 +63,13 @@ export default function Layout() {
                             }}
                         />
                         <Drawer.Screen
+                            name='settings'
+                            options={{
+                                title: "Settings",
+                                drawerLabel: "Settings",
+                            }}
+                        />
+                        <Drawer.Screen
                             name='onboarding/index'
                             options={{
                                 title: "Onboarding",
@@ -75,7 +81,14 @@ export default function Layout() {
                         />
                     </Drawer>
                 </KeyboardProvider>
-            </CurrencyProvider>
         </ThemeProvider>
+    );
+}
+
+export default function Layout() {
+    return (
+        <PreferencesProvider>
+            <LayoutContent />
+        </PreferencesProvider>
     );
 }

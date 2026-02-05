@@ -1,5 +1,8 @@
 import { getDb, nowTs } from "@/db";
-import { schedulePaymentReminder } from "@/services/notification-service";
+import {
+  cancelNotification,
+  schedulePaymentReminder,
+} from "@/services/notification-service";
 import { uuidv4 } from "@/utils/uuid";
 
 export type BookEntryType = "PAY" | "COLLECT";
@@ -24,6 +27,7 @@ export interface BookEntry {
   updatedAt?: number;
   deletedAt?: number | null;
   isDirty?: 0 | 1;
+  notificationId?: string | null;
 }
 
 export interface Settlement {
@@ -70,8 +74,8 @@ export async function createBookEntry(
     `INSERT INTO book_entries (
             id, type, user_id, counterparty, date, description,
             principal_amount, remaining_amount, settlement_amount, interest_amount,
-            currency, mobile_number, status, remote_id, created_at, updated_at, deleted_at, is_dirty
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            currency, mobile_number, status, remote_id, notification_id, created_at, updated_at, deleted_at, is_dirty
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       id,
       entry.type,
@@ -87,6 +91,7 @@ export async function createBookEntry(
       entry.mobileNumber ?? null,
       status,
       entry.remoteId ?? null,
+      null, // notification_id initially null
       ts,
       ts,
       null,
@@ -94,11 +99,17 @@ export async function createBookEntry(
     ],
   );
 
-  // Schedule notification
+  // Schedule notification and store its ID
   try {
     const fullEntry = await getBookEntry(id);
     if (fullEntry) {
-      await schedulePaymentReminder(fullEntry);
+      const notificationId = await schedulePaymentReminder(fullEntry);
+      if (notificationId) {
+        await db.runAsync(
+          `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
+          [notificationId, id],
+        );
+      }
     }
   } catch (error) {
     console.error("Failed to schedule notification:", error);
@@ -129,8 +140,18 @@ export async function listBookEntries(userId: string): Promise<BookEntry[]> {
 export async function softDeleteBookEntry(id: string): Promise<void> {
   const db = await getDb();
   const ts = nowTs();
+
+  const entry = await getBookEntry(id);
+  if (entry?.notificationId) {
+    try {
+      await cancelNotification(entry.notificationId);
+    } catch {
+      // ignore
+    }
+  }
+
   await db.runAsync(
-    `UPDATE book_entries SET deleted_at = ?, is_dirty = 1, updated_at = ? WHERE id = ?;`,
+    `UPDATE book_entries SET deleted_at = ?, notification_id = NULL, is_dirty = 1, updated_at = ? WHERE id = ?;`,
     [ts, ts, id],
   );
 }
@@ -175,15 +196,33 @@ export async function addSettlement(
       remaining = 0;
     }
     let status: BookEntryStatus = "PENDING";
-    if (remaining === 0) status = "SETTLED";
-    else if (remaining < Number(row.principal_amount))
+    if (remaining === 0) {
+      status = "SETTLED";
+      // Cancel notification if it exists
+      if (row.notification_id) {
+        try {
+          await cancelNotification(row.notification_id);
+        } catch {
+          // ignore error
+        }
+      }
+    } else if (remaining < Number(row.principal_amount)) {
       status = "PARTIALLY_SETTLED";
+    }
 
     await db.runAsync(
       `UPDATE book_entries
-             SET remaining_amount = ?, settlement_amount = ?, interest_amount = ?, status = ?, is_dirty = 1, updated_at = ?
+             SET remaining_amount = ?, settlement_amount = ?, interest_amount = ?, status = ?, notification_id = ?, is_dirty = 1, updated_at = ?
              WHERE id = ?;`,
-      [remaining, settlement, interest, status, ts, s.bookEntryId],
+      [
+        remaining,
+        settlement,
+        interest,
+        status,
+        status === "SETTLED" ? null : row.notification_id,
+        ts,
+        s.bookEntryId,
+      ],
     );
   });
 }
@@ -241,6 +280,24 @@ export async function deleteSettlement(settlementId: string): Promise<void> {
         settlement.book_entry_id,
       ],
     );
+
+    // If it's no longer settled, we might want to re-schedule notification
+    if (status !== "SETTLED") {
+      try {
+        const fullEntry = await getBookEntry(settlement.book_entry_id);
+        if (fullEntry && !fullEntry.notificationId) {
+          const notificationId = await schedulePaymentReminder(fullEntry);
+          if (notificationId) {
+            await db.runAsync(
+              `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
+              [notificationId, settlement.book_entry_id],
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Failed to re-schedule notification after settlement deletion:", error);
+      }
+    }
   });
 }
 
@@ -312,9 +369,22 @@ export async function updateBookEntryBasic(params: {
     let status: BookEntryStatus = "PENDING";
     const principal = params.principalAmount ?? null;
     const remaining = params.remainingAmount ?? null;
-    if (remaining === 0) status = "SETTLED";
-    else if (remaining !== null && principal !== null && remaining < principal)
+    if (remaining === 0) {
+      status = "SETTLED";
+      // Cancel notification if settled
+      try {
+        const entry = await getBookEntry(params.id);
+        if (entry?.notificationId) {
+          await cancelNotification(entry.notificationId);
+          updates.push("notification_id = ?");
+          values.push(null);
+        }
+      } catch {
+        // ignore
+      }
+    } else if (remaining !== null && principal !== null && remaining < principal) {
       status = "PARTIALLY_SETTLED";
+    }
     values.push(status);
   }
 
@@ -382,7 +452,13 @@ export async function updateBookEntryWithPrincipal(params: {
   try {
     const fullEntry = await getBookEntry(params.id);
     if (fullEntry) {
-      await schedulePaymentReminder(fullEntry);
+      const notificationId = await schedulePaymentReminder(fullEntry);
+      if (notificationId) {
+        await db.runAsync(
+          `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
+          [notificationId, params.id],
+        );
+      }
     }
   } catch (error) {
     console.error("Failed to re-schedule notification:", error);
@@ -409,5 +485,6 @@ function mapBookRow(r: any): BookEntry {
     updatedAt: r.updated_at ?? undefined,
     deletedAt: r.deleted_at ?? undefined,
     isDirty: r.is_dirty ?? 0,
+    notificationId: r.notification_id ?? null,
   } as BookEntry;
 }

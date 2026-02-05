@@ -307,7 +307,7 @@ export default function ToCollectScreen() {
                                 </Text>
                             </View>
                             <Link href='/pay-book' asChild>
-                                <Pressable className='bg-[#f97316] px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-[#f97316]/25 ml-4'>
+                                <Pressable className='bg-brand-orange px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-md shadow-brand-orange/25 ml-4'>
                                     <BanknoteArrowUpIcon
                                         size={18}
                                         color='white'
@@ -394,7 +394,7 @@ export default function ToCollectScreen() {
                 <FloatingActionButton
                     icon='+'
                     size='lg'
-                    color='blue'
+                    color='indigo'
                     position='bottom-right'
                     className='shadow-2xl shadow-indigo-600/40'
                 />

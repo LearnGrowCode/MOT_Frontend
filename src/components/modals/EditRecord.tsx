@@ -101,14 +101,14 @@ export default function EditRecord({
             transparent={true}
             onRequestClose={onClose}
         >
-            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
+            <View className='flex-1 bg-black/40 justify-center items-center px-4'>
                 <Card className='w-full max-w-md max-h-[90%]'>
                     <CardHeader className='flex-row items-center justify-between'>
                         <CardTitle className='text-lg font-semibold'>
                             Edit Record
                         </CardTitle>
                         <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-gray-500'>
+                            <Text className='text-xl font-bold text-muted-foreground'>
                                 ×
                             </Text>
                         </Pressable>
@@ -119,10 +119,10 @@ export default function EditRecord({
                             {/* Payer Name */}
                             <View>
                                 <View className='flex-row items-center mb-1'>
-                                    <Text className='text-gray-600 mr-2'>
+                                    <Text className='text-muted-foreground mr-2'>
                                         👤
                                     </Text>
-                                    <Text className='text-sm text-gray-600'>
+                                    <Text className='text-sm text-muted-foreground'>
                                         Payer Name
                                     </Text>
                                 </View>
@@ -140,7 +140,7 @@ export default function EditRecord({
                             {/* Amount to Collect */}
                             <View>
                                 <View className='flex-row items-center mb-1'>
-                                    <Text className='text-sm text-gray-600'>
+                                    <Text className='text-sm text-muted-foreground'>
                                         Amount to Collect
                                     </Text>
                                 </View>
@@ -162,10 +162,10 @@ export default function EditRecord({
                             {/* Purpose */}
                             <View>
                                 <View className='flex-row items-center mb-1'>
-                                    <Text className='text-gray-600 mr-2'>
+                                    <Text className='text-muted-foreground mr-2'>
                                         📄
                                     </Text>
-                                    <Text className='text-sm text-gray-600'>
+                                    <Text className='text-sm text-muted-foreground'>
                                         Purpose
                                     </Text>
                                 </View>
@@ -181,14 +181,14 @@ export default function EditRecord({
                             </View>
 
                             {/* Payment Management */}
-                            <View className='bg-red-50 border border-red-100 rounded-xl p-4 gap-3'>
+                            <View className='bg-destructive/10 border border-destructive/20 rounded-xl p-4 gap-3'>
                                 <View className='flex-row items-center gap-2'>
                                     <Text className='text-lg'>⚠️</Text>
                                     <View className='flex-1'>
-                                        <Text className='text-sm font-semibold text-red-700'>
+                                        <Text className='text-sm font-semibold text-destructive'>
                                             Delete payments
                                         </Text>
-                                        <Text className='text-xs text-red-600 mt-1'>
+                                        <Text className='text-xs text-destructive mt-1'>
                                             Tap a payment below to mark it for
                                             deletion. Nothing is removed until
                                             you save.
@@ -228,27 +228,27 @@ export default function EditRecord({
                                                 }
                                                 className={`flex-row items-center justify-between px-3 py-2 rounded-lg border ${
                                                     isMarked
-                                                        ? "border-red-400 bg-white"
+                                                        ? "border-destructive/40 bg-card"
                                                         : "border-transparent"
                                                 }`}
                                             >
                                                 <View>
-                                                    <Text className='text-sm font-semibold text-gray-800'>
+                                                    <Text className='text-sm font-semibold text-foreground'>
                                                         {formatCurrency(
                                                             item.amount,
                                                             record.category,
                                                             2
                                                         )}
                                                     </Text>
-                                                    <Text className='text-xs text-gray-500'>
+                                                    <Text className='text-xs text-muted-foreground'>
                                                         {formatDate(item.date)}
                                                     </Text>
                                                 </View>
                                                 <Text
                                                     className={`text-xs font-semibold ${
                                                         isMarked
-                                                            ? "text-red-600"
-                                                            : "text-gray-400"
+                                                            ? "text-destructive"
+                                                            : "text-muted-foreground"
                                                     }`}
                                                 >
                                                     {isMarked
@@ -259,12 +259,12 @@ export default function EditRecord({
                                         );
                                     })
                                 ) : (
-                                    <Text className='text-xs text-gray-500'>
+                                    <Text className='text-xs text-muted-foreground'>
                                         No payments to manage yet.
                                     </Text>
                                 )}
                                 {pendingSettlementDeletes.size > 0 && (
-                                    <Text className='text-xs text-red-500'>
+                                    <Text className='text-xs text-destructive'>
                                         {pendingSettlementDeletes.size} payment
                                         {pendingSettlementDeletes.size > 1
                                             ? "s"
@@ -280,17 +280,17 @@ export default function EditRecord({
                     <View className='flex-row gap-3 p-6 pt-0'>
                         <Pressable
                             onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
+                            className='flex-1 py-3 px-4 border border-border rounded-md items-center'
                         >
-                            <Text className='text-gray-700 font-medium'>
+                            <Text className='text-foreground font-medium'>
                                 Cancel
                             </Text>
                         </Pressable>
                         <Pressable
                             onPress={handleSubmit}
-                            className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
+                            className='flex-1 py-3 px-4 bg-primary rounded-md items-center'
                         >
-                            <Text className='text-white font-medium'>
+                            <Text className='text-primary-foreground font-medium'>
                                 Save Changes
                             </Text>
                         </Pressable>

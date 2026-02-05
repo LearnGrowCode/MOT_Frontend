@@ -5,11 +5,11 @@ import { createBookEntry } from "@/db/models/Book";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { usePermissionStore } from "@/store/usePermissionStore";
 import { formatAmountInput, getAmountInWords } from "@/utils/utils";
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 type BookType = "COLLECT" | "PAY";
@@ -56,6 +56,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const [contactSearch, setContactSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     const amountValue = watch("amount");
     const dateValue = watch("date");
@@ -113,7 +114,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const isCollect = type === "COLLECT";
     const bookTypeLabel = isCollect ? "Collect Book" : "Pay Book";
     const amountLabel = isCollect ? "Amount to Collect" : "Amount to Pay";
-    const nameLabel = isCollect ? "Borrower Name" : "Payer Name";
+    const nameLabel = isCollect ? "Borrower's Name" : "Receiver's Name";
     const dateLabel = isCollect ? "Lent Date" : "Borrowed Date";
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -305,43 +306,39 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                         render={({
                                             field: { onChange, value },
                                         }) => (
-                                            <Pressable
-                                                onPress={() => {
-                                                    DateTimePickerAndroid.open({
-                                                        value: selectedDate,
-                                                        onChange: (
-                                                            event,
-                                                            date
-                                                        ) => {
-                                                            if (
-                                                                event.type ===
-                                                                "set" &&
-                                                                date
-                                                            ) {
-                                                                setSelectedDate(
-                                                                    date
-                                                                );
-                                                                onChange(
-                                                                    date.toISOString()
-                                                                );
+                                            <View>
+                                                <Pressable
+                                                    onPress={() => {
+                                                        setShowDatePicker(true);
+                                                    }}
+                                                    className='w-full flex-row items-center justify-between rounded-xl border border-input bg-card px-4 py-3 active:bg-accent'
+                                                >
+                                                    <Text className='text-base text-foreground'>
+                                                        {selectedDate.toLocaleDateString()}
+                                                    </Text>
+                                                    <Text className='text-muted-foreground'>
+                                                        📅
+                                                    </Text>
+                                                </Pressable>
+                                                {showDatePicker && (
+                                                    <DateTimePicker
+                                                        value={selectedDate}
+                                                        mode="date"
+                                                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                                        onChange={(event, date) => {
+                                                            setShowDatePicker(Platform.OS === 'ios');
+                                                            if (event.type === "set" && date) {
+                                                                setSelectedDate(date);
+                                                                onChange(date.toISOString());
                                                             }
-                                                        },
-                                                        mode: "date",
-                                                    });
-                                                }}
-                                                className='w-full flex-row items-center justify-between rounded-xl border border-input bg-card px-4 py-3 active:bg-accent'
-                                            >
-                                                <Text className='text-base text-foreground'>
-                                                    {selectedDate.toLocaleDateString()}
-                                                </Text>
-                                                <Text className='text-muted-foreground'>
-                                                    📅
-                                                </Text>
-                                            </Pressable>
+                                                        }}
+                                                    />
+                                                )}
+                                            </View>
                                         )}
                                     />
                                     {errors.date && (
-                                        <Text className='text-red-500 text-xs mt-1'>
+                                        <Text className='text-destructive text-xs mt-1'>
                                             {errors.date.message}
                                         </Text>
                                     )}
@@ -399,7 +396,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                             }`}
                     >
                         {isSubmitting ? (
-                            <ActivityIndicator size='small' color='white' />
+                            <ActivityIndicator size='small' color='hsl(var(--primary-foreground))' />
                         ) : (
                             <Text className='text-base font-bold text-primary-foreground'>
                                 Add Record

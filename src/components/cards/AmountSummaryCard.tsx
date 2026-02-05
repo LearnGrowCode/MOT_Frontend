@@ -14,15 +14,15 @@ export default function AmountSummaryCard({
 }: AmountSummaryCardProps) {
     const { currency } = useUserCurrency();
     return (
-        <Card className='bg-[#eef3ff] border border-[#dbe4ff] shadow-sm'>
+        <Card className='bg-primary/5 border-primary/20 shadow-sm'>
             <CardContent className='gap-2'>
-                <Text className='text-sm font-medium text-[#1d4ed8]'>
-                    Amount To Pay
+                <Text className='text-sm font-medium text-primary'>
+                    {message.toLowerCase().includes("collect") ? "Amount To Collect" : "Amount To Pay"}
                 </Text>
-                <Text className='text-3xl font-bold text-[#1e3a8a] mb-1'>
+                <Text className='text-3xl font-bold text-foreground mb-1'>
                     {formatCurrency(amount, currency, 2, "")}
                 </Text>
-                <Text className='text-sm text-[#3b82f6]'>{message}</Text>
+                <Text className='text-sm text-muted-foreground'>{message}</Text>
             </CardContent>
         </Card>
     );
