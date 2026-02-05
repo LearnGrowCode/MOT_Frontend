@@ -20,12 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "app.web.money_on_track_1.twa",
-      "minSdkVersion": 21,
-      "abi": [
-        "arm64-v8a",
-        "armeabi-v7a"
-      ]
+      "package": "app.web.money_on_track_1.twa"
     },
     "web": {
       "bundler": "metro",
