@@ -1,4 +1,4 @@
-import { Drawer } from "expo-router/drawer";
+import { Tabs } from "expo-router";
 import "react-native-get-random-values";
 
 import { PreferencesProvider, usePreferences } from "@/context/PreferencesContext";
@@ -9,78 +9,96 @@ import { PortalHost } from "@rn-primitives/portal";
 import React from "react";
 import { useColorScheme } from "nativewind";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { 
+    BarChart3, 
+    ArrowDownCircle, 
+    ArrowUpCircle, 
+    UserCircle, 
+    PlusCircle
+} from "lucide-react-native";
 
 function LayoutContent() {
     const { colorScheme } = useColorScheme();
 
     return (
         <ThemeProvider value={NAV_THEME[colorScheme as "light" | "dark"]}>
+            <SafeAreaView className='flex-1 bg-background'>
                 <KeyboardProvider>
                     <PortalHost name='root' />
-                    <Drawer
+                    <Tabs
                         screenOptions={{
-                            headerShown: true,
-                            drawerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
-                            drawerActiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.primary,
-                            drawerInactiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text + "80", // Opacity 0.5
+                            headerShown: false,
+                            tabBarStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
+                            tabBarActiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.primary,
+                            tabBarInactiveTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text + "80", // Opacity 0.5
                             headerStyle: { backgroundColor: NAV_THEME[colorScheme as "light" | "dark"].colors.card },
                             headerTintColor: NAV_THEME[colorScheme as "light" | "dark"].colors.text,
                         }}
                     >
-                        <Drawer.Screen
-                            name='index'
+                        <Tabs.Screen
+                            name='collect-book'
                             options={{
-                                title: "Home",
-                                drawerLabel: "Home",
+                                title: "Collect",
+                                tabBarLabel: "Collect",
+                                tabBarIcon: ({ color, size }) => <ArrowDownCircle color={color} size={size} />,
                             }}
                         />
-                        <Drawer.Screen
+                        <Tabs.Screen
+                            name='pay-book'
+                            options={{
+                                title: "Pay",
+                                tabBarLabel: "Pay",
+                                tabBarIcon: ({ color, size }) => <ArrowUpCircle color={color} size={size} />,
+                            }}
+                        />
+                        <Tabs.Screen
+                            name='add-selection'
+                            options={{
+                                title: "Add",
+                                tabBarLabel: "Add",
+                                tabBarIcon: ({ color, size }) => <PlusCircle color={color} size={size + 10} />,
+                                // This will be handled as a modal-like action later or a simple middle tab
+                            }}
+                        />
+                        <Tabs.Screen
                             name='analysis/index'
                             options={{
                                 title: "Analysis",
-                                drawerLabel: "Analysis",
+                                tabBarLabel: "Analysis",
+                                tabBarIcon: ({ color, size }) => <BarChart3 color={color} size={size} />,
                             }}
                         />
-                        <Drawer.Screen
+                        <Tabs.Screen
                             name='my-account/index'
                             options={{
-                                title: "My Account",
-                                drawerLabel: "My Account",
+                                title: "Account",
+                                tabBarLabel: "Account",
+                                tabBarIcon: ({ color, size }) => <UserCircle color={color} size={size} />,
                             }}
                         />
-                        <Drawer.Screen
-                            name='collect-book'
+                        <Tabs.Screen
+                            name='index'
                             options={{
-                                title: "Collect Book",
-                                drawerLabel: "Collect Book",
+                                href: null, // Hide Home from tab bar
                             }}
                         />
-                        <Drawer.Screen
-                            name='pay-book'
-                            options={{
-                                title: "Pay Book",
-                                drawerLabel: "Pay Book",
-                            }}
-                        />
-                        <Drawer.Screen
+                        <Tabs.Screen
                             name='settings'
                             options={{
-                                title: "Settings",
-                                drawerLabel: "Settings",
+                                href: null, // Hide Settings from tab bar (merging into Account)
                             }}
                         />
-                        <Drawer.Screen
+                        <Tabs.Screen
                             name='onboarding/index'
                             options={{
                                 title: "Onboarding",
-                                drawerLabel: "Onboarding",
-                                drawerItemStyle: {
-                                    display: "none",
-                                }
+                                href: null,
                             }}
                         />
-                    </Drawer>
+                    </Tabs>
                 </KeyboardProvider>
+            </SafeAreaView>
         </ThemeProvider>
     );
 }

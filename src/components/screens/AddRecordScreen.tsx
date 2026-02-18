@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
+// SafeAreaView import removed
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const REMINDER_INTERVALS = [

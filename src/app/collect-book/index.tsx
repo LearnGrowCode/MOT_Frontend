@@ -5,7 +5,8 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { CollectionRecord } from "@/type/interface";
 import { formatCurrency } from "@/utils/utils";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, Share, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Share, Text, View } from "react-native";
+// SafeAreaView import removed
 
 import CollectionConfirmation from "@/components/modals/CollectionConfirmation";
 import CollectionOption from "@/components/modals/CollectionOption";
@@ -20,7 +21,7 @@ import {
 } from "@/services/book/book-entry.service";
 import { uuidv4 } from "@/utils/uuid";
 import { Link, useFocusEffect, useRouter } from "expo-router";
-import { BanknoteArrowUpIcon } from "lucide-react-native";
+// BanknoteArrowUpIcon removed
 
 const DEFAULT_USER_ID = "1";
 
@@ -306,17 +307,6 @@ export default function ToCollectScreen() {
                                     Collect Book
                                 </Text>
                             </View>
-                            <Link href='/pay-book' asChild>
-                                <Pressable className='bg-tertiary-500 px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-sm shadow-tertiary-500/10 ml-4'>
-                                    <BanknoteArrowUpIcon
-                                        size={18}
-                                        color='white'
-                                    />
-                                    <Text className='text-white text-sm font-semibold'>
-                                        Pay
-                                    </Text>
-                                </Pressable>
-                            </Link>
                         </View>
                     </View>
 

@@ -6,6 +6,7 @@ import { PaymentRecord } from "@/type/interface";
 import { formatCurrency } from "@/utils/utils";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+// SafeAreaView import removed
 
 import DeleteRecord from "@/components/modals/DeleteRecord";
 import FilterAndSort from "@/components/modals/FilterAndSort";
@@ -22,7 +23,7 @@ import {
 } from "@/services/book/book-entry.service";
 import { uuidv4 } from "@/utils/uuid";
 import { Link, useFocusEffect, useRouter } from "expo-router";
-import { BanknoteArrowDownIcon } from "lucide-react-native";
+// BanknoteArrowDownIcon removed
 
 const DEFAULT_USER_ID = "1";
 
@@ -255,17 +256,6 @@ export default function ToPayScreen() {
                                     Pay Book
                                 </Text>
                             </View>
-                            <Link href='/collect-book' asChild>
-                                <Pressable className='bg-primary px-4 py-2.5 rounded-xl flex-row items-center gap-2 shadow-sm shadow-primary/10 ml-4'>
-                                    <BanknoteArrowDownIcon
-                                        size={18}
-                                        color='white'
-                                    />
-                                    <Text className='text-white text-sm font-semibold'>
-                                        Collect
-                                    </Text>
-                                </Pressable>
-                            </Link>
                         </View>
                     </View>
 

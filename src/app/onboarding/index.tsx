@@ -17,6 +17,7 @@ import {
     Text,
     View,
 } from "react-native";
+// SafeAreaView import removed
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 interface FormData {
