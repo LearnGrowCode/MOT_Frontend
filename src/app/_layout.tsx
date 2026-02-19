@@ -7,6 +7,7 @@ import { NAV_THEME } from "@/lib/theme";
 import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import React from "react";
+
 import { useColorScheme } from "nativewind";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,7 +24,7 @@ function LayoutContent() {
 
     return (
         <ThemeProvider value={NAV_THEME[colorScheme as "light" | "dark"]}>
-            <SafeAreaView className='flex-1 bg-background'>
+            <SafeAreaView className='flex-1 bg-background' edges={['top']}>
                 <KeyboardProvider>
                     <PortalHost name='root' />
                     <Tabs
@@ -58,7 +59,6 @@ function LayoutContent() {
                                 title: "Add",
                                 tabBarLabel: "Add",
                                 tabBarIcon: ({ color, size }) => <PlusCircle color={color} size={size + 10} />,
-                                // This will be handled as a modal-like action later or a simple middle tab
                             }}
                         />
                         <Tabs.Screen

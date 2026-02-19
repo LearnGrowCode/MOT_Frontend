@@ -30,10 +30,10 @@ import {
     Moon, 
     Sun, 
     Monitor,
-    CreditCard,
     Globe,
     ChevronRight,
-    Check
+    Check,
+    Pencil
 } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -859,16 +859,26 @@ export default function MyAccountScreen() {
                 </CardContent>
             </KeyboardAwareScrollView>
 
-            <View className='border-t border-border bg-card px-4 py-5 shadow-lg'>
-                {isEditing ? (
+            {!isEditing && (
+                <Pressable
+                    onPress={startEdit}
+                    className='absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-xl shadow-primary/40 active:opacity-90 active:scale-95'
+                    style={{ elevation: 8 }}
+                >
+                    <Pencil size={24} color='#ffffff' />
+                </Pressable>
+            )}
+
+            {isEditing && (
+                <View className='border-t border-border bg-card px-4 py-5 shadow-lg'>
                     <View className='flex-row'>
                         <Pressable
                             onPress={handleCancelEdit}
                             disabled={saving}
-                            className={`mr-3 flex-1 items-center justify-center rounded-xl border border-stone-300 px-4 py-3 ${saving ? "opacity-60" : "active:opacity-80"
+                            className={`mr-3 flex-1 items-center justify-center rounded-xl border border-border px-4 py-3 ${saving ? "opacity-60" : "active:bg-accent"
                                 }`}
                         >
-                            <Text className='text-base font-semibold text-slate-700'>
+                            <Text className='text-base font-semibold text-foreground'>
                                 Cancel
                             </Text>
                         </Pressable>
@@ -876,27 +886,19 @@ export default function MyAccountScreen() {
                             onPress={handleSave}
                             disabled={saving || !isDirty}
                             className={`flex-1 items-center justify-center rounded-xl px-4 py-3 ${saving || !isDirty
-                                    ? "bg-slate-200"
-                                    : "bg-[#2563eb] active:bg-[#1e4fd5]"
+                                    ? "bg-muted"
+                                    : "bg-primary active:opacity-90"
                                 }`}
                         >
-                            <Text className='text-base font-semibold text-white'>
+                            <Text className={`text-base font-semibold ${
+                                saving || !isDirty ? "text-muted-foreground" : "text-primary-foreground"
+                            }`}>
                                 {saving ? "Saving..." : "Save changes"}
                             </Text>
                         </Pressable>
                     </View>
-                ) : (
-                    <Pressable
-                        accessibilityRole='button'
-                        onPress={startEdit}
-                        className='items-center justify-center rounded-xl bg-[#2563eb] px-4 py-3 active:bg-[#1e4fd5]'
-                    >
-                        <Text className='text-base font-semibold text-white'>
-                            Edit profile
-                        </Text>
-                    </Pressable>
-                )}
-            </View>
+                </View>
+            )}
 
             {/* Currency Selection Modal */}
             <BottomModal
