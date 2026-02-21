@@ -51,8 +51,8 @@ export default function BottomModal({
                 backgroundColor: "transparent",
             }}
         >
-            <SafeAreaView edges={["bottom"]} >
-                {/* Decorative Background Elements for Dark Mode */}
+            {/* <SafeAreaView edges={["bottom"]} > */}
+                Decorative Background Elements for Dark Mode
                 {colorScheme === "dark" && (
                     <View 
                         className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"
@@ -90,7 +90,7 @@ export default function BottomModal({
                         {children}
                     </View>
                 </Card>
-            </SafeAreaView>
+            {/* </SafeAreaView> */}
         </Modal>
     );
 }

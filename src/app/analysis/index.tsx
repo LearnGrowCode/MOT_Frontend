@@ -477,6 +477,37 @@ export default function AnalysisScreen() {
 
     const renderOverviewTab = () => (
         <View className='gap-6'>
+              {/* Summary Charts */}
+            <View className='bg-card p-6 rounded-3xl border border-border shadow-sm shadow-black/5'>
+                <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider text-center'>
+                    Financial Overview
+                </Text>
+                <View className='flex-row justify-around items-center'>
+                    <View className='items-center'>
+                        <Text className='text-2xl font-black text-green-500'>
+                            {formatCurrency(
+                                generalStats.totalToCollect,
+                                currency,
+                                2
+                            )}
+                        </Text>
+                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>
+                            To Collect
+                        </Text>
+                    </View>
+                    <View className='w-[1px] h-12 bg-border' />
+                    <View className='items-center'>
+                        <Text className='text-2xl font-black text-destructive'>
+                            {formatCurrency(
+                                generalStats.totalToPay,
+                                currency,
+                                2
+                            )}
+                        </Text>
+                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>To Pay</Text>
+                    </View>
+                </View>
+            </View>
             {/* General Stats Cards */}
             <View className='grid grid-cols-2 gap-4'>
                 <StatCard
@@ -512,37 +543,7 @@ export default function AnalysisScreen() {
                 />
             </View>
 
-            {/* Summary Charts */}
-            <View className='bg-card p-6 rounded-3xl border border-border shadow-sm shadow-black/5'>
-                <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider text-center'>
-                    Financial Overview
-                </Text>
-                <View className='flex-row justify-around items-center'>
-                    <View className='items-center'>
-                        <Text className='text-2xl font-black text-green-500'>
-                            {formatCurrency(
-                                generalStats.totalToCollect,
-                                currency,
-                                2
-                            )}
-                        </Text>
-                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>
-                            To Collect
-                        </Text>
-                    </View>
-                    <View className='w-[1px] h-12 bg-border' />
-                    <View className='items-center'>
-                        <Text className='text-2xl font-black text-destructive'>
-                            {formatCurrency(
-                                generalStats.totalToPay,
-                                currency,
-                                2
-                            )}
-                        </Text>
-                        <Text className='text-xs font-bold text-muted-foreground uppercase mt-1'>To Pay</Text>
-                    </View>
-                </View>
-            </View>
+          
         </View>
     );
 

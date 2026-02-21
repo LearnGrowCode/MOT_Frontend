@@ -178,9 +178,8 @@ function LayoutContent() {
             />
 
             {/* Hidden Routes */}
-            <Tabs.Screen name="index" options={{ href: null }} />
-            <Tabs.Screen name="settings" options={{ href: null }} />
-            <Tabs.Screen 
+            <Tabs.Screen name="index" options={{ href: null, tabBarStyle: { display: "none" } }} />
+             <Tabs.Screen 
               name="onboarding/index" 
               options={{ 
                 href: null,

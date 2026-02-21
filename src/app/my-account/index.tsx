@@ -10,7 +10,7 @@ import { DEFAULT_USER_ID } from "@/utils/constants";
 import { getDeviceLocale } from "@/utils/currency-locale";
 import { uuidv4 } from "@/utils/uuid";
 import { useFocusEffect } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { Tabs } from "expo-router";
 import {
     Pencil,
     ArrowLeft,
@@ -124,62 +124,6 @@ export default function MyAccountScreen() {
         fetchUserData();
     }, [fetchUserData]);
 
-    const navigation = useNavigation();
-
-    // Toggle tab bar visibility based on edit mode
-    useFocusEffect(
-        useCallback(() => {
-            const parent = navigation.getParent();
-            
-            if (isEditing) {
-                parent?.setOptions({
-                    tabBarStyle: { display: "none" },
-                });
-            } else {
-                parent?.setOptions({
-                    tabBarStyle: {
-                        left: 20,
-                        right: 20,
-                        height: 60,
-                        bottom: 5,
-                        borderRadius: 30,
-                        backgroundColor:
-                            colorScheme === "dark"
-                                ? "rgba(25,25,35,0.95)"
-                                : "rgba(255,255,255,0.95)",
-                        borderTopWidth: 0,
-                        elevation: 10,
-                        shadowColor: "#000",
-                        shadowOpacity: 0.15,
-                        shadowRadius: 12,
-                    },
-                });
-            }
-
-            return () => {
-                // When leaving the screen, ensure tabs are visible
-                parent?.setOptions({
-                    tabBarStyle: {
-                        left: 20,
-                        right: 20,
-                        height: 60,
-                        bottom: 5,
-                        borderRadius: 30,
-                        backgroundColor:
-                            colorScheme === "dark"
-                                ? "rgba(25,25,35,0.95)"
-                                : "rgba(255,255,255,0.95)",
-                        borderTopWidth: 0,
-                        elevation: 10,
-                        shadowColor: "#000",
-                        shadowOpacity: 0.15,
-                        shadowRadius: 12,
-                    },
-                });
-            };
-        }, [navigation, colorScheme, isEditing])
-    );
-
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -263,6 +207,7 @@ export default function MyAccountScreen() {
 
     return (
         <View className='flex-1 bg-background'>
+            <Tabs.Screen options={{ tabBarStyle: isEditing && { display: "none" } }} />
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1}}

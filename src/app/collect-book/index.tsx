@@ -13,6 +13,7 @@ import CollectionOption from "@/components/modals/CollectionOption";
 import DeleteCollectionRecord from "@/components/modals/DeleteCollectionRecord";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import ReminderModal from "@/components/modals/ReminderModal";
+import Snackbar from "@/components/ui/Snackbar";
 import { addSettlement, softDeleteBookEntry } from "@/db/models/Book";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
@@ -60,6 +61,10 @@ export default function ToCollectScreen() {
     const [showFilterAndSort, setShowFilterAndSort] = useState(false);
     const [showOption, setShowOption] = useState(false);
     const [showReminderModal, setShowReminderModal] = useState(false);
+    const [snackbarConfig, setSnackbarConfig] = useState<{
+        visible: boolean;
+        message: string;
+    }>({ visible: false, message: "" });
     const [selectedRecord, setSelectedRecord] =
         useState<CollectionRecord | null>(null);
 
@@ -141,11 +146,16 @@ export default function ToCollectScreen() {
     };
 
     const handleDeleteRecord = async (recordId: string) => {
+        const recordName = selectedRecord?.name;
         try {
             await softDeleteBookEntry(recordId);
             const { records, total } = await fetchRecords();
             setCollectionRecords(records);
             setTotalToCollect(total);
+            setSnackbarConfig({
+                visible: true,
+                message: `Deleted record for ${recordName}`,
+            });
         } catch (error) {
             console.error("Error deleting record:", error);
             setCollectionRecords((prev) =>
@@ -471,6 +481,11 @@ export default function ToCollectScreen() {
                 onClose={() => setShowReminderModal(false)}
                 record={selectedRecord}
                 onSendReminder={handleSendReminder}
+            />
+            <Snackbar
+                visible={snackbarConfig.visible}
+                message={snackbarConfig.message}
+                onDismiss={() => setSnackbarConfig({ ...snackbarConfig, visible: false })}
             />
         </View>
     );

@@ -12,6 +12,7 @@ import DeleteRecord from "@/components/modals/DeleteRecord";
 import FilterAndSort from "@/components/modals/FilterAndSort";
 import Option from "@/components/modals/Option";
 import PaymentConfirmation from "@/components/modals/PaymentConfirmation";
+import Snackbar from "@/components/ui/Snackbar";
 import {
     addSettlement,
     softDeleteBookEntry
@@ -62,6 +63,10 @@ export default function ToPayScreen() {
         useState(false);
     const [showFilterAndSort, setShowFilterAndSort] = useState(false);
     const [showOption, setShowOption] = useState(false);
+    const [snackbarConfig, setSnackbarConfig] = useState<{
+        visible: boolean;
+        message: string;
+    }>({ visible: false, message: "" });
     const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
         null
     );
@@ -126,11 +131,16 @@ export default function ToPayScreen() {
     };
 
     const handleDeleteRecord = async (recordId: string) => {
+        const recordName = selectedRecord?.name;
         try {
             await softDeleteBookEntry(recordId);
             const { records, total } = await fetchRecords();
             setPaymentRecords(records);
             setTotalToPay(total);
+            setSnackbarConfig({
+                visible: true,
+                message: `Deleted record for ${recordName}`,
+            });
         } catch (error) {
             console.error("Error deleting record:", error);
             setPaymentRecords((prev) =>
@@ -411,6 +421,11 @@ export default function ToPayScreen() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 record={selectedRecord}
+            />
+            <Snackbar
+                visible={snackbarConfig.visible}
+                message={snackbarConfig.message}
+                onDismiss={() => setSnackbarConfig({ ...snackbarConfig, visible: false })}
             />
         </View>
     );

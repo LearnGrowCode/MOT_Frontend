@@ -54,10 +54,10 @@ export default function CollectionOption({
             showCloseButton={true}
             maxHeight={0.8}
         >
-            <Card className='border-0 pt-0 '>
-                <CardContent >
+            <Card className='border-0 py-0 '>
+                <CardContent className="px-0" >
                     {/* Record Info */}
-                    <View className='mb-6 p-4 bg-secondary/50 dark:bg-card border border-primary/10 rounded-[24px] relative overflow-hidden'>
+                    <View className='mb-2 p-4 bg-secondary/50 dark:bg-card border border-primary/10 rounded-[24px] relative overflow-hidden'>
                         {colorScheme === "dark" && (
                             <View 
                                 className="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-[35px]"
@@ -66,16 +66,13 @@ export default function CollectionOption({
                         )}
                         <View className="flex-row items-center gap-2 mb-1.5">
                             <Icon as={Info} size={12} color={colorScheme === "dark" ? "#6B93F2" : "#2251D1"} />
-                            <Text className='text-[9px] font-black uppercase tracking-[2px] text-primary/80'>
+                            <Text className='text-[12px] font-black text-primary/80'>
                                 Record Details
                             </Text>
                         </View>
                         <View className="flex-row items-baseline justify-between">
                             <Text className='text-2xl font-black text-foreground tracking-tight flex-1 mr-2' numberOfLines={1}>
                                 {record.name}
-                            </Text>
-                            <Text className='text-xs font-black text-muted-foreground uppercase tracking-widest'>
-                                {record.category}
                             </Text>
                         </View>
                         <Text className='text-lg font-black text-primary mt-0.5'>
@@ -89,9 +86,7 @@ export default function CollectionOption({
                             onPress={handleSendReminder}
                             className='flex-row items-center p-4 bg-unpaid/10 dark:bg-unpaid/20 rounded-[20px] border-2 border-unpaid/20'
                         >
-                            <View className='w-12 h-12 bg-unpaid rounded-2xl items-center justify-center mr-4 shadow-md shadow-unpaid/20'>
-                                <Icon as={Send} size={20} color="white" />
-                            </View>
+                            
                             <View className='flex-1'>
                                 <Text className='text-base font-black text-unpaid-foreground uppercase tracking-tight'>
                                     Send reminder
@@ -100,8 +95,8 @@ export default function CollectionOption({
                                     Friendly nudge to pay
                                 </Text>
                             </View>
-                            <View className="bg-unpaid/20 p-2 rounded-xl">
-                                <Text className="text-unpaid-foreground font-black text-lg">›</Text>
+                            <View className='w-12 h-12 bg-unpaid rounded-2xl items-center justify-center  shadow-md shadow-unpaid/20'>
+                                <Icon as={Send} size={20} color="white" />
                             </View>
                         </Pressable>
 
