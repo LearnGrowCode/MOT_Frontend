@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, ScrollView, Dimensions } from "react-native";
+import { useColorScheme } from "nativewind";
 import Modal from "react-native-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
@@ -9,7 +10,6 @@ import {
     AccordionTrigger,
 } from "../ui/accordion";
 import { X } from "lucide-react-native";
-import { useColorScheme } from "nativewind";
 
 // Configuration: Delay before closing modal to show selection (in milliseconds)
 const CLOSE_DELAY_MS = 1000;
@@ -66,7 +66,6 @@ export default function FilterAndSort({
     filterAndSort,
 }: FilterAndSortProps) {
     const { colorScheme } = useColorScheme();
-    const isDark = colorScheme === "dark";
     const handleFilterSelect = (filterId: string) => {
         onFilterAndSort({
             filter: filterId,
@@ -120,13 +119,16 @@ export default function FilterAndSort({
             }}
         >
             <View className='items-stretch'>
-                <Card className=' w-full rounded-t-2xl bg-card'>
-                    <CardHeader className='flex-row items-center justify-between'>
-                        <CardTitle className='text-lg font-bold'>
+                <Card className='w-full rounded-t-[32px] bg-card border-t border-x border-border/40 shadow-2xl'>
+                    <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/30'>
+                        <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
                             Filter & Sort
                         </CardTitle>
-                        <Pressable onPress={onClose} className='p-1'>
-                            <X size={24} color={isDark ? "#f8fafc" : "#1e293b"} strokeWidth={2} />
+                        <Pressable 
+                            onPress={onClose} 
+                            className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
+                        >
+                            <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
                         </Pressable>
                     </CardHeader>
 
@@ -167,24 +169,23 @@ export default function FilterAndSort({
                                                             )
                                                         }
                                                         className={`
-                                                            py-1.5 px-3
-                                                            rounded-full
-                                                            border
-                                                            transition-all
+                                                            py-3 px-6
+                                                            rounded-2xl
+                                                            border-2
                                                             active:scale-95
                                                             ${
                                                                 isSelected
-                                                                    ? "bg-primary/10 border-primary/20"
-                                                                    : "bg-card border-border"
+                                                                    ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                                                    : "bg-secondary/30 border-border/50"
                                                             }
                                                         `}
                                                     >
                                                         <Text
                                                             className={`
-                                                                text-sm
+                                                                text-sm font-black tracking-tight
                                                                 ${
                                                                     isSelected
-                                                                        ? "text-primary font-medium"
+                                                                        ? "text-primary-foreground"
                                                                         : "text-muted-foreground"
                                                                 }
                                                             `}
@@ -240,24 +241,23 @@ export default function FilterAndSort({
                                                                                 )
                                                                             }
                                                                             className={`
-                                                                                py-2 px-4
-                                                                                rounded-lg
-                                                                                border
-                                                                                transition-all
+                                                                                py-3 px-5
+                                                                                rounded-xl
+                                                                                border-2
                                                                                 active:scale-95
                                                                                 ${
                                                                                     isSelected
-                                                                                        ? "bg-primary/10 border-primary/20"
-                                                                                        : "bg-card border-border"
+                                                                                        ? "bg-primary border-primary shadow-md shadow-primary/20"
+                                                                                        : "bg-secondary/30 border-border/50"
                                                                                 }
                                                                             `}
                                                                         >
                                                                             <Text
                                                                                 className={`
-                                                                                    text-sm
+                                                                                    text-sm font-black tracking-tight
                                                                                     ${
                                                                                         isSelected
-                                                                                            ? "text-primary font-medium"
+                                                                                            ? "text-primary-foreground"
                                                                                             : "text-muted-foreground"
                                                                                     }
                                                                                 `}

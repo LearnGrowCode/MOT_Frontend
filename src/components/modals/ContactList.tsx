@@ -5,6 +5,7 @@ import { SimpleContact } from "@/type/interface";
 import { Text } from "../ui/text";
 import BottomModal from "../ui/BottomModal";
 import React, { memo } from "react";
+import { Search, User } from "lucide-react-native";
 
 interface ContactListProps {
     contacts: SimpleContact[];
@@ -18,16 +19,51 @@ interface ContactListProps {
 
 // Memoized contact item component for better performance
 const ContactItem = memo(
-    ({ item, onPress }: { item: SimpleContact; onPress: () => void }) => (
-        <Pressable onPress={onPress} className='py-4 border-b border-gray-200'>
-            <Text className='text-base text-gray-900 mb-1'>
-                {item.name || "Unnamed"}
-            </Text>
-            <Text className='text-sm text-gray-500'>
-                {item.phone || "No phone"}
-            </Text>
-        </Pressable>
-    )
+    ({ item, onPress }: { item: SimpleContact; onPress: () => void }) => {
+        // Get initials from name
+        const getInitials = (name: string) => {
+            if (!name) return "?";
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return parts[0][0].toUpperCase();
+        };
+
+        return (
+            <Pressable 
+                onPress={onPress} 
+                className='py-4 flex-row items-center gap-4 border-b border-border/20 active:bg-secondary/20'
+            >
+                {/* Avatar */}
+                <View className="w-12 h-12 rounded-2xl bg-primary/10 items-center justify-center border border-primary/20">
+                    <Text className="text-primary font-black text-lg">
+                        {getInitials(item.name || "")}
+                    </Text>
+                </View>
+
+                {/* Info */}
+                <View className="flex-1">
+                    <Text className='text-lg font-black text-foreground tracking-tight'>
+                        {item.name || "Unnamed"}
+                    </Text>
+                    {item.phone ? (
+                        <Text className='text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5'>
+                            {item.phone}
+                        </Text>
+                    ) : (
+                        <Text className='text-xs font-medium text-muted-foreground/60 italic mt-0.5'>
+                            No phone number
+                        </Text>
+                    )}
+                </View>
+
+                <View className="bg-secondary/50 p-2 rounded-xl">
+                    <Text className="text-muted-foreground font-black text-lg">›</Text>
+                </View>
+            </Pressable>
+        );
+    }
 );
 
 ContactItem.displayName = "ContactItem";
@@ -51,8 +87,14 @@ export default function ContactList({
     );
 
     const renderEmptyComponent = () => (
-        <View className='py-6 items-center'>
-            <Text className='text-gray-500'>No contacts found</Text>
+        <View className='py-12 items-center justify-center gap-4'>
+            <View className="w-20 h-20 bg-secondary rounded-[32px] items-center justify-center border-2 border-dashed border-border/50">
+                <User size={32} color="#94a3b8" />
+            </View>
+            <View className="items-center">
+                <Text className='text-lg font-black text-foreground tracking-tight'>No contacts found</Text>
+                <Text className='text-sm text-muted-foreground font-medium'>Try a different search term</Text>
+            </View>
         </View>
     );
 
@@ -65,12 +107,13 @@ export default function ContactList({
             minHeight={0.7}
         >
             {contactsVisible && (
-                <View className='flex-1 gap-0 py-0'>
-                    <CardContent className='mb-0 pt-4'>
+                <View className='flex-1 gap-0'>
+                    <CardContent>
                         <Input
-                            placeholder='Search contacts'
+                            placeholder='Search by name or number'
                             value={contactSearch}
                             onChangeText={setContactSearch}
+                            className="bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg"
                         />
                     </CardContent>
                     <FlatList

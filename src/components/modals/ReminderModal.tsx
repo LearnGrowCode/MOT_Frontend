@@ -10,7 +10,9 @@ import {
     TextInput,
     View,
 } from "react-native";
-import PrimaryButton from "../button/PrimaryButton";
+import { useColorScheme } from "nativewind";
+import { MessageSquare, Sparkles, Send, Banknote } from "lucide-react-native";
+import { Icon } from "../ui/icon";
 import BottomModal from "../ui/BottomModal";
 
 type ReminderTone = "gentle" | "appreciative" | "direct";
@@ -24,22 +26,28 @@ interface ReminderModalProps {
 
 const toneMeta: Record<
     ReminderTone,
-    { label: string; emoji: string; description: string }
+    { label: string; emoji: string; description: string; color: string; bg: string }
 > = {
     gentle: {
         label: "Gentle nudge",
         emoji: "🌤️",
         description: "Soft and friendly",
+        color: "text-blue-500",
+        bg: "bg-blue-500/10",
     },
     appreciative: {
         label: "Warm thanks",
         emoji: "💛",
         description: "Grateful & upbeat",
+        color: "text-rose-500",
+        bg: "bg-rose-500/10",
     },
     direct: {
         label: "Polite prompt",
         emoji: "📅",
         description: "Clear yet kind",
+        color: "text-amber-500",
+        bg: "bg-amber-500/10",
     },
 };
 
@@ -75,24 +83,26 @@ export default function ReminderModal({
     onSendReminder,
 }: ReminderModalProps) {
     const { currency } = useUserCurrency();
-    const [message, setMessage] = useState("");
-    const [selectedTone, setSelectedTone] =
-        useState<ReminderTone>("appreciative");
+    const [customMessage, setCustomMessage] = useState<string | null>(null);
+    const [selectedTone, setSelectedTone] = useState<ReminderTone>("appreciative");
+    const { colorScheme } = useColorScheme();
 
     useEffect(() => {
-        if (record) {
-            setMessage(buildMessage(record, currency, selectedTone));
-        } else {
-            setMessage("");
+        if (!visible) {
+            setCustomMessage(null);
+            setSelectedTone("appreciative");
         }
-    }, [record, currency, selectedTone, visible]);
+    }, [visible]);
 
     const handleToneChange = (tone: ReminderTone) => {
         setSelectedTone(tone);
-        if (record) {
-            setMessage(buildMessage(record, currency, tone));
-        }
+        setCustomMessage(null);
     };
+
+    if (!record) return null;
+
+    const baseMessage = buildMessage(record, currency, selectedTone);
+    const displayMessage = customMessage !== null ? customMessage : baseMessage;
 
     if (!record) return null;
 
@@ -108,50 +118,63 @@ export default function ReminderModal({
             onClose={onClose}
             title='Send Reminder'
             maxHeight={0.8}
-            minHeight={0.4}
         >
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 className='h-full'
             >
-                <View className='flex-1 px-6 pb-6 gap-5'>
-                    <View className='bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4'>
-                        <Text className='text-xs uppercase tracking-wide text-indigo-500 dark:text-indigo-400 mb-1'>
-                            Outstanding with {record.name}
-                        </Text>
-                        <Text className='text-2xl font-bold text-indigo-900 dark:text-indigo-50'>
+                <View className='flex-1 gap-8'>
+                    <View className='bg-secondary/50 dark:bg-secondary border border-primary/20 rounded-[28px] p-6 relative overflow-hidden'>
+                        {colorScheme === "dark" && (
+                            <View 
+                                className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-[40px]"
+                                pointerEvents="none"
+                            />
+                        )}
+                        <View className="flex-row items-center gap-2 mb-2">
+                            <View className="w-6 h-6 rounded-lg bg-primary/20 items-center justify-center">
+                                <Icon as={Banknote} size={12} className="text-primary" />
+                            </View>
+                            <Text className='text-[10px] font-black uppercase tracking-[3px] text-primary/80'>
+                                Outstanding with {record.name}
+                            </Text>
+                        </View>
+                        <Text className='text-4xl font-black text-foreground tracking-tighter'>
                             {amountSummary}
                         </Text>
-                        <Text className='text-sm text-indigo-700 dark:text-indigo-300 mt-1'>
-                            {record.category}
-                        </Text>
+                        
                     </View>
 
                     <View>
-                        <Text className='text-sm font-medium text-foreground mb-2'>
-                            Message
-                        </Text>
+                        <View className="flex-row items-center gap-2 mb-3 ml-2">
+                            <Icon as={MessageSquare} size={16} className="text-muted-foreground" />
+                            <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                                Message
+                            </Text>
+                        </View>
                         <TextInput
                             multiline
-                            value={message}
-                            onChangeText={setMessage}
-                            className='border border-border rounded-xl p-4 text-base text-foreground bg-card'
+                            value={displayMessage}
+                            onChangeText={setCustomMessage}
+                            className='border-2 border-border/50 rounded-3xl p-6 text-lg text-foreground bg-secondary/30 font-medium'
                             placeholder='Type a reminder...'
-                            placeholderTextColor='#9CA3AF'
+                            placeholderTextColor='#666'
                             textAlignVertical='top'
-                            numberOfLines={6}
+                            numberOfLines={4}
                         />
-                        <Text className='text-xs text-muted-foreground mt-1'>
-                            Customize the note before sharing. Recipients will
-                            see exactly this text.
+                        <Text className='text-xs font-bold text-muted-foreground/60 mt-3 ml-2 italic'>
+                            Customize the note before sharing.
                         </Text>
                     </View>
 
                     <View>
-                        <Text className='text-sm font-medium text-foreground mb-2'>
-                            Quick tone presets
-                        </Text>
-                        <View className='flex-row flex-wrap gap-2'>
+                        <View className="flex-row items-center gap-2 mb-4 ml-2">
+                            <Icon as={Sparkles} size={16} className="text-muted-foreground" />
+                            <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                                Tone Presets
+                            </Text>
+                        </View>
+                        <View className='flex-row gap-3'>
                             {(Object.keys(toneMeta) as ReminderTone[]).map(
                                 (tone) => {
                                     const isActive = selectedTone === tone;
@@ -160,21 +183,24 @@ export default function ReminderModal({
                                             key={tone}
                                             onPress={() =>
                                                 handleToneChange(tone)
+                                                // console.log(tone)
                                             }
-                                            className={`px-4 py-2 rounded-full border ${isActive
-                                                ? "bg-indigo-600 border-indigo-600"
-                                                : "bg-muted border-border"
+                                            className={`flex-1 p-4 rounded-2xl border-2 ${isActive
+                                                ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                                : "bg-secondary/50 border-border/50"
                                                 }`}
                                         >
-                                            <Text
-                                                className={`text-sm font-semibold ${isActive
-                                                    ? "text-white"
-                                                    : "text-foreground"
-                                                    }`}
-                                            >
-                                                {toneMeta[tone].emoji}{" "}
-                                                {toneMeta[tone].label}
-                                            </Text>
+                                            <View className="items-center gap-2">
+                                                <Text className='text-xl'>{toneMeta[tone].emoji}</Text>
+                                                <Text
+                                                    className={`text-[10px] font-black uppercase tracking-tighter ${isActive
+                                                        ? "text-primary-foreground"
+                                                        : "text-muted-foreground"
+                                                        }`}
+                                                >
+                                                    {toneMeta[tone].label.split(' ')[0]}
+                                                </Text>
+                                            </View>
                                         </Pressable>
                                     );
                                 }
@@ -182,19 +208,23 @@ export default function ReminderModal({
                         </View>
                     </View>
 
-                    <View className='mt-auto gap-3'>
-                        <PrimaryButton
-                            title='Share reminder'
-                            onPress={() => onSendReminder(message.trim())}
-                            disabled={!message.trim()}
-                            className='bg-indigo-600'
-                        />
+                    <View className='mt-auto gap-4'>
+                        <Pressable
+                            onPress={() => onSendReminder(displayMessage.trim())}
+                            disabled={!displayMessage.trim()}
+                            className={`w-full h-16 rounded-2xl flex-row items-center justify-center gap-3 ${!displayMessage.trim() ? "bg-muted/50" : "bg-primary shadow-xl shadow-primary/30"}`}
+                        >
+                            <Icon as={Send} size={20} color="#ffffff" />
+                            <Text className={`text-lg font-black tracking-tight text-white`}>
+                                Share Reminder
+                            </Text>
+                        </Pressable>
                         <Pressable
                             onPress={() => handleToneChange("appreciative")}
-                            className='items-center py-2'
+                            className='items-center py-2 active:opacity-60'
                         >
-                            <Text className='text-sm text-muted-foreground'>
-                                Reset to warm thanks note
+                            <Text className='text-xs font-black text-primary uppercase tracking-[2px]'>
+                                Reset to default
                             </Text>
                         </Pressable>
                     </View>

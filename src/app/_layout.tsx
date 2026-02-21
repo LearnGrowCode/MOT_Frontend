@@ -4,7 +4,6 @@ import "react-native-get-random-values";
 import { PreferencesProvider } from "@/context/PreferencesContext";
 import "@/global.css";
 import { NAV_THEME } from "@/lib/theme";
-import { ThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import React from "react";
 import { View } from "react-native";
@@ -24,7 +23,7 @@ function LayoutContent() {
   const theme = NAV_THEME[colorScheme as "light" | "dark"];
 
   return (
-    <ThemeProvider value={theme}>
+  
       <SafeAreaView className="flex-1 bg-background">
         <KeyboardProvider>
           <PortalHost name="root" />
@@ -108,24 +107,24 @@ function LayoutContent() {
               name="add-selection"
               options={{
                 tabBarIcon: () => (
-                  <View
-                    style={{
-                        bottom: -10,
-                      position: "absolute",
-                      height: 60,
-                      width: 60,
-                      borderRadius: 30,
-                      backgroundColor: theme.colors.primary,
-                      justifyContent: "center",
-                      alignItems: "center",
-                      shadowColor: "#000",
-                      shadowOpacity: 0.3,
-                      shadowRadius: 10,
-                      elevation: 8,
-                    }}
-                  >
-                    <Plus color="#fff" size={28} />
-                  </View>
+                    <View
+                      style={{
+                          bottom: -10,
+                        position: "absolute",
+                        height: 60,
+                        width: 60,
+                        borderRadius: 30,
+                        backgroundColor: theme.colors.primary,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        shadowColor: "#000",
+                        shadowOpacity: 0.3,
+                        shadowRadius: 10,
+                        elevation: 8,
+                      }}
+                    >
+                      <Plus color="#fff" size={28} />
+                    </View>
                 ),
               }}
             />
@@ -181,11 +180,17 @@ function LayoutContent() {
             {/* Hidden Routes */}
             <Tabs.Screen name="index" options={{ href: null }} />
             <Tabs.Screen name="settings" options={{ href: null }} />
-            <Tabs.Screen name="onboarding/index" options={{ href: null }} />
+            <Tabs.Screen 
+              name="onboarding/index" 
+              options={{ 
+                href: null,
+                tabBarStyle: { display: "none" }
+              }} 
+            />
           </Tabs>
         </KeyboardProvider>
       </SafeAreaView>
-    </ThemeProvider>
+   
   );
 }
 

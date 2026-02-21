@@ -2,10 +2,12 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { BaseBookRecord } from "@/type/interface";
 import { formatAmountInput, getAmountInWords } from "@/utils/utils";
 import React, { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { useColorScheme } from "nativewind";
+import { Banknote } from "lucide-react-native";
 import RecordInfoCard from "../common/RecordInfoCard";
 import Input from "../form/Input";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import BottomModal from "@/components/ui/BottomModal";
 
 type TransactionType = "collection" | "payment";
 
@@ -27,6 +29,7 @@ export default function TransactionConfirmation({
     const [amount, setAmount] = useState("");
     const personName = record?.name || "";
     const { currency } = useUserCurrency();
+    const { colorScheme } = useColorScheme();
 
     const formatAmount = (value: string) => {
         return formatAmountInput(value);
@@ -44,88 +47,64 @@ export default function TransactionConfirmation({
     const title = isCollection
         ? "Collection Confirmation"
         : "Payment Confirmation";
-    const inputLabel = isCollection
-        ? "Enter the collected amount"
-        : "Enter the received amount";
 
     return (
-        <Modal
+        <BottomModal
             visible={visible}
-            animationType='slide'
-            transparent
-            presentationStyle='overFullScreen'
-            onRequestClose={onClose}
+            onClose={onClose}
+            title={title}
         >
-            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md bg-card border-border'>
-                    <CardHeader className='flex-row items-center justify-between border-b border-border mb-4'>
-                        <View className='flex-row items-center'>
-                            <Text className='text-primary text-xl mr-2'>
-                                💳
-                            </Text>
-                            <CardTitle className='text-lg font-semibold text-foreground'>
-                                {title}
-                            </CardTitle>
+            <View className='gap-8 py-6 px-4'>
+                {/* Record Brief Info */}
+                <RecordInfoCard record={record} variant={variant} />
+
+                {/* Enter Amount */}
+                <View>
+                    <View className="flex-row items-center gap-2 mb-3 ml-1">
+                        <View className="w-8 h-8 rounded-xl bg-primary/10 items-center justify-center border border-primary/20">
+                            <Banknote size={16} color={colorScheme === "dark" ? "white" : "black"} strokeWidth={3}/>
                         </View>
-
-                        <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-muted-foreground'>
-                                ×
-                            </Text>
-                        </Pressable>
-                    </CardHeader>
-
-                    <CardContent className='gap-4'>
-                        {/* Record Brief Info */}
-                        <RecordInfoCard record={record} variant={variant} />
-
-                        {/* Enter Amount */}
-                        <View>
-                            <Text className='mb-2 text-sm text-muted-foreground'>
-                                {inputLabel}
-                            </Text>
-                            <View className='flex-row items-center'>
-                                <View className='flex-1'>
-                                    <Input
-                                        placeholder='0'
-                                        value={amount}
-                                        onChangeText={(value) =>
-                                            setAmount(formatAmount(value))
-                                        }
-                                        maxLength={12}
-                                        autoFocus
-                                        keyboardType='numeric'
-                                        className='text-2xl font-bold text-center text-foreground'
-                                    />
-                                </View>
-                            </View>
-                            <Text className='mt-1 text-xs text-muted-foreground text-center capitalize'>
-                                {getAmountInWords(amount, currency)}
-                            </Text>
-                        </View>
-                    </CardContent>
-
-                    {/* Action Buttons */}
-                    <View className='flex-row gap-3 p-6 pt-0'>
-                        <Pressable
-                            onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-border rounded-md items-center'
-                        >
-                            <Text className='text-muted-foreground font-medium'>
-                                Cancel
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={handleConfirm}
-                            className={`flex-1 py-3 px-4 rounded-md items-center ${isCollection ? 'bg-paid' : 'bg-primary'}`}
-                        >
-                            <Text className={`${isCollection ? 'text-paid-foreground' : 'text-primary-foreground'} font-medium`}>
-                                Confirm
-                            </Text>
-                        </Pressable>
+                        <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px] ml-1'>
+                            Confirm Amount
+                        </Text>
                     </View>
-                </Card>
+                    <Input
+                        placeholder='0'
+                        value={amount}
+                        onChangeText={(value) =>
+                            setAmount(formatAmount(value))
+                        }
+                        maxLength={12}
+                        autoFocus
+                        keyboardType='numeric'
+                        className='w-full bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-xl text-center font-black'
+                    />
+                    <Text className='mt-2 text-[10px] font-black text-primary/60 text-center uppercase tracking-widest'>
+                        {getAmountInWords(amount, currency)}
+                    </Text>
+                </View>
+
+                {/* Action Buttons */}
+                <View className='flex gap-4 pt-2 pb-4'>
+                    <Pressable
+                        onPress={handleConfirm}
+                        className={`flex-2 py-5 rounded-[20px] items-center active:opacity-90 shadow-lg shadow-primary/20 ${isCollection ? 'bg-paid shadow-paid/20' : 'bg-primary'}`}
+                    >
+                        <Text className={`${isCollection ? 'text-white' : 'text-primary-foreground'} font-black tracking-wide text-lg`}>
+                            Confirm
+                        </Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={onClose}
+                        className='py-5 rounded-[20px] bg-secondary/50 items-center active:bg-secondary'
+                    >
+                        <Text className='text-foreground font-black tracking-tight text-lg'>
+                            Cancel
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
-        </Modal>
+        </BottomModal>
     );
 }
+

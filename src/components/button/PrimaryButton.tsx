@@ -34,7 +34,7 @@ export default function PrimaryButton({
             {loading ? (
                 <ActivityIndicator color={"hsl(var(--primary-foreground))"} />
             ) : (
-                <Text className='text-base font-bold text-primary-foreground'>
+                <Text className='text-base font-bold text-primary-foreground dark:text-white'>
                     {title}
                 </Text>
             )}

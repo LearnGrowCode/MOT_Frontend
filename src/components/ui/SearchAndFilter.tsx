@@ -8,6 +8,10 @@ interface SearchAndFilterProps {
     filteredRecords: number;
     onSearch: (query: string) => void;
     setShowFilterAndSort: (show: boolean) => void;
+    activeFilter?: { id: string; label: string } | null;
+    activeSort?: { id: string; label: string } | null;
+    onRemoveFilter?: () => void;
+    onRemoveSort?: () => void;
 }
 
 // Reserved for future inline filter options
@@ -20,6 +24,10 @@ export default function SearchAndFilter({
     filteredRecords,
     onSearch,
     setShowFilterAndSort,
+    activeFilter,
+    activeSort,
+    onRemoveFilter,
+    onRemoveSort,
 }: SearchAndFilterProps) {
     const isDarkMode = useColorScheme() === "dark";
     const [search, setSearch] = useState(searchQuery);
@@ -100,6 +108,30 @@ export default function SearchAndFilter({
                             Filter and sort
                         </Text>
                     </Pressable>
+                    
+                    {activeFilter && onRemoveFilter && (
+                        <Pressable
+                            onPress={onRemoveFilter}
+                            className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
+                        >
+                            <Text className='text-sm font-semibold tracking-tight text-primary'>
+                                {activeFilter.label}
+                            </Text>
+                            <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
+                        </Pressable>
+                    )}
+                    
+                    {activeSort && onRemoveSort && (
+                        <Pressable
+                            onPress={onRemoveSort}
+                            className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
+                        >
+                            <Text className='text-sm font-semibold tracking-tight text-primary'>
+                                {activeSort.label}
+                            </Text>
+                            <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
+                        </Pressable>
+                    )}
                 </ScrollView>
             </View>
         </View>

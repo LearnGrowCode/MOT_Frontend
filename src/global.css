@@ -106,13 +106,24 @@
     --radius: 0.75rem;
 
     /* Status Colors mappings */
-    --unpaid: var(--warning-50);
+    --unpaid: var(--warning-600);
+    --unpaid-bg: var(--warning-50);
+    --unpaid-border: var(--warning-200);
     --unpaid-foreground: var(--warning-700);
-    --paid: var(--success-50);
+    
+    --paid: var(--success-600);
+    --paid-bg: var(--success-50);
+    --paid-border: var(--success-200);
     --paid-foreground: var(--success-700);
-    --partial: var(--tertiary-50);
-    --partial-foreground: var(--tertiary-700);
-    --overdue: var(--error-50);
+    
+    --partial: 199 89% 48%;
+    --partial-bg: 199 89% 96%;
+    --partial-border: 199 89% 88%;
+    --partial-foreground: 199 89% 36%;
+    
+    --overdue: var(--error-600);
+    --overdue-bg: var(--error-50);
+    --overdue-border: var(--error-200);
     --overdue-foreground: var(--error-700);
 
     /* Typography Scales */
@@ -130,34 +141,45 @@
 
   .dark:root {
     /* Semantic Mappings - Dark Mode */
-    --background: var(--secondary-950);
+    --background: 0 0% 2%;
     --foreground: var(--secondary-50);
-    --card: var(--secondary-800);
+    --card: 0 0% 6%;
     --card-foreground: var(--secondary-50);
     --popover: var(--secondary-950);
     --popover-foreground: var(--secondary-50);
     --primary: var(--primary-400);
     --primary-foreground: var(--primary-950);
-    --secondary: var(--secondary-800);
+    --secondary: 0 0% 10%;
     --secondary-foreground: var(--secondary-100);
-    --muted: var(--secondary-800);
-    --muted-foreground: var(--secondary-400);
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
     --accent: var(--tertiary-900);
     --accent-foreground: var(--tertiary-100);
     --destructive: var(--error-700);
     --destructive-foreground: var(--error-50);
-    --border: var(--secondary-700);
-    --input: var(--secondary-700);
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
     --ring: var(--primary-400);
 
     /* Status Colors mappings - Dark Mode */
-    --unpaid: 38 92% 15%;
+    --unpaid: var(--warning-400);
+    --unpaid-bg: 38 92% 8%;
+    --unpaid-border: 38 92% 15%;
     --unpaid-foreground: var(--warning-400);
-    --paid: 145 63% 12%;
+
+    --paid: var(--success-400);
+    --paid-bg: 145 63% 6%;
+    --paid-border: 145 63% 12%;
     --paid-foreground: var(--success-400);
-    --partial: 45 93% 12%;
-    --partial-foreground: var(--tertiary-400);
-    --overdue: 0 84% 15%;
+
+    --partial: 199 89% 48%;
+    --partial-bg: 199 89% 6%;
+    --partial-border: 199 89% 12%;
+    --partial-foreground: 199 89% 48%;
+
+    --overdue: var(--error-400);
+    --overdue-bg: 0 84% 8%;
+    --overdue-border: 0 84% 15%;
     --overdue-foreground: var(--error-400);
   }
 }

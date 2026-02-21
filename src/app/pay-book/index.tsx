@@ -5,7 +5,7 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { PaymentRecord } from "@/type/interface";
 import { formatCurrency } from "@/utils/utils";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 // SafeAreaView import removed
 
 import DeleteRecord from "@/components/modals/DeleteRecord";
@@ -26,6 +26,23 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 // BanknoteArrowDownIcon removed
 
 const DEFAULT_USER_ID = "1";
+
+const FILTER_SORT_OPTIONS = {
+    filter: [
+        { id: "all", label: "All" },
+        { id: "unpaid", label: "Unpaid" },
+        { id: "partial", label: "Partially Paid" },
+        { id: "paid", label: "Paid" },
+    ],
+    sort: [
+        { id: "name_asc", label: "A to Z" },
+        { id: "name_desc", label: "Z to A" },
+        { id: "amount_asc", label: "Low to High" },
+        { id: "amount_desc", label: "High to Low" },
+        { id: "date_asc", label: "Oldest First" },
+        { id: "date_desc", label: "Newest First" },
+    ],
+};
 
 export default function ToPayScreen() {
     const router = useRouter();
@@ -230,6 +247,33 @@ export default function ToPayScreen() {
         }
     });
 
+    const activeFilterOption = FILTER_SORT_OPTIONS.filter.find(
+        (f) => f.id === filterAndSort.filter
+    );
+    const activeFilter =
+        activeFilterOption && activeFilterOption.id !== "all"
+            ? activeFilterOption
+            : null;
+
+    const activeSortOption = FILTER_SORT_OPTIONS.sort.find(
+        (s) =>
+            s.id === filterAndSort.sort ||
+            (filterAndSort.sort === "oldest" && s.id === "date_asc") ||
+            (filterAndSort.sort === "newest" && s.id === "date_desc")
+    );
+    const activeSort =
+        activeSortOption && activeSortOption.id !== "date_desc"
+            ? activeSortOption
+            : null;
+
+    const handleRemoveFilter = () => {
+        handleFilterAndSort({ filter: "all" });
+    };
+
+    const handleRemoveSort = () => {
+        handleFilterAndSort({ sort: "date_desc" });
+    };
+
     const totalRemainingToPay = formatCurrency(
         totalToPay ?? 0,
         currency,
@@ -298,6 +342,10 @@ export default function ToPayScreen() {
                             filteredRecords={visibleRecords.length}
                             onSearch={(q) => setSearchQuery(q)}
                             setShowFilterAndSort={setShowFilterAndSort}
+                            activeFilter={activeFilter}
+                            activeSort={activeSort}
+                            onRemoveFilter={handleRemoveFilter}
+                            onRemoveSort={handleRemoveSort}
                         />
                     </View>
                     <View className='flex flex-row items-center justify-between mb-4'>

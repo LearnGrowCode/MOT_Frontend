@@ -89,7 +89,7 @@ export default function FloatingActionButton({
                 className
             )}
         >
-            <Text className={cn("text-primary-foreground font-bold", getTextSize())}>
+            <Text className={cn("font-bold", getTextSize(), color === "orange" || color === "blue" || color === "indigo" ? "text-white" : "text-primary-foreground")}>
                 {icon}
             </Text>
         </Pressable>

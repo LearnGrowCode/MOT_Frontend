@@ -119,22 +119,32 @@ module.exports = {
         },
         unpaid: {
           DEFAULT: "hsl(var(--unpaid))",
+          background: "hsl(var(--unpaid-bg))",
+          border: "hsl(var(--unpaid-border))",
           foreground: "hsl(var(--unpaid-foreground))",
         },
         paid: {
           DEFAULT: "hsl(var(--paid))",
+          background: "hsl(var(--paid-bg))",
+          border: "hsl(var(--paid-border))",
           foreground: "hsl(var(--paid-foreground))",
         },
         collected: {
           DEFAULT: "hsl(var(--paid))",
+          background: "hsl(var(--paid-bg))",
+          border: "hsl(var(--paid-border))",
           foreground: "hsl(var(--paid-foreground))",
         },
         partial: {
           DEFAULT: "hsl(var(--partial))",
+          background: "hsl(var(--partial-bg))",
+          border: "hsl(var(--partial-border))",
           foreground: "hsl(var(--partial-foreground))",
         },
         overdue: {
           DEFAULT: "hsl(var(--overdue))",
+          background: "hsl(var(--overdue-bg))",
+          border: "hsl(var(--overdue-border))",
           foreground: "hsl(var(--overdue-foreground))",
         },
       },

@@ -316,7 +316,7 @@ export default function AnalysisScreen() {
         const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
         const isCollect = type === "COLLECT";
         const accentColor = isCollect ? "bg-primary" : "bg-tertiary-500";
-        const textColor = isCollect ? "text-primary-foreground" : "text-tertiary-foreground";
+        const textColor =  "text-primary-foreground" ;
 
         return (
             <View className='rounded-2xl border border-border overflow-hidden bg-card'>

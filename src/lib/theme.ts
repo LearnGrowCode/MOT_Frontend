@@ -22,24 +22,24 @@ export const THEME = {
         ring: "hsl(240 5.9% 10%)",
     },
     dark: {
-        background: "hsl(240 10% 3.9%)",
+        background: "hsl(0 0% 2%)",
         foreground: "hsl(0 0% 98%)",
-        card: "hsl(240 10% 6%)",
+        card: "hsl(0 0% 6%)",
         cardForeground: "hsl(0 0% 98%)",
-        popover: "hsl(240 10% 3.9%)",
+        popover: "hsl(0 0% 2%)",
         popoverForeground: "hsl(0 0% 98%)",
-        primary: "hsl(0 0% 98%)",
-        primaryForeground: "hsl(240 5.9% 10%)",
-        secondary: "hsl(240 3.7% 15.9%)",
+        primary: "hsl(226 71% 66%)", // var(--primary-400)
+        primaryForeground: "hsl(0 0% 0%)",
+        secondary: "hsl(0 0% 10%)",
         secondaryForeground: "hsl(0 0% 98%)",
-        muted: "hsl(240 3.7% 15.9%)",
-        mutedForeground: "hsl(240 5% 64.9%)",
-        accent: "hsl(240 3.7% 15.9%)",
-        accentForeground: "hsl(0 0% 98%)",
+        muted: "hsl(0 0% 10%)",
+        mutedForeground: "hsl(0 0% 60%)",
+        accent: "hsl(45 93% 11%)", // var(--tertiary-950)
+        accentForeground: "hsl(45 93% 93%)", // var(--tertiary-100)
         destructive: "hsl(0 62.8% 30.6%)",
-        border: "hsl(240 3.7% 15.9%)",
-        input: "hsl(240 3.7% 15.9%)",
-        ring: "hsl(240 4.9% 83.9%)",
+        border: "hsl(0 0% 12%)",
+        input: "hsl(0 0% 12%)",
+        ring: "hsl(226 71% 66%)",
     },
 };
 

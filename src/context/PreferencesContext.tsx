@@ -138,7 +138,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         fetchPreferences();
-    }, [fetchPreferences]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <PreferencesContext.Provider

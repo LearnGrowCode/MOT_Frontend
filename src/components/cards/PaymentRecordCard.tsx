@@ -37,13 +37,13 @@ export default function PaymentRecordCard({
     const getCardColorClasses = (status: PaymentRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "dark:bg-unpaid/10 border-unpaid/20";
+                return "bg-unpaid-background border-unpaid-border";
             case "paid":
-                return " dark:bg-paid/10 border-paid/20";
+                return "bg-paid-background border-paid-border";
             case "partial":
-                return " dark:bg-partial/10 border-partial/20";
+                return "bg-partial-background border-partial-border";
             case "overdue":
-                return " dark:bg-overdue/10 border-overdue/20";
+                return "bg-overdue-background border-overdue-border";
             default:
                 return "bg-card border-border";
         }
@@ -55,8 +55,8 @@ export default function PaymentRecordCard({
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
                     <View className='flex-row items-center flex-1'>
-                        <View className='w-14 h-14 bg-tertiary/10 dark:bg-tertiary/20 border border-tertiary/20 dark:border-tertiary/30 rounded-2xl items-center justify-center mr-4 relative'>
-                            <Text className='text-tertiary text-xl font-bold'>
+                        <View className='w-14 h-14 bg-tertiary/30  dark:bg-tertiary/20 border border-yellow-500/30 dark:border-tertiary/30 rounded-2xl items-center justify-center mr-4 relative'>
+                            <Text className='text-yellow-500 text-xl font-bold'>
                                 {record.name.charAt(0).toUpperCase()}
                             </Text>
                             {record.status === "unpaid" && (
@@ -90,7 +90,7 @@ export default function PaymentRecordCard({
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
-                            <Text className='text-xs font-semibold'>
+                            <Text className='text-xs font-semibold dark:text-white'>
                                 {getStatusText(record.status)}
                             </Text>
                         </View>
@@ -168,7 +168,7 @@ export default function PaymentRecordCard({
                     <PrimaryButton
                         title='Add Payment Record'
                         onPress={() => onMarkPayment(record.id)}
-                        className='bg-primary shadow-md shadow-primary/20 border-0'
+                        className='bg-primary shadow-md shadow-primary/20 border-0 '
                     />
                 )}
             </CardContent>

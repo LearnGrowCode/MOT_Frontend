@@ -2,7 +2,9 @@ import { X } from "lucide-react-native";
 import React from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import Modal from "react-native-modal";
+import { useColorScheme } from "nativewind";
 import { Card, CardHeader, CardTitle } from "./card";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface BottomModalProps {
     visible: boolean;
@@ -23,6 +25,8 @@ export default function BottomModal({
     maxHeight = 0.8,
     minHeight = 0.2, // Default to 80% of screen height
 }: BottomModalProps) {
+    const { colorScheme } = useColorScheme();
+
     return (
         <Modal
             isVisible={visible}
@@ -47,18 +51,28 @@ export default function BottomModal({
                 backgroundColor: "transparent",
             }}
         >
-            <View className='items-stretch'>
-                <Card className='w-full rounded-t-2xl bg-card gap-4 border-b-0'>
+            <SafeAreaView edges={["bottom"]} >
+                {/* Decorative Background Elements for Dark Mode */}
+                {colorScheme === "dark" && (
+                    <View 
+                        className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"
+                        pointerEvents="none"
+                    />
+                )}
+                <Card className='w-full rounded-[0px]  rounded-t-[32px] bg-card border-t border-x border-border/40 gap-4 border-b-0 shadow-2xl shadow-black/40'>
                     {(title || showCloseButton) && (
-                        <CardHeader className='flex-row items-center justify-between'>
+                        <CardHeader className='flex-row items-center justify-between  pb-2 border-b border-border/30'>
                             {title && (
-                                <CardTitle className='text-lg font-bold'>
+                                <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
                                     {title}
                                 </CardTitle>
                             )}
                             {showCloseButton && (
-                                <Pressable onPress={onClose} className='p-1'>
-                                    <X size={24} className='text-foreground' strokeWidth={2} />
+                                <Pressable 
+                                    onPress={onClose} 
+                                    className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
+                                >
+                                    <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
                                 </Pressable>
                             )}
                         </CardHeader>
@@ -71,11 +85,12 @@ export default function BottomModal({
                             minHeight:
                                 Dimensions.get("window").height * minHeight,
                         }}
+                        className="pb-2 px-2"
                     >
                         {children}
                     </View>
                 </Card>
-            </View>
+            </SafeAreaView>
         </Modal>
     );
 }

@@ -1,9 +1,11 @@
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { formatCurrency } from "@/utils/utils";
 import React from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { CollectionRecord } from "../../type/interface";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import BottomModal from "../ui/BottomModal";
+import { useColorScheme } from "nativewind";
+import { Trash2, User, Banknote, Bookmark } from "lucide-react-native";
 
 interface DeleteCollectionRecordProps {
     visible: boolean;
@@ -18,6 +20,7 @@ export default function DeleteCollectionRecord({
     onDeleteRecord,
     record,
 }: DeleteCollectionRecordProps) {
+    const { colorScheme } = useColorScheme();
     const { currency } = useUserCurrency();
 
     const handleDelete = () => {
@@ -30,96 +33,85 @@ export default function DeleteCollectionRecord({
     if (!record) return null;
 
     return (
-        <Modal
+        <BottomModal
             visible={visible}
-            animationType='slide'
-            transparent={true}
-            onRequestClose={onClose}
+            onClose={onClose}
+            title='Delete Record'
         >
-            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md bg-card border-border'>
-                    <CardHeader className='flex-row items-center justify-between border-b border-border mb-4'>
-                        <View className='flex-row items-center'>
-                            <Text className='text-destructive text-xl mr-2'>
-                                ⚠️
-                            </Text>
-                            <CardTitle className='text-lg font-semibold text-foreground'>
-                                Delete Collection Record
-                            </CardTitle>
+            <View className='gap-6 py-6'>
+                <Text className='text-lg font-bold text-muted-foreground text-center px-4 leading-6'>
+                    Are you sure you want to delete this collection record?
+                </Text>
+
+                {/* Record Details Card */}
+                <View className='bg-secondary/40 p-6 rounded-[28px] border-2 border-border/40 relative overflow-hidden'>
+                    <View className="flex-row items-center gap-4 mb-5">
+                        <View className="w-14 h-14 rounded-2xl bg-primary/10 items-center justify-center border border-primary/20">
+                            <User size={24} color={colorScheme === "dark" ? "#6B93F2" : "#2251D1"} />
                         </View>
-                        <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-muted-foreground'>
-                                ×
+                        <View>
+                            <Text className='text-[10px] font-black uppercase tracking-[3px] text-primary/80 mb-1'>
+                                Borrower
                             </Text>
-                        </Pressable>
-                    </CardHeader>
-
-                    <CardContent className='gap-4'>
-                        <Text className='text-muted-foreground text-center'>
-                            Are you sure you want to delete this collection
-                            record?
-                        </Text>
-
-                        {/* Record Details */}
-                        <View className='bg-muted p-4 rounded-lg border border-border'>
-                            <View className='flex-row items-center mb-2'>
-                                <Text className='text-muted-foreground text-lg mr-2'>
-                                    👤
-                                </Text>
-                                <Text className='text-lg font-semibold text-foreground'>
-                                    {record.name}
-                                </Text>
-                            </View>
-                            <View className='flex-row items-center justify-between'>
-                                <View>
-                                    <Text className='text-sm text-muted-foreground font-medium'>
-                                        Amount
-                                    </Text>
-                                    <Text className='text-lg font-bold text-foreground'>
-                                        {formatCurrency(
-                                            record.amount,
-                                            currency,
-                                            2
-                                        )}
-                                    </Text>
-                                </View>
-                                <View className='items-end'>
-                                    <Text className='text-sm text-muted-foreground font-medium'>
-                                        Category
-                                    </Text>
-                                    <Text className='text-sm font-semibold text-foreground'>
-                                        {record.category}
-                                    </Text>
-                                </View>
-                            </View>
+                            <Text className='text-xl font-black text-foreground tracking-tight'>
+                                {record.name}
+                            </Text>
                         </View>
-
-                        <Text className='text-sm text-destructive text-center font-medium'>
-                            This action cannot be undone.
-                        </Text>
-                    </CardContent>
-
-                    {/* Action Buttons */}
-                    <View className='flex-row gap-3 p-6 pt-0'>
-                        <Pressable
-                            onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-border rounded-md items-center'
-                        >
-                            <Text className='text-muted-foreground font-medium'>
-                                Cancel
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={handleDelete}
-                            className='flex-1 py-3 px-4 bg-destructive rounded-md items-center'
-                        >
-                            <Text className='text-destructive-foreground font-medium'>
-                                Delete
-                            </Text>
-                        </Pressable>
                     </View>
-                </Card>
+                    
+                    <View className='flex-row items-center justify-between bg-secondary/40 p-5 rounded-2xl border border-border/30'>
+                        <View>
+                            <View className="flex-row items-center gap-1.5 mb-1">
+                                <Banknote size={12} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} />
+                                <Text className='text-[10px] font-black text-muted-foreground uppercase tracking-widest'>
+                                    Amount
+                                </Text>
+                            </View>
+                            <Text className='text-2xl font-black text-foreground tracking-tighter'>
+                                {formatCurrency(record.amount, currency, 2)}
+                            </Text>
+                        </View>
+                        <View className='items-end'>
+                            <View className="flex-row items-center gap-1.5 mb-1">
+                                <Bookmark size={12} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} />
+                                <Text className='text-[10px] font-black text-muted-foreground uppercase tracking-widest'>
+                                    Category
+                                </Text>
+                            </View>
+                            <Text className='text-sm font-black text-foreground uppercase tracking-tight'>
+                                {record.category}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+                <View className="bg-destructive/10 py-3 px-4 rounded-xl border border-destructive/20">
+                    <Text className='text-xs text-destructive text-center font-black uppercase tracking-widest'>
+                        This action cannot be undone
+                    </Text>
+                </View>
             </View>
-        </Modal>
+
+            {/* Action Buttons */}
+            <View className='flex-row gap-4 pt-4'>
+                <Pressable
+                    onPress={onClose}
+                    className='flex-1 py-4 rounded-xl bg-secondary/50 items-center active:bg-secondary'
+                >
+                    <Text className='text-foreground font-bold tracking-tight text-base'>
+                        Cancel
+                    </Text>
+                </Pressable>
+                <Pressable
+                    onPress={handleDelete}
+                    className='flex-1 py-4 rounded-xl bg-destructive items-center active:opacity-90 shadow-lg shadow-destructive/20 flex-row justify-center gap-2'
+                >
+                    <Trash2 size={18} color="white" strokeWidth={2.5} />
+                    <Text className='text-white font-bold tracking-wide text-base'>
+                        Delete
+                    </Text>
+                </Pressable>
+            </View>
+        </BottomModal>
     );
 }

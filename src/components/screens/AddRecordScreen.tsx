@@ -6,11 +6,12 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { usePermissionStore } from "@/store/usePermissionStore";
 import { formatAmountInput, getAmountInWords } from "@/utils/utils";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
-// SafeAreaView import removed
+import { ArrowLeft } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const REMINDER_INTERVALS = [
@@ -41,8 +42,41 @@ interface AddRecordScreenProps {
 
 export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const router = useRouter();
+    const navigation = useNavigation();
+    const { colorScheme } = useColorScheme();
     const { updateContactsGranted, contacts } = usePermissionStore();
     const { currency } = useUserCurrency();
+
+    // Hide tab bar on focus
+    useFocusEffect(
+        useCallback(() => {
+            const parent = navigation.getParent();
+            parent?.setOptions({
+                tabBarStyle: { display: "none" },
+            });
+
+            return () => {
+                parent?.setOptions({
+                    tabBarStyle: {
+                        left: 20,
+                        right: 20,
+                        height: 60,
+                        bottom: 5,
+                        borderRadius: 30,
+                        backgroundColor:
+                            colorScheme === "dark"
+                                ? "rgba(25,25,35,0.95)"
+                                : "rgba(255,255,255,0.95)",
+                        borderTopWidth: 0,
+                        elevation: 10,
+                        shadowColor: "#000",
+                        shadowOpacity: 0.15,
+                        shadowRadius: 12,
+                    },
+                });
+            };
+        }, [navigation, colorScheme])
+    );
 
     useEffect(() => {
         updateContactsGranted();
@@ -190,6 +224,16 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
 
     return (
         <View className='flex-1 bg-background'>
+            {/* Header / Nav */}
+            <View className="flex-row items-center px-4 pt-6 pb-2">
+                <Pressable
+                    onPress={() => router.back()}
+                    className="p-3 bg-secondary/50 rounded-2xl active:bg-secondary border border-border/30 shadow-sm"
+                >
+                    <ArrowLeft size={24} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={2.5} />
+                </Pressable>
+            </View>
+
             <KeyboardAwareScrollView
                 keyboardShouldPersistTaps='handled'
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 160 }}
@@ -280,53 +324,54 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                     )}
                                 />
 
-                                <Controller
-                                    control={control}
-                                    name='amount'
-                                    rules={{
-                                        required: "Amount is required",
-                                        validate: (value) => {
-                                            const numValue = Number(
-                                                value.replace(/,/g, "")
-                                            );
-                                            if (
-                                                isNaN(numValue) ||
-                                                numValue <= 0
-                                            ) {
-                                                return "Amount must be greater than 0";
-                                            }
-                                            if (numValue > 999999999.99) {
-                                                return "Amount must be less than 1,000,000,000";
-                                            }
-                                            return true;
-                                        },
-                                    }}
-                                    render={({
-                                        field: { onChange, value },
-                                    }) => (
-                                        <View>
-                                            <Input
-                                                label={amountLabel}
-                                                placeholder='0.00'
-                                                value={value}
-                                                onChangeText={(val) =>
-                                                    onChange(formatAmount(val))
-                                                }
-                                                keyboardType='numeric'
-                                                error={errors.amount?.message}
-                                                returnKeyType='next'
-                                            />
-                                            {amountValue && (
-                                                <Text className='mt-2 text-xs text-primary font-medium capitalize'>
-                                                    {getAmountInWords(
-                                                        amountValue || "",
-                                                        currency
-                                                    )}
-                                                </Text>
-                                            )}
-                                        </View>
-                                    )}
-                                />
+                         <Controller
+  control={control}
+  name="amount"
+  rules={{
+    required: "Amount is required",
+    validate: (value: string) => {
+      if (!value) return "Amount is required";
+
+      const numValue = Number(value.replace(/,/g, ""));
+
+      if (isNaN(numValue) || numValue <= 0) {
+        return "Amount must be greater than 0";
+      }
+
+      if (numValue > 999999999.99) {
+        return "Amount must be less than 1,000,000,000";
+      }
+
+      return true;
+    },
+  }}
+  render={({ field: { onChange, value } }) => {
+    const amountInWords = () => {
+      if (!value) return "";
+      return getAmountInWords(value, currency);
+    }
+
+    return (
+      <View className='relative mb-4'>
+        <Input
+          label={amountLabel}
+          placeholder="0.00"
+          value={value}
+          onChangeText={(val) => onChange(formatAmount(val))}
+          keyboardType="numeric"
+          error={errors.amount?.message}
+          returnKeyType="next"
+        />
+
+        {amountInWords() ? (
+          <Text className="text-xs text-primary font-medium capitalize absolute -bottom-1 left-2">
+            {amountInWords()}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }}
+/>
 
                                 <View className='mb-1'>
                                     <Text className='mb-1.5 text-sm font-medium text-foreground/70'>
@@ -406,7 +451,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                                 />
 
                                 <View className='mb-6 mt-2'>
-                                    <View className='flex-row items-center justify-between bg-accent/5 dark:bg-accent/10 p-3 rounded-2xl border border-accent/20'>
+                                    <View className='flex-row items-center justify-between bg-accent/5 dark:bg-accent/10 py-3 rounded-2xl border border-accent/20'>
                                         <View>
                                             <Text className='font-bold text-foreground'>Enable Notifications</Text>
                                             <Text className='text-xs text-muted-foreground'>Get reminders for this record</Text>

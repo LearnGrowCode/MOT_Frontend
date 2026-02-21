@@ -25,6 +25,23 @@ import { Link, useFocusEffect, useRouter } from "expo-router";
 
 const DEFAULT_USER_ID = "1";
 
+const FILTER_SORT_OPTIONS = {
+    filter: [
+        { id: "all", label: "All" },
+        { id: "unpaid", label: "Unpaid" },
+        { id: "partial", label: "Partially Paid" },
+        { id: "paid", label: "Paid" },
+    ],
+    sort: [
+        { id: "name_asc", label: "A to Z" },
+        { id: "name_desc", label: "Z to A" },
+        { id: "amount_asc", label: "Low to High" },
+        { id: "amount_desc", label: "High to Low" },
+        { id: "date_asc", label: "Oldest First" },
+        { id: "date_desc", label: "Newest First" },
+    ],
+};
+
 export default function ToCollectScreen() {
     const router = useRouter();
     const { currency } = useUserCurrency();
@@ -281,6 +298,35 @@ export default function ToCollectScreen() {
         }
     });
 
+    const activeFilterOption = FILTER_SORT_OPTIONS.filter.find(
+        (f) =>
+            f.id === filterAndSort.filter ||
+            (f.id === "paid" && filterAndSort.filter === "collected")
+    );
+    const activeFilter =
+        activeFilterOption && activeFilterOption.id !== "all"
+            ? activeFilterOption
+            : null;
+
+    const activeSortOption = FILTER_SORT_OPTIONS.sort.find(
+        (s) =>
+            s.id === filterAndSort.sort ||
+            (filterAndSort.sort === "oldest" && s.id === "date_asc") ||
+            (filterAndSort.sort === "newest" && s.id === "date_desc")
+    );
+    const activeSort =
+        activeSortOption && activeSortOption.id !== "date_desc"
+            ? activeSortOption
+            : null;
+
+    const handleRemoveFilter = () => {
+        handleFilterAndSort({ filter: "all" });
+    };
+
+    const handleRemoveSort = () => {
+        handleFilterAndSort({ sort: "date_desc" });
+    };
+
     const totalRemainingToCollect = formatCurrency(
         totalToCollect ?? 0,
         currency,
@@ -349,6 +395,10 @@ export default function ToCollectScreen() {
                             filteredRecords={visibleRecords.length}
                             onSearch={(q) => setSearchQuery(q)}
                             setShowFilterAndSort={setShowFilterAndSort}
+                            activeFilter={activeFilter}
+                            activeSort={activeSort}
+                            onRemoveFilter={handleRemoveFilter}
+                            onRemoveSort={handleRemoveSort}
                         />
                     </View>
                     <View className='flex flex-row items-center justify-between mb-4'>

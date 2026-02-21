@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Input from "@/components/form/Input";
 import { getAmountInWords, formatAmountInput } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { useColorScheme } from "nativewind";
+import { X, User, Banknote, Calendar, FileText } from "lucide-react-native";
 
 type TransactionType = "income" | "expense";
 
@@ -53,6 +55,7 @@ export default function AddTransactionRecordModal({
     const [form, setForm] = useState<FormState>(INITIAL_FORM);
     const [errors, setErrors] = useState<Partial<Omit<FormState, "type">>>({});
     const { currency } = useUserCurrency();
+    const { colorScheme } = useColorScheme();
 
     const amountInWords = useMemo(() => {
         return getAmountInWords(form.amount, currency);
@@ -112,21 +115,30 @@ export default function AddTransactionRecordModal({
             transparent
             onRequestClose={onClose}
         >
-            <View className='flex-1 bg-black/50 justify-center items-center px-4'>
-                <Card className='w-full max-w-md max-h-[90%]'>
-                    <CardHeader className='flex-row items-center justify-between'>
-                        <CardTitle className='text-lg font-semibold'>
-                            Add Transaction Record
-                        </CardTitle>
-                        <Pressable onPress={onClose} className='p-1'>
-                            <Text className='text-xl font-bold text-gray-500'>
-                                ×
-                            </Text>
-                        </Pressable>
-                    </CardHeader>
+            <View className='flex-1 bg-black/60 justify-center items-center px-4'>
+                <View className="w-full max-w-md relative overflow-hidden">
+                    {/* Decorative Background for Dark Mode */}
+                    {colorScheme === "dark" && (
+                        <View 
+                            className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px]"
+                            pointerEvents="none"
+                        />
+                    )}
+                    <Card className='w-full rounded-[32px] bg-card border border-border/40 shadow-2xl shadow-black/40'>
+                        <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/30'>
+                            <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
+                                New Record
+                            </CardTitle>
+                            <Pressable 
+                                onPress={onClose} 
+                                className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
+                            >
+                                <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
+                            </Pressable>
+                        </CardHeader>
 
                     <ScrollView showsVerticalScrollIndicator>
-                        <CardContent className='gap-4'>
+                        <CardContent className='gap-8 py-8'>
                             <TransactionTypeToggle
                                 type={form.type}
                                 onChange={(value) =>
@@ -135,111 +147,115 @@ export default function AddTransactionRecordModal({
                             />
 
                             <View>
-                                <Text className='mb-1 text-sm text-gray-600'>
-                                    {form.type === "income"
-                                        ? "Received From"
-                                        : "Paid To"}
-                                </Text>
-                                <View className='flex-row items-center'>
-                                    <Input
-                                        placeholder={`Enter ${
-                                            form.type === "income"
-                                                ? "payer"
-                                                : "receiver"
-                                        } name`}
-                                        value={form.payer}
-                                        onChangeText={(value) =>
-                                            handleChange("payer", value)
-                                        }
-                                        className='flex-1'
-                                        error={errors.payer}
-                                    />
-                                    <View className='ml-2 p-2 bg-gray-100 rounded-md'>
-                                        <Text className='text-gray-600'>
-                                            👤
-                                        </Text>
+                                <View className="flex-row items-center gap-2 mb-3 ml-1">
+                                    <View className="w-8 h-8 rounded-xl bg-primary/10 items-center justify-center border border-primary/20">
+                                        <User size={16} color={colorScheme === "dark" ? "#6B93F2" : "#2251D1"} />
                                     </View>
+                                    <Text className='text-xs font-black text-muted-foreground uppercase tracking-[2px]'>
+                                        {form.type === "income"
+                                            ? "Received From"
+                                            : "Paid To"}
+                                    </Text>
                                 </View>
+                                <Input
+                                    placeholder={`Enter name`}
+                                    value={form.payer}
+                                    onChangeText={(value) =>
+                                        handleChange("payer", value)
+                                    }
+                                    className='w-full bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg'
+                                    error={errors.payer}
+                                />
                             </View>
 
                             <View>
-                                <Text className='mb-1 text-sm text-gray-600'>
-                                    Amount
-                                </Text>
-                                <View className='flex-row items-center'>
-                                    <Input
-                                        placeholder='0.00'
-                                        value={form.amount}
-                                        onChangeText={handleChangeAmount}
-                                        keyboardType='numeric'
-                                        className='flex-1'
-                                        error={errors.amount}
-                                    />
-                                </View>
-                                <Text className='mt-1 text-xs text-gray-500'>
-                                    {amountInWords}
-                                </Text>
-                            </View>
-
-                            <View>
-                                <Text className='mb-1 text-sm text-gray-600'>
-                                    Date (MM/DD/YYYY)
-                                </Text>
-                                <View className='flex-row items-center'>
-                                    <Input
-                                        placeholder='MM/DD/YYYY'
-                                        value={form.date}
-                                        onChangeText={(value) =>
-                                            handleChange("date", value)
-                                        }
-                                        className='flex-1'
-                                        error={errors.date}
-                                    />
-                                    <View className='ml-2 p-2 bg-gray-100 rounded-md'>
-                                        <Text className='text-gray-600'>
-                                            📅
-                                        </Text>
+                                <View className="flex-row items-center gap-2 mb-3 ml-1">
+                                    <View className="w-8 h-8 rounded-xl bg-tertiary-500/10 items-center justify-center border border-tertiary-500/20">
+                                        <Banknote size={16} color={colorScheme === "dark" ? "#EBC12A" : "#B58E0D"} />
                                     </View>
+                                    <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                                        Amount
+                                    </Text>
                                 </View>
+                                <Input
+                                    placeholder='0.00'
+                                    value={form.amount}
+                                    onChangeText={handleChangeAmount}
+                                    keyboardType='numeric'
+                                    className='w-full bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg'
+                                    error={errors.amount}
+                                />
+                                {amountInWords && (
+                                    <Text className='mt-3 text-xs font-black text-primary/60 italic ml-2'>
+                                        {amountInWords}
+                                    </Text>
+                                )}
                             </View>
 
                             <View>
-                                <Text className='mb-1 text-sm text-gray-600'>
-                                    Purpose
-                                </Text>
+                                <View className="flex-row items-center gap-2 mb-3 ml-1">
+                                    <View className="w-8 h-8 rounded-xl bg-indigo-500/10 items-center justify-center border border-indigo-500/20">
+                                        <Calendar size={16} color={colorScheme === "dark" ? "#818cf8" : "#4f46e5"} />
+                                    </View>
+                                    <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                                        Date
+                                    </Text>
+                                </View>
+                                <Input
+                                    placeholder='MM/DD/YYYY'
+                                    value={form.date}
+                                    onChangeText={(value) =>
+                                        handleChange("date", value)
+                                    }
+                                    className='w-full bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg'
+                                    error={errors.date}
+                                />
+                            </View>
+
+                            <View>
+                                <View className="flex-row items-center gap-2 mb-3 ml-1">
+                                    <View className="w-8 h-8 rounded-xl bg-secondary items-center justify-center border border-border/50">
+                                        <FileText size={16} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} />
+                                    </View>
+                                    <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                                        Purpose
+                                    </Text>
+                                </View>
                                 <Input
                                     placeholder='Enter purpose'
                                     value={form.purpose}
                                     onChangeText={(value) =>
                                         handleChange("purpose", value)
                                     }
+                                    className='w-full bg-secondary/30 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg'
                                     error={errors.purpose}
                                 />
                             </View>
                         </CardContent>
                     </ScrollView>
 
-                    <View className='flex-row gap-3 p-6 pt-0'>
+                    <View className='flex-row gap-4 p-8 pt-0'>
                         <Pressable
                             onPress={onClose}
-                            className='flex-1 py-3 px-4 border border-gray-300 rounded-md items-center'
+                            className='flex-1 py-5 rounded-[20px] bg-secondary/50 items-center active:bg-secondary'
                         >
-                            <Text className='text-gray-700 font-medium'>
+                            <Text className='text-foreground font-black tracking-tight text-lg'>
                                 Cancel
                             </Text>
                         </Pressable>
                         <Pressable
                             onPress={handleSubmit}
-                            className='flex-1 py-3 px-4 bg-blue-600 rounded-md items-center'
+                            className='flex-2 py-5 bg-primary rounded-[20px] items-center active:opacity-90 shadow-lg shadow-primary/20'
                         >
-                            <Text className='text-white font-medium'>
+                            <Text className='text-primary-foreground font-black tracking-wide text-lg'>
                                 Add Transaction
                             </Text>
                         </Pressable>
                     </View>
                 </Card>
             </View>
-        </Modal>
+        </View>
+    </Modal>
     );
 }
 
@@ -251,8 +267,8 @@ type TransactionTypeToggleProps = {
 function TransactionTypeToggle({ type, onChange }: TransactionTypeToggleProps) {
     return (
         <View>
-            <Text className='mb-2 text-sm text-gray-600'>Transaction Type</Text>
-            <View className='flex-row gap-2'>
+            <Text className='mb-4 text-xs font-black text-muted-foreground uppercase tracking-[3px] ml-2'>Transaction Type</Text>
+            <View className='flex-row gap-3'>
                 <TransactionTypeButton
                     label='Income'
                     value='income'
@@ -284,15 +300,19 @@ function TransactionTypeButton({
     onPress,
 }: TransactionTypeButtonProps) {
     const activeStyles = isActive
-        ? "bg-green-100 border-green-500 text-green-700"
-        : "bg-gray-50 border-gray-300 text-gray-600";
+        ? "bg-primary border-primary shadow-lg shadow-primary/20"
+        : "bg-secondary/30 border-border/50";
+    
+    const textStyles = isActive
+        ? "text-primary-foreground"
+        : "text-muted-foreground";
 
     return (
         <Pressable
             onPress={() => onPress(value)}
-            className={`flex-1 py-3 px-4 rounded-md border ${activeStyles}`}
+            className={`flex-1 py-4 px-4 rounded-2xl border-2 ${activeStyles}`}
         >
-            <Text className='text-center font-medium'>{label}</Text>
+            <Text className={`text-center font-black tracking-tight ${textStyles}`}>{label}</Text>
         </Pressable>
     );
 }

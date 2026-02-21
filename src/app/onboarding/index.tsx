@@ -5,7 +5,15 @@ import { upsertUser, upsertUserPreferences } from "@/db/models/User";
 import { uuidv4 } from "@/utils/uuid";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { CheckCircle2, ChevronDown, User, Wallet } from "lucide-react-native";
+import {
+    BanknoteArrowDownIcon,
+    BanknoteArrowUpIcon,
+    CheckCircle2,
+    ChevronDown,
+    User,
+    Wallet,
+} from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 import React, { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -42,11 +50,12 @@ const ONBOARDING_COMPLETE_KEY = "onboarding_complete";
 const DEFAULT_USER_ID = "1";
 
 export default function OnboardingScreen() {
+    const { colorScheme } = useColorScheme();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCurrencyModal, setShowCurrencyModal] = useState(false);
     const [currentStep, setCurrentStep] = useState<
-        "welcome" | "form" | "complete"
+        "welcome" | "roles" | "form" | "complete"
     >("welcome");
 
     const {
@@ -63,9 +72,6 @@ export default function OnboardingScreen() {
     });
 
     const selectedCurrency = watch("currency");
-    const selectedCurrencyLabel =
-        currencyOptions.find((c) => c.value === selectedCurrency)?.label ||
-        "Select currency";
 
     const handleComplete = useCallback(async () => {
         router.replace("/");
@@ -85,7 +91,6 @@ export default function OnboardingScreen() {
             // Create or update user
             await upsertUser({
                 id: userId,
-                email: `${firstName.toLowerCase()}.${lastName.toLowerCase() || "user"}@mot.local`,
                 firstName: firstName,
                 lastName: lastName || undefined,
                 isActive: 1,
@@ -118,7 +123,16 @@ export default function OnboardingScreen() {
 
     if (currentStep === "welcome") {
         return (
-            <View className='flex-1 bg-background'>
+            <View className='flex-1 bg-background relative overflow-hidden'>
+                {/* Decorative Background Elements for Dark Mode */}
+                {colorScheme === "dark" && (
+                    <>
+                        <View 
+                            className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"
+                            pointerEvents="none"
+                        />
+                    </>
+                )}
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     className='flex-1'
@@ -129,24 +143,24 @@ export default function OnboardingScreen() {
                     >
                         <View className='flex-1 items-center justify-center px-6 py-12'>
                             <View className='items-center mb-10'>
-                                <View className='w-24 h-24 bg-primary rounded-3xl items-center justify-center mb-8 shadow-xl shadow-primary/20 transform rotate-3'>
-                                    <Wallet size={48} color='hsl(var(--primary-foreground))' />
+                                <View className='w-28 h-28 bg-primary rounded-[40px] items-center justify-center mb-10 shadow-2xl shadow-primary/30 transform rotate-6 border-4 border-white/10'>
+                                    <Wallet size={56} color={colorScheme === "dark" ? "#000" : "#fff"} />
                                 </View>
-                                <Text className='text-4xl font-black text-foreground text-center mb-4 tracking-tight'>
+                                <Text className='text-5xl font-black text-foreground text-center mb-6 tracking-tighter'>
                                     Money On Track
                                 </Text>
-                                <Text className='text-lg text-muted-foreground text-center max-w-sm leading-6'>
-                                    Your personal finance companion. Let&apos;s set up your profile to start tracking.
+                                <Text className='text-xl text-muted-foreground text-center max-w-sm leading-8 font-medium'>
+                                    Your professional finance companion. Let&apos;s get you started.
                                 </Text>
                             </View>
 
                             <Pressable
-                                onPress={() => setCurrentStep("form")}
-                                className='w-full bg-primary rounded-2xl py-5 px-6 items-center active:opacity-90 shadow-lg shadow-primary/20'
+                                onPress={() => setCurrentStep("roles")}
+                                className='w-full bg-primary rounded-[24px] py-6 px-10 items-center active:bg-primary/90 shadow-2xl shadow-primary/40'
                                 accessibilityRole='button'
                                 accessibilityLabel='Get started'
                             >
-                                <Text className='text-primary-foreground text-xl font-bold'>
+                                <Text className='text-primary-foreground text-2xl font-black tracking-tight'>
                                     Get Started
                                 </Text>
                             </Pressable>
@@ -157,29 +171,110 @@ export default function OnboardingScreen() {
         );
     }
 
+    if (currentStep === "roles") {
+        return (
+            <View className='flex-1 bg-background relative overflow-hidden'>
+                {/* Decorative Background Elements for Dark Mode */}
+                {colorScheme === "dark" && (
+                    <>
+                        <View 
+                            className="absolute -bottom-32 -left-32 w-80 h-80 bg-tertiary-500/10 rounded-full blur-[100px]"
+                            pointerEvents="none"
+                        />
+                    </>
+                )}
+                <View className='flex-1 px-6 py-12'>
+                    <View className='mb-6'>
+                        <Text className='text-4xl font-black text-foreground mb-2 tracking-tighter'>
+                            The Two Books
+                        </Text>
+                        <View className='h-1 w-16 bg-primary rounded-full mb-2' />
+                        <Text className='text-lg text-muted-foreground leading-7 font-medium'>
+                            We organize your finances into two main books for ultimate clarity.
+                        </Text>
+                    </View>
+
+                    <Card className='mb-8 border-border/40 bg-card/60 backdrop-blur-2xl shadow-xl shadow-black/10'>
+                        <CardContent className='p-2 flex-row items-center gap-6'>
+                            <View className='w-16 h-16 bg-tertiary-500 rounded-3xl items-center justify-center shadow-2xl shadow-tertiary-500/30 border-4 border-white/10'>
+                                <BanknoteArrowUpIcon size={32} color='white' />
+                            </View>
+                            <View className='flex-1'>
+                                <Text className='text-2xl font-black text-foreground mb-2'>Pay Book</Text>
+                                <Text className='text-muted-foreground leading-6 font-medium'>
+                                    For money you owe others and need to return.
+                                </Text>
+                            </View>
+                        </CardContent>
+                    </Card>
+
+                    <Card className='mb-12 border-border/40 bg-card/60 backdrop-blur-2xl shadow-xl shadow-black/10'>
+                        <CardContent className='p-8 flex-row items-center gap-6'>
+                            <View className='w-16 h-16 bg-primary rounded-3xl items-center justify-center shadow-2xl shadow-primary/30 border-4 border-white/10'>
+                                <BanknoteArrowDownIcon size={32} color='white' />
+                            </View>
+                            <View className='flex-1'>
+                                <Text className='text-2xl font-black text-foreground mb-2'>Collect Book</Text>
+                                <Text className='text-muted-foreground leading-6 font-medium'>
+                                    For money lent to others that you need to get back.
+                                </Text>
+                            </View>
+                        </CardContent>
+                    </Card>
+
+                    <View className='mt-auto pt-6'>
+                        <Pressable
+                            onPress={() => setCurrentStep("form")}
+                            className='w-full bg-primary rounded-[24px] py-6 px-10 items-center active:bg-primary/90 shadow-2xl shadow-primary/40'
+                            accessibilityRole='button'
+                            accessibilityLabel='Continue'
+                        >
+                            <Text className='text-primary-foreground text-2xl font-black tracking-tight'>
+                                Got It
+                            </Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </View>
+        );
+    }
+
     if (currentStep === "complete") {
         return (
-            <View className='flex-1 bg-background'>
+            <View className='flex-1 bg-background relative overflow-hidden'>
+                {/* Decorative Background Elements for Dark Mode */}
+                {colorScheme === "dark" && (
+                    <>
+                        <View 
+                            className="absolute -top-32 -right-32 w-80 h-80 bg-green-500/10 rounded-full blur-[100px]"
+                            pointerEvents="none"
+                        />
+                        <View 
+                            className="absolute -bottom-32 -left-32 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"
+                            pointerEvents="none"
+                        />
+                    </>
+                )}
                 <View className='flex-1 items-center justify-center px-6 py-12'>
-                    <View className='items-center mb-8'>
-                        <View className='w-24 h-24 bg-green-500 rounded-3xl items-center justify-center mb-8 shadow-xl shadow-green-500/20 transform -rotate-3'>
-                            <CheckCircle2 size={48} color='white' />
+                    <View className='items-center mb-12'>
+                        <View className='w-32 h-32 bg-green-500 rounded-[40px] items-center justify-center mb-10 shadow-2xl shadow-green-500/40 transform -rotate-6 border-4 border-white/10'>
+                            <CheckCircle2 size={64} color='white' />
                         </View>
-                        <Text className='text-4xl font-black text-foreground text-center mb-4 tracking-tight'>
-                            All Set!
+                        <Text className='text-5xl font-black text-foreground text-center mb-6 tracking-tighter'>
+                            You&apos;re All Set!
                         </Text>
-                        <Text className='text-lg text-muted-foreground text-center max-w-sm leading-6'>
-                            Your profile is ready. You&apos;re now set to take control of your finances.
+                        <Text className='text-xl text-muted-foreground text-center max-w-sm leading-8 font-medium'>
+                            Your profile is ready. It&apos;s time to take control of your finances.
                         </Text>
                     </View>
                     <Pressable
                         onPress={handleComplete}
-                        className='w-full bg-green-500 rounded-2xl py-5 px-6 items-center active:opacity-90 shadow-lg shadow-green-500/20'
+                        className='w-full bg-green-500 rounded-[24px] py-6 px-10 items-center active:bg-green-600 shadow-2xl shadow-green-500/40'
                         accessibilityRole='button'
                         accessibilityLabel='Continue to app'
                     >
-                        <Text className='text-white text-xl font-bold'>
-                            Continue to App
+                        <Text className='text-white text-2xl font-black tracking-tight'>
+                            Start Tracking
                         </Text>
                     </Pressable>
                 </View>
@@ -194,28 +289,47 @@ export default function OnboardingScreen() {
                 contentContainerStyle={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
             >
-                <View className='flex-1 px-6 py-8'>
-                    <View className='mb-8'>
-                        <Text className='text-3xl font-black text-foreground mb-2 tracking-tight'>
+                <View className='flex-1 px-6 py-8 relative overflow-hidden'>
+                    {/* Decorative Background Elements for Dark Mode */}
+                    {colorScheme === "dark" && (
+                        <>
+                            <View 
+                                className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"
+                                pointerEvents="none"
+                            />
+                            <View 
+                                className="absolute top-1/2 -left-32 w-64 h-64 bg-tertiary-500/10 rounded-full blur-[120px]"
+                                pointerEvents="none"
+                            />
+                        </>
+                    )}
+                    
+                    <View className='mb-6'>
+                        <Text className='text-4xl font-black text-foreground mb-3 tracking-tight'>
                             Set Up Your Profile
                         </Text>
-                        <Text className='text-muted-foreground text-lg leading-6'>
+                        <View className='h-1 w-16 bg-primary rounded-full mb-4' />
+                        <Text className='text-muted-foreground text-lg leading-7'>
                             Let&apos;s personalize your experience with a few details.
                         </Text>
                     </View>
-                    <Card className='mb-8 border-border bg-card shadow-sm'>
-                        <CardContent className='p-6'>
-                            <View className='mb-8'>
-                                <View className='flex-row items-center gap-3 mb-6'>
-                                    <View className='p-2 bg-primary/10 rounded-lg'>
-                                        <User size={20} className="text-primary" />
+
+                    <Card className='mb-8 border-border/40 bg-card/60 backdrop-blur-2xl shadow-2xl shadow-black/20 overflow-hidden'>
+                        <CardContent className='px-4'>
+                            <View>
+                                <View className='flex-row items-center gap-4 mb-4'>
+                                    <View className='w-14 h-14 bg-primary/10 rounded-2xl items-center justify-center border border-primary/20'>
+                                        <User size={28} color={colorScheme === "dark" ? "white" : "black"}  />
                                     </View>
-                                    <Text className='text-xl font-bold text-foreground'>
-                                        Personal Information
-                                    </Text>
+                                    <View>
+                                        <Text className='text-2xl font-black text-foreground tracking-tight'>
+                                            Personal Info
+                                        </Text>
+                                        <Text className='text-sm text-muted-foreground font-medium'>How should we call you?</Text>
+                                    </View>
                                 </View>
                                 <View className='mb-4'>
-                                    <Text className='mb-2 text-sm font-bold text-muted-foreground uppercase tracking-wider'>
+                                    <Text className='mb-3 text-xs font-black text-muted-foreground uppercase tracking-[3px] ml-2'>
                                         Full Name
                                     </Text>
                                     <Controller
@@ -236,7 +350,7 @@ export default function OnboardingScreen() {
                                                 placeholder='Enter your full name'
                                                 value={value}
                                                 onChangeText={onChange}
-                                                className='w-full'
+                                                className='w-full bg-background/40 border-2 border-border/50 rounded-2xl h-16 px-6 text-lg'
                                                 error={errors.fullName?.message}
                                                 accessibilityLabel='Full name input'
                                             />
@@ -245,17 +359,20 @@ export default function OnboardingScreen() {
                                 </View>
                             </View>
 
-                            <View className='border-t border-border pt-8'>
-                                <View className='flex-row items-center gap-3 mb-6'>
-                                    <View className='p-2 bg-primary/10 rounded-lg'>
-                                        <Wallet size={20} className="text-primary" />
+                            <View className='border-t border-border/30'>
+                                <View className='flex-row items-center gap-4 mb-4'>
+                                    <View className='w-14 h-14 bg-tertiary-500/10 rounded-2xl items-center justify-center border border-tertiary-500/30'>
+                                        <Wallet size={28} color={colorScheme === "dark" ? "white" : "black"} className="text-tertiary-600 dark:text-tertiary-400" />
                                     </View>
-                                    <Text className='text-xl font-bold text-foreground'>
-                                        Currency Preference
-                                    </Text>
+                                    <View>
+                                        <Text className='text-2xl font-black text-foreground tracking-tight'>
+                                            Money Config
+                                        </Text>
+                                        <Text className='text-sm text-muted-foreground font-medium'>Set your primary currency</Text>
+                                    </View>
                                 </View>
                                 <View className='mb-4'>
-                                    <Text className='mb-2 text-sm font-bold text-muted-foreground uppercase tracking-wider'>
+                                    <Text className='mb-3 text-xs font-black text-muted-foreground uppercase tracking-[3px] ml-2'>
                                         Default Currency
                                     </Text>
                                     <Controller
@@ -272,26 +389,36 @@ export default function OnboardingScreen() {
                                                             true
                                                         )
                                                     }
-                                                    className='w-full flex-row items-center justify-between border border-input rounded-xl px-4 py-4 bg-background active:bg-accent'
+                                                    className='w-full flex-row items-center justify-between border-2 border-primary/30 rounded-2xl px-6 py-5 bg-primary/5 active:bg-primary/20 shadow-sm shadow-primary/10'
                                                     accessibilityRole='button'
                                                     accessibilityLabel='Select currency'
                                                     accessibilityHint='Opens currency selection modal'
                                                 >
-                                                    <Text
-                                                        className={`text-base font-medium ${value
-                                                            ? "text-foreground"
-                                                            : "text-muted-foreground"
-                                                            }`}
-                                                    >
-                                                        {selectedCurrencyLabel}
-                                                    </Text>
-                                                    <ChevronDown
-                                                        size={20}
-                                                        className="text-muted-foreground"
-                                                    />
+                                                    <View className='flex-row items-center gap-4'>
+                                                        <View className="w-10 h-10 bg-primary/10 rounded-full items-center justify-center">
+                                                            <Text className="text-primary font-black text-lg">
+                                                                {value === "INR" ? "₹" : value === "USD" ? "$" : value === "EUR" ? "€" : "¤"}
+                                                            </Text>
+                                                        </View>
+                                                        <View>
+                                                            <Text className='text-lg font-black text-foreground'>
+                                                                {value}
+                                                            </Text>
+                                                            <Text className='text-sm text-muted-foreground font-bold'>
+                                                                {currencyOptions.find((c) => c.value === value)?.label.split(' - ')[1]}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                    <View className="bg-primary/10 p-2 rounded-xl">
+                                                        <ChevronDown
+                                                            size={20}
+                                                            color={colorScheme === "dark" ? "white" : "black"}
+                                                          
+                                                        />
+                                                    </View>
                                                 </Pressable>
                                                 {errors.currency && (
-                                                    <Text className='mt-1 text-xs text-red-500'>
+                                                    <Text className='mt-3 text-xs font-black text-red-500 ml-2'>
                                                         {
                                                             errors.currency
                                                                 .message
@@ -301,6 +428,7 @@ export default function OnboardingScreen() {
                                             </>
                                         )}
                                     />
+
                                 </View>
                             </View>
                         </CardContent>
@@ -309,20 +437,19 @@ export default function OnboardingScreen() {
                     <Pressable
                         onPress={handleSubmit(onSubmit)}
                         disabled={isSubmitting}
-                        className='w-full bg-primary rounded-2xl py-5 px-6 items-center active:opacity-90 disabled:opacity-50 shadow-lg shadow-primary/20'
+                        className='w-full bg-primary rounded-2xl py-6 px-6 items-center active:opacity-90 disabled:opacity-50 shadow-2xl shadow-primary/30 mt-4'
                         accessibilityRole='button'
                         accessibilityLabel='Complete setup'
                         accessibilityState={{ disabled: isSubmitting }}
                     >
                         {isSubmitting ? (
-                            <ActivityIndicator color='hsl(var(--primary-foreground))' />
+                            <ActivityIndicator color={colorScheme === "dark" ? "#1a1a1a" : "#fff"} />
                         ) : (
-                            <Text className='text-primary-foreground text-xl font-bold'>
+                            <Text className='text-primary-foreground text-xl font-black dark:text-white tracking-tight'>
                                 Complete Setup
                             </Text>
                         )}
                     </Pressable>
-
                 </View>
             </KeyboardAwareScrollView>
 
@@ -346,8 +473,8 @@ export default function OnboardingScreen() {
                                 });
                                 setShowCurrencyModal(false);
                             }}
-                            className={`px-6 py-4 border-b border-border active:bg-accent ${selectedCurrency === option.value
-                                ? "bg-accent"
+                            className={`px-6 py-5 border-b border-border/40 active:bg-primary/10 ${selectedCurrency === option.value
+                                ? "bg-primary/5"
                                 : "bg-card"
                                 }`}
                             accessibilityRole='button'
@@ -357,21 +484,30 @@ export default function OnboardingScreen() {
                             }}
                         >
                             <View className='flex-row items-center justify-between'>
-                                <View className='flex-1'>
-                                    <Text
-                                        className={`text-base font-medium ${selectedCurrency === option.value
-                                            ? "text-primary"
-                                            : "text-foreground"
-                                            }`}
-                                    >
-                                        {option.label}
-                                    </Text>
-                                    <Text className='text-sm text-muted-foreground mt-0.5'>
-                                        {option.value}
-                                    </Text>
+                                <View className='flex-row items-center gap-4 flex-1'>
+                                    <View className={`w-12 h-12 rounded-2xl items-center justify-center ${selectedCurrency === option.value ? "bg-primary" : "bg-secondary"}`}>
+                                        <Text className={`font-black text-lg ${selectedCurrency === option.value ? "text-primary-foreground" : "text-foreground"}`}>
+                                            {option.value === "INR" ? "₹" : option.value === "USD" ? "$" : option.value === "EUR" ? "€" : "¤"}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-1">
+                                        <Text
+                                            className={`text-lg font-bold ${selectedCurrency === option.value
+                                                ? "text-primary"
+                                                : "text-foreground"
+                                                }`}
+                                        >
+                                            {option.label.split(' - ')[1]}
+                                        </Text>
+                                        <Text className='text-xs text-muted-foreground font-black tracking-widest uppercase'>
+                                            {option.value}
+                                        </Text>
+                                    </View>
                                 </View>
                                 {selectedCurrency === option.value && (
-                                    <CheckCircle2 size={20} color='#2563eb' />
+                                    <View className="bg-primary/20 p-2 rounded-full">
+                                        <CheckCircle2 size={20} color={colorScheme === "dark" ? "white" : "black"}  />
+                                    </View>
                                 )}
                             </View>
                         </Pressable>

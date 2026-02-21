@@ -37,20 +37,20 @@ export default function CollectionRecordCard({
     const getCardColorClasses = (status: CollectionRecord["status"]) => {
         switch (status) {
             case "unpaid":
-                return "bg-unpaid/10 dark:bg-unpaid/10 border-unpaid/20";
+                return "bg-unpaid-background border-unpaid-border";
             case "collected":
-                return "bg-paid/10 dark:bg-paid/10 border-paid/20";
+                return "bg-collected-background border-collected-border";
             case "partial":
-                return "bg-partial/10 dark:bg-partial/10 border-partial/20";
+                return "bg-partial-background border-partial-border";
             case "overdue":
-                return "bg-overdue/10 dark:bg-overdue/10 border-overdue/20";
+                return "bg-overdue-background border-overdue-border";
             default:
                 return "bg-card border-border";
         }
     };
     return (
         <Card
-            className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)} p-2`}
+            className={`shadow-sm rounded-2xl border ${getCardColorClasses(record.status)}  p-2`}
         >
             <CardContent className='p-2'>
                 <View className='flex-row items-start justify-between '>
@@ -90,7 +90,7 @@ export default function CollectionRecordCard({
                         <View
                             className={`px-3 py-1.5 rounded-full mb-2 ${getStatusColor(record.status)}`}
                         >
-                            <Text className='text-xs font-semibold'>
+                            <Text className='text-xs font-semibold dark:text-white'>
                                 {getStatusText(record.status)}
                             </Text>
                         </View>

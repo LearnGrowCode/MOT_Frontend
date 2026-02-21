@@ -3,7 +3,7 @@ import { getDb, nowTs } from "@/db";
 export interface User {
     id: string;
     username?: string;
-    email: string;
+    email?: string;
     firstName?: string;
     lastName?: string;
     passwordHash?: string; // optional, typically not stored client-side
@@ -49,7 +49,7 @@ export async function upsertUser(user: User): Promise<void> {
             `UPDATE users SET username = ?, email = ?, first_name = ?, last_name = ?, password_hash = ?, is_active = ?, is_staff = ?, is_superuser = ?, last_login = ?, date_joined = ?, remote_id = ?, updated_at = ?, is_dirty = 1 WHERE id = ?;`,
             [
                 user.username ?? null,
-                user.email,
+                user.email ?? null,
                 user.firstName ?? null,
                 user.lastName ?? null,
                 user.passwordHash ?? null,
@@ -70,7 +70,7 @@ export async function upsertUser(user: User): Promise<void> {
             [
                 user.id,
                 user.username ?? null,
-                user.email,
+                user.email ?? null,
                 user.firstName ?? null,
                 user.lastName ?? null,
                 user.passwordHash ?? null,
@@ -167,7 +167,7 @@ function mapUser(r: any): User {
     return {
         id: r.id,
         username: r.username ?? undefined,
-        email: r.email,
+        email: r.email ?? undefined,
         firstName: r.first_name ?? undefined,
         lastName: r.last_name ?? undefined,
         passwordHash: r.password_hash ?? undefined,
