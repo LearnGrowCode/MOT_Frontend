@@ -1,0 +1,432 @@
+import PaymentRecordCard from "@/components/cards/PaymentRecordCard";
+import FloatingActionButton from "@/components/ui/FloatingActionButton";
+import SearchAndFilter from "@/components/ui/SearchAndFilter";
+import { useUserCurrency } from "@/hooks/useUserCurrency";
+import { PaymentRecord } from "@/modules/book.module";
+import { formatCurrency } from "@/utils/utils";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+// SafeAreaView import removed
+
+import DeletePaymentRecordModal from "@/components/screens/pay-book/DeletePaymentRecordModal";
+import FilterAndSort from "@/components/shared/modals/FilterAndSort";
+import PaymentOptionModal from "@/components/screens/pay-book/PaymentOptionModal";
+import PaymentConfirmation from "@/components/screens/pay-book/PaymentConfirmation";
+import Snackbar from "@/components/ui/Snackbar";
+import {
+    addSettlement,
+    softDeleteBookEntry
+} from "@/db/models/Book";
+import { getUser, getUserPreferences, User } from "@/db/models/User";
+import {
+    getPayBookEntries,
+    getTotalPayRemaining,
+} from "@/services/book/book-entry.service";
+import { uuidv4 } from "@/utils/uuid";
+import { Link, useFocusEffect, useRouter } from "expo-router";
+// BanknoteArrowDownIcon removed
+
+const DEFAULT_USER_ID = "1";
+
+const FILTER_SORT_OPTIONS = {
+    filter: [
+        { id: "all", label: "All" },
+        { id: "unpaid", label: "Unpaid" },
+        { id: "partial", label: "Partially Paid" },
+        { id: "paid", label: "Paid" },
+    ],
+    sort: [
+        { id: "name_asc", label: "A to Z" },
+        { id: "name_desc", label: "Z to A" },
+        { id: "amount_asc", label: "Low to High" },
+        { id: "amount_desc", label: "High to Low" },
+        { id: "date_asc", label: "Oldest First" },
+        { id: "date_desc", label: "Newest First" },
+    ],
+};
+
+export default function ToPayScreen() {
+    const router = useRouter();
+    const { currency } = useUserCurrency();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterAndSort, setFilterAndSort] = useState<{
+        filter: string;
+        sort: string;
+    }>({
+        filter: "all",
+        sort: "date_desc",
+    });
+
+    const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
+    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
+    const [showPaymentConfirmation, setShowPaymentConfirmation] =
+        useState(false);
+    const [showFilterAndSort, setShowFilterAndSort] = useState(false);
+    const [showOption, setShowOption] = useState(false);
+    const [snackbarConfig, setSnackbarConfig] = useState<{
+        visible: boolean;
+        message: string;
+    }>({ visible: false, message: "" });
+    const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
+        null
+    );
+
+    // Payment records state (loaded from DB)
+    const [totalToPay, setTotalToPay] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
+    // User data state
+    const [, setUser] = useState<User | null>(null);
+
+    const fetchRecords = useCallback(async () => {
+        const [records, total] = await Promise.all([
+            getPayBookEntries(),
+            getTotalPayRemaining(),
+        ]);
+        return { records, total };
+    }, []);
+
+    const fetchUserData = useCallback(async () => {
+        try {
+            const [userData] = await Promise.all([
+                getUser(DEFAULT_USER_ID),
+                getUserPreferences(DEFAULT_USER_ID),
+            ]);
+
+            if (userData) {
+                setUser(userData);
+            }
+        } catch (error) {
+            console.error("Error fetching user data:", error);
+        }
+    }, []);
+
+
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+            setIsLoading(true);
+            Promise.all([fetchRecords(), fetchUserData()])
+                .then(([{ records, total }]) => {
+                    if (!isActive) return;
+                    setPaymentRecords(records);
+                    setTotalToPay(total);
+                })
+                .finally(() => {
+                    if (isActive) setIsLoading(false);
+                });
+            return () => {
+                isActive = false;
+            };
+        }, [fetchRecords, fetchUserData])
+    );
+
+    const handleMarkPayment = (recordId: string) => {
+        const record = paymentRecords.find((r) => r.id === recordId);
+        if (record) {
+            setSelectedRecord(record);
+            setShowPaymentConfirmation(true);
+        }
+    };
+
+    const handleDeleteRecord = async (recordId: string) => {
+        const recordName = selectedRecord?.name;
+        try {
+            await softDeleteBookEntry(recordId);
+            const { records, total } = await fetchRecords();
+            setPaymentRecords(records);
+            setTotalToPay(total);
+            setSnackbarConfig({
+                visible: true,
+                message: `Deleted record for ${recordName}`,
+            });
+        } catch (error) {
+            console.error("Error deleting record:", error);
+            setPaymentRecords((prev) =>
+                prev.filter((record) => record.id !== recordId)
+            );
+        } finally {
+            setShowDeleteRecord(false);
+            setSelectedRecord(null);
+        }
+    };
+
+    const handleConfirmPayment = async (amount: number, payer: string) => {
+        if (selectedRecord && amount > 0) {
+            try {
+                // Create settlement in database
+                await addSettlement({
+                    id: uuidv4(),
+                    bookEntryId: selectedRecord.id,
+                    amount: amount,
+                    date: Date.now(),
+                    description: `Payment from ${payer}`,
+                });
+
+                const { records, total } = await fetchRecords();
+                setPaymentRecords(records);
+                setTotalToPay(total);
+            } catch (error) {
+                console.error("Error adding settlement:", error);
+                // On error, let the user know (could add an alert here)
+                console.error("Failed to save settlement to DB");
+            }
+        }
+        setShowPaymentConfirmation(false);
+        setSelectedRecord(null);
+    };
+
+    const handleFilterAndSort = (filters: {
+        filter?: string;
+        sort?: string;
+    }) => {
+        if (filters) {
+            if (filters.filter) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    filter: filters.filter!,
+                }));
+            }
+            if (filters.sort) {
+                setFilterAndSort((prev) => ({
+                    ...prev,
+                    sort: filters.sort!,
+                }));
+            }
+        }
+        setShowFilterAndSort(false);
+    };
+
+    const handleEdit = () => {
+        setShowOption(false);
+        if (selectedRecord) {
+            router.push({
+                pathname: "/pay-book/edit-record",
+                params: { id: selectedRecord.id },
+            } as any);
+        }
+        setSelectedRecord(null);
+    };
+    const handleDelete = () => {
+        setShowDeleteRecord(true);
+        setShowOption(false);
+    };
+    const handleOption = (recordId: string) => {
+        setShowOption(true);
+        setSelectedRecord(
+            paymentRecords.find((r) => r.id === recordId) as PaymentRecord
+        );
+    };
+
+    // Derived visible records based on search/filter/sort
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const filtered = paymentRecords.filter((record) => {
+        const matchesQuery =
+            normalizedQuery.length === 0 ||
+            record.name.toLowerCase().includes(normalizedQuery) ||
+            record.category.toLowerCase().includes(normalizedQuery);
+        const matchesStatus =
+            filterAndSort.filter === "all" ||
+            record.status === (filterAndSort.filter as any);
+        return matchesQuery && matchesStatus;
+    });
+
+    const visibleRecords = [...filtered].sort((a, b) => {
+        switch (filterAndSort.sort) {
+            case "name_asc":
+                return a.name.localeCompare(b.name);
+            case "name_desc":
+                return b.name.localeCompare(a.name);
+            case "amount_asc":
+                return a.amount - b.amount;
+            case "amount_desc":
+                return b.amount - a.amount;
+            case "date_asc":
+                return (
+                    new Date(a.borrowedDate).getTime() -
+                    new Date(b.borrowedDate).getTime()
+                );
+            case "date_desc":
+                return (
+                    new Date(b.borrowedDate).getTime() -
+                    new Date(a.borrowedDate).getTime()
+                );
+            default:
+                return 0;
+        }
+    });
+
+    const activeFilterOption = FILTER_SORT_OPTIONS.filter.find(
+        (f) => f.id === filterAndSort.filter
+    );
+    const activeFilter =
+        activeFilterOption && activeFilterOption.id !== "all"
+            ? activeFilterOption
+            : null;
+
+    const activeSortOption = FILTER_SORT_OPTIONS.sort.find(
+        (s) =>
+            s.id === filterAndSort.sort ||
+            (filterAndSort.sort === "oldest" && s.id === "date_asc") ||
+            (filterAndSort.sort === "newest" && s.id === "date_desc")
+    );
+    const activeSort =
+        activeSortOption && activeSortOption.id !== "date_desc"
+            ? activeSortOption
+            : null;
+
+    const handleRemoveFilter = () => {
+        handleFilterAndSort({ filter: "all" });
+    };
+
+    const handleRemoveSort = () => {
+        handleFilterAndSort({ sort: "date_desc" });
+    };
+
+    const totalRemainingToPay = formatCurrency(
+        totalToPay ?? 0,
+        currency,
+        2,
+        ""
+    );
+
+    return (
+        <View className='flex-1 bg-background'>
+            <ScrollView
+                className='flex-1'
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 120 }}
+            >
+                <View className='px-4 pt-2'>
+                    {/* Header Section */}
+                    <View className='mb-6'>
+                        <View className='flex-row items-start justify-between mb-2'>
+                            <View className='flex-1'>
+                                <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600 dark:text-tertiary-400'>
+                                    Payments
+                                </Text>
+                                <Text className='mt-1 text-3xl font-bold text-foreground'>
+                                    Pay Book
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Hero Summary Card */}
+                    <View className='mb-6 min-h-2'>
+                        <View className='rounded-3xl border border-tertiary-200 dark:border-tertiary-900 bg-tertiary-50 dark:bg-tertiary-950/20 py-4 shadow-md shadow-tertiary-500/5 flex flex-row items-center justify-between px-6 flex-wrap'>
+                            <View>
+                                <Text
+                                    className='text-xs font-bold text-tertiary-600 dark:text-tertiary-400 mb-1 uppercase tracking-wider'
+                                    numberOfLines={1}
+                                >
+                                    Total to Pay
+                                </Text>
+                                <Text className='text-3xl font-bold text-tertiary-950 dark:text-tertiary-50'>
+                                    {totalRemainingToPay}
+                                </Text>
+                            </View>
+                            {isLoading && (
+                                <ActivityIndicator size="small" color="hsl(var(--tertiary-500))" />
+                            )}
+                        </View>
+                    </View>
+                </View>
+
+                {/* Payment Records Section */}
+                <View className='px-4 pb-6'>
+                    <View className='mb-4'>
+                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600/70 dark:text-tertiary-400/70 mb-2'>
+                            Records
+                        </Text>
+                        <Text className='text-xl font-bold text-foreground'>
+                            Payment Entries
+                        </Text>
+                    </View>
+
+                    <View className='rounded-2xl border border-border px-4 py-4 mb-4'>
+                        <SearchAndFilter
+                            searchQuery={searchQuery}
+                            totalRecords={paymentRecords.length}
+                            filteredRecords={visibleRecords.length}
+                            onSearch={(q) => setSearchQuery(q)}
+                            setShowFilterAndSort={setShowFilterAndSort}
+                            activeFilter={activeFilter}
+                            activeSort={activeSort}
+                            onRemoveFilter={handleRemoveFilter}
+                            onRemoveSort={handleRemoveSort}
+                        />
+                    </View>
+                    <View className='flex flex-row items-center justify-between mb-4'>
+                        <Text className='mt-1 text-sm font-medium text-muted-foreground'>
+                            {visibleRecords.length} of{" "}
+                            {paymentRecords.length} records
+                        </Text>
+                    </View>
+
+                    {/* Payment Record Cards */}
+                    <View className='flex gap-3 w-full'>
+                        {isLoading ? (
+                            <Text className='text-gray-500'>Loading...</Text>
+                        ) : visibleRecords.length === 0 ? (
+                            <Text className='text-gray-500'>
+                                No payment entries.
+                            </Text>
+                        ) : (
+                            visibleRecords.map((record) => (
+                                <PaymentRecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onMarkPayment={handleMarkPayment}
+                                    onOption={handleOption}
+                                />
+                            ))
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+            {/* Floating Action Button */}
+            <Link href='/pay-book/add-record' asChild>
+                <FloatingActionButton
+                    icon='+'
+                    size='lg'
+                    color='orange'
+                    position='bottom-right'
+                    className='shadow-lg shadow-tertiary-500/20'
+                />
+            </Link>
+
+            <DeletePaymentRecordModal
+                visible={showDeleteRecord}
+                onClose={() => setShowDeleteRecord(false)}
+                onDeleteRecord={handleDeleteRecord}
+                record={selectedRecord}
+            />
+            <PaymentConfirmation
+                visible={showPaymentConfirmation}
+                onClose={() => setShowPaymentConfirmation(false)}
+                onConfirmPayment={handleConfirmPayment}
+                record={selectedRecord}
+            />
+            <FilterAndSort
+                visible={showFilterAndSort}
+                onClose={() => setShowFilterAndSort(false)}
+                onFilterAndSort={handleFilterAndSort}
+                filterAndSort={filterAndSort}
+            />
+            <PaymentOptionModal
+                visible={showOption}
+                onClose={() => setShowOption(false)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                record={selectedRecord}
+            />
+            <Snackbar
+                visible={snackbarConfig.visible}
+                message={snackbarConfig.message}
+                onDismiss={() => setSnackbarConfig({ ...snackbarConfig, visible: false })}
+            />
+        </View>
+    );
+}

@@ -6,7 +6,7 @@ import {
     CollectionRecord,
     Status,
     TransactionRecord,
-} from "@/type/interface";
+} from "@/modules/book.module";
 
 type DbBookEntry = {
     id: string;

@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { BaseBookRecord } from "@/type/interface";
+import { BaseBookRecord } from "@/modules/book.module";
 import { formatCurrency } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 

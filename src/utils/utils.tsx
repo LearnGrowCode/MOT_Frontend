@@ -1,4 +1,4 @@
-import { Status } from "@/type/interface";
+import { Status } from "@/modules/book.module";
 import { DEFAULT_CURRENCY, getLocaleForCurrency } from "./currency-locale";
 
 /**
@@ -399,3 +399,37 @@ export const getStatusText = (status: Status) => {
             return "Unknown";
     }
 };
+
+/**
+ * Filter book entries based on search query and status
+ * Works with both PaymentRecord and CollectionRecord through BaseBookRecord
+ */
+export const filterAndSortBookEntries = (
+    bookEntries: any[],
+    filters: {
+        searchQuery?: string;
+        status?: string;
+    }
+): any[] => {
+    const searchQuery = (filters.searchQuery || "").trim().toLowerCase();
+    const status = filters.status || "all";
+
+    return bookEntries.filter((record) => {
+        const matchesQuery =
+            searchQuery.length === 0 ||
+            record.name.toLowerCase().includes(searchQuery) ||
+            record.category.toLowerCase().includes(searchQuery);
+        const matchesStatus =
+            status === "all" || record.status === (status as any);
+        return matchesQuery && matchesStatus;
+    });
+};
+
+export const REMINDER_INTERVALS = [
+    { label: "1 Day Before", value: "1_day_before" },
+    { label: "2 Days Before", value: "2_days_before" },
+    { label: "3 Days Before", value: "3_days_before" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Monthly", value: "monthly" },
+    { label: "Daily", value: "daily" },
+];

@@ -1,12 +1,13 @@
 import Input from "@/components/form/Input";
-import ContactList from "@/components/modals/ContactList";
+import ContactList from "@/components/shared/modals/ContactList";
 import { CardContent } from "@/components/ui/card";
-import { createBookEntry } from "@/db/models/Book";
+import { createBookEntry, getBookEntry, updateBookEntryWithPrincipal } from "@/db/models/Book";
+import { schedulePaymentReminder } from "@/services/notification-service";
+import { REMINDER_INTERVALS, formatAmountInput, getAmountInWords } from "@/utils/utils";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { usePermissionStore } from "@/store/usePermissionStore";
-import { formatAmountInput, getAmountInWords } from "@/utils/utils";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useFocusEffect, useNavigation, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View } from "react-native";
@@ -14,14 +15,7 @@ import { ArrowLeft } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
-const REMINDER_INTERVALS = [
-    { label: "1 Day Before", value: "1_day_before" },
-    { label: "2 Days Before", value: "2_days_before" },
-    { label: "3 Days Before", value: "3_days_before" },
-    { label: "Weekly", value: "weekly" },
-    { label: "Monthly", value: "monthly" },
-    { label: "Daily", value: "daily" },
-];
+
 
 type BookType = "COLLECT" | "PAY";
 
@@ -42,41 +36,14 @@ interface AddRecordScreenProps {
 
 export default function AddRecordScreen({ type }: AddRecordScreenProps) {
     const router = useRouter();
-    const navigation = useNavigation();
     const { colorScheme } = useColorScheme();
+
+
     const { updateContactsGranted, contacts } = usePermissionStore();
     const { currency } = useUserCurrency();
 
     // Hide tab bar on focus
-    useFocusEffect(
-        useCallback(() => {
-            const parent = navigation.getParent();
-            parent?.setOptions({
-                tabBarStyle: { display: "none" },
-            });
 
-            return () => {
-                parent?.setOptions({
-                    tabBarStyle: {
-                        left: 20,
-                        right: 20,
-                        height: 60,
-                        bottom: 5,
-                        borderRadius: 30,
-                        backgroundColor:
-                            colorScheme === "dark"
-                                ? "rgba(25,25,35,0.95)"
-                                : "rgba(255,255,255,0.95)",
-                        borderTopWidth: 0,
-                        elevation: 10,
-                        shadowColor: "#000",
-                        shadowOpacity: 0.15,
-                        shadowRadius: 12,
-                    },
-                });
-            };
-        }, [navigation, colorScheme])
-    );
 
     useEffect(() => {
         updateContactsGranted();
@@ -186,7 +153,7 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
             const dateTimestamp = selectedDate.getTime();
 
             try {
-                await createBookEntry({
+                const id = await createBookEntry({
                     type: type,
                     userId: "1",
                     counterparty: data.name,
@@ -199,6 +166,21 @@ export default function AddRecordScreen({ type }: AddRecordScreenProps) {
                     reminderInterval: data.reminderInterval,
                     notificationsEnabled: data.notificationsEnabled,
                 });
+
+                // Handle Notification lifecycle
+                if (data.notificationsEnabled) {
+                    const entry = await getBookEntry(id);
+                    if (entry) {
+                        const notificationId = await schedulePaymentReminder(entry);
+                        if (notificationId) {
+                            await updateBookEntryWithPrincipal({
+                                id,
+                                notificationId,
+                                principalAmount: entry.principalAmount,
+                            });
+                        }
+                    }
+                }
 
                 reset({
                     name: "",

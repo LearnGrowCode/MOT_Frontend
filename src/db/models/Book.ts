@@ -107,22 +107,6 @@ export async function createBookEntry(
     ],
   );
 
-  // Schedule notification and store its ID
-  try {
-    const fullEntry = await getBookEntry(id);
-    if (fullEntry) {
-      const notificationId = await schedulePaymentReminder(fullEntry);
-      if (notificationId) {
-        await db.runAsync(
-          `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
-          [notificationId, id],
-        );
-      }
-    }
-  } catch (error) {
-    console.error("Failed to schedule notification:", error);
-  }
-
   return id; // Return the generated UUID
 }
 
@@ -415,6 +399,7 @@ export async function updateBookEntryWithPrincipal(params: {
   dueDate?: number | null;
   reminderInterval?: string | null;
   notificationsEnabled?: boolean;
+  notificationId?: string | null;
 }): Promise<void> {
   const db = await getDb();
   const ts = nowTs();
@@ -467,23 +452,14 @@ export async function updateBookEntryWithPrincipal(params: {
     values.unshift(params.notificationsEnabled ? 1 : 0);
   }
 
+  if (params.notificationId !== undefined) {
+    updates.unshift("notification_id = ?");
+    values.unshift(params.notificationId);
+  }
+
   const sql = `UPDATE book_entries SET ${updates.join(", ")} WHERE id = ?;`;
   values.push(params.id);
   await db.runAsync(sql, values);
-
-  // Re-schedule notification
-  try {
-    const fullEntry = await getBookEntry(params.id);
-    if (fullEntry) {
-      const notificationId = await schedulePaymentReminder(fullEntry);
-      await db.runAsync(
-        `UPDATE book_entries SET notification_id = ? WHERE id = ?;`,
-        [notificationId ?? null, params.id],
-      );
-    }
-  } catch (error) {
-    console.error("Failed to re-schedule notification:", error);
-  }
 }
 
 function mapBookRow(r: any): BookEntry {

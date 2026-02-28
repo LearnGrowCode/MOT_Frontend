@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUserCurrency } from "@/hooks/useUserCurrency";
-import { CollectionRecord } from "@/type/interface";
+import { CollectionRecord } from "@/modules/book.module";
 import {
     formatCurrency,
     formatDate,
