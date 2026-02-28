@@ -125,15 +125,11 @@ export default function EditAccountScreen() {
             const localeToSave = existingPrefs?.locale ?? deviceLocale;
 
             await upsertUserPreferences({
+                ...existingPrefs,
                 id: prefsId,
                 userId: userId,
                 currency: draft.currency,
                 locale: localeToSave,
-                language: existingPrefs?.language || "en",
-                notifications: existingPrefs?.notifications ?? 1,
-                emailNotifications: existingPrefs?.emailNotifications ?? 1,
-                smsNotifications: existingPrefs?.smsNotifications ?? 1,
-                pushNotifications: existingPrefs?.pushNotifications ?? 1,
             });
 
             setProfile(draft);
