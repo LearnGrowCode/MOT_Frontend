@@ -8,14 +8,10 @@ import React, { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 // SafeAreaView import removed
 
-import DeletePaymentRecordModal from "@/components/screens/pay-book/DeletePaymentRecordModal";
-import FilterAndSort from "@/components/shared/modals/FilterAndSort";
-import PaymentOptionModal from "@/components/screens/pay-book/PaymentOptionModal";
 import PaymentConfirmation from "@/components/screens/pay-book/PaymentConfirmation";
 import Snackbar from "@/components/ui/Snackbar";
 import {
-    addSettlement,
-    softDeleteBookEntry
+    addSettlement
 } from "@/db/models/Book";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
@@ -23,7 +19,7 @@ import {
     getTotalPayRemaining,
 } from "@/services/book/book-entry.service";
 import { uuidv4 } from "@/utils/uuid";
-import { Link, useFocusEffect, useRouter } from "expo-router";
+import { Link, useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 // BanknoteArrowDownIcon removed
 
 const DEFAULT_USER_ID = "1";
@@ -49,20 +45,15 @@ export default function ToPayScreen() {
     const router = useRouter();
     const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterAndSort, setFilterAndSort] = useState<{
-        filter: string;
-        sort: string;
-    }>({
-        filter: "all",
-        sort: "date_desc",
-    });
+    const params = useLocalSearchParams<{ filter: string; sort: string }>();
+    const filterAndSort = {
+        filter: params.filter ?? "all",
+        sort: params.sort ?? "date_desc",
+    };
 
     const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
-    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showPaymentConfirmation, setShowPaymentConfirmation] =
         useState(false);
-    const [showFilterAndSort, setShowFilterAndSort] = useState(false);
-    const [showOption, setShowOption] = useState(false);
     const [snackbarConfig, setSnackbarConfig] = useState<{
         visible: boolean;
         message: string;
@@ -130,27 +121,6 @@ export default function ToPayScreen() {
         }
     };
 
-    const handleDeleteRecord = async (recordId: string) => {
-        const recordName = selectedRecord?.name;
-        try {
-            await softDeleteBookEntry(recordId);
-            const { records, total } = await fetchRecords();
-            setPaymentRecords(records);
-            setTotalToPay(total);
-            setSnackbarConfig({
-                visible: true,
-                message: `Deleted record for ${recordName}`,
-            });
-        } catch (error) {
-            console.error("Error deleting record:", error);
-            setPaymentRecords((prev) =>
-                prev.filter((record) => record.id !== recordId)
-            );
-        } finally {
-            setShowDeleteRecord(false);
-            setSelectedRecord(null);
-        }
-    };
 
     const handleConfirmPayment = async (amount: number, payer: string) => {
         if (selectedRecord && amount > 0) {
@@ -177,46 +147,26 @@ export default function ToPayScreen() {
         setSelectedRecord(null);
     };
 
-    const handleFilterAndSort = (filters: {
-        filter?: string;
-        sort?: string;
-    }) => {
-        if (filters) {
-            if (filters.filter) {
-                setFilterAndSort((prev) => ({
-                    ...prev,
-                    filter: filters.filter!,
-                }));
-            }
-            if (filters.sort) {
-                setFilterAndSort((prev) => ({
-                    ...prev,
-                    sort: filters.sort!,
-                }));
-            }
-        }
-        setShowFilterAndSort(false);
+    const handleFilterAndSort = () => {
+        router.push({
+            pathname: "/pay-filter",
+            params: filterAndSort,
+        } as any);
     };
 
-    const handleEdit = () => {
-        setShowOption(false);
-        if (selectedRecord) {
-            router.push({
-                pathname: "/pay-book/edit-record",
-                params: { id: selectedRecord.id },
-            } as any);
-        }
-        setSelectedRecord(null);
+    const handleRemoveFilter = () => {
+        router.setParams({ filter: "all" } as any);
     };
-    const handleDelete = () => {
-        setShowDeleteRecord(true);
-        setShowOption(false);
+
+    const handleRemoveSort = () => {
+        router.setParams({ sort: "date_desc" } as any);
     };
+
     const handleOption = (recordId: string) => {
-        setShowOption(true);
-        setSelectedRecord(
-            paymentRecords.find((r) => r.id === recordId) as PaymentRecord
-        );
+        router.push({
+            pathname: "/pay-options",
+            params: { id: recordId },
+        } as any);
     };
 
     // Derived visible records based on search/filter/sort
@@ -276,13 +226,6 @@ export default function ToPayScreen() {
             ? activeSortOption
             : null;
 
-    const handleRemoveFilter = () => {
-        handleFilterAndSort({ filter: "all" });
-    };
-
-    const handleRemoveSort = () => {
-        handleFilterAndSort({ sort: "date_desc" });
-    };
 
     const totalRemainingToPay = formatCurrency(
         totalToPay ?? 0,
@@ -351,7 +294,7 @@ export default function ToPayScreen() {
                             totalRecords={paymentRecords.length}
                             filteredRecords={visibleRecords.length}
                             onSearch={(q) => setSearchQuery(q)}
-                            setShowFilterAndSort={setShowFilterAndSort}
+                            setShowFilterAndSort={handleFilterAndSort}
                             activeFilter={activeFilter}
                             activeSort={activeSort}
                             onRemoveFilter={handleRemoveFilter}
@@ -387,7 +330,7 @@ export default function ToPayScreen() {
                 </View>
             </ScrollView>
             {/* Floating Action Button */}
-            <Link href='/pay-book/add-record' asChild>
+            <Link href='/pay-add' asChild>
                 <FloatingActionButton
                     icon='+'
                     size='lg'
@@ -397,29 +340,10 @@ export default function ToPayScreen() {
                 />
             </Link>
 
-            <DeletePaymentRecordModal
-                visible={showDeleteRecord}
-                onClose={() => setShowDeleteRecord(false)}
-                onDeleteRecord={handleDeleteRecord}
-                record={selectedRecord}
-            />
             <PaymentConfirmation
                 visible={showPaymentConfirmation}
                 onClose={() => setShowPaymentConfirmation(false)}
                 onConfirmPayment={handleConfirmPayment}
-                record={selectedRecord}
-            />
-            <FilterAndSort
-                visible={showFilterAndSort}
-                onClose={() => setShowFilterAndSort(false)}
-                onFilterAndSort={handleFilterAndSort}
-                filterAndSort={filterAndSort}
-            />
-            <PaymentOptionModal
-                visible={showOption}
-                onClose={() => setShowOption(false)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
                 record={selectedRecord}
             />
             <Snackbar

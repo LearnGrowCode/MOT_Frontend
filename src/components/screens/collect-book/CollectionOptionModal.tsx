@@ -4,12 +4,13 @@ import RecordOptionModal from "@/components/shared/modals/RecordOptionModal";
 import SendReminderCard from "@/components/shared/modals/components/SendReminderCard";
 
 interface CollectionOptionModalProps {
-    visible: boolean;
+    visible?: boolean;
     onClose: () => void;
     onEdit: () => void;
     onDelete: () => void;
     onSendReminder: () => void;
     record: CollectionRecord | null;
+    isScreen?: boolean;
 }
 
 export default function CollectionOptionModal({
@@ -19,10 +20,11 @@ export default function CollectionOptionModal({
     onDelete,
     onSendReminder,
     record,
+    isScreen = false,
 }: CollectionOptionModalProps) {
     const handleSendReminder = () => {
         onSendReminder();
-        onClose();
+        if (!isScreen) onClose();
     };
 
     return (
@@ -33,6 +35,7 @@ export default function CollectionOptionModal({
             onDelete={onDelete}
             record={record}
             extraActions={<SendReminderCard onPress={handleSendReminder} />}
+            isScreen={isScreen}
         />
     );
 }

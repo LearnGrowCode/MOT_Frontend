@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
     KeyboardAvoidingView,
     Platform,
-    Pressable,
+    TouchableOpacity,
     Text,
     TextInput,
     View,
@@ -18,7 +18,8 @@ import BottomModal from "@/components/ui/BottomModal";
 type ReminderTone = "gentle" | "appreciative" | "direct";
 
 interface ReminderModalProps {
-    visible: boolean;
+    visible?: boolean;
+    isScreen?: boolean;
     onClose: () => void;
     record: CollectionRecord | null;
     onSendReminder: (message: string) => void | Promise<void>;
@@ -78,6 +79,7 @@ const buildMessage = (
 
 export default function ReminderModal({
     visible,
+    isScreen = false,
     onClose,
     record,
     onSendReminder,
@@ -88,11 +90,11 @@ export default function ReminderModal({
     const { colorScheme } = useColorScheme();
 
     useEffect(() => {
-        if (!visible) {
+        if (!visible && !isScreen) {
             setCustomMessage(null);
             setSelectedTone("appreciative");
         }
-    }, [visible]);
+    }, [visible, isScreen]);
 
     const handleToneChange = (tone: ReminderTone) => {
         setSelectedTone(tone);
@@ -109,120 +111,132 @@ export default function ReminderModal({
         0
     );
 
+    const content = (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            className={`flex-1 ${isScreen ? "px-6 pb-12 pt-12" : "h-full"}`}
+        >
+            <View className='flex-1 gap-8'>
+                <View className='bg-secondary/50 dark:bg-secondary border border-primary/20 rounded-[28px] p-6 relative overflow-hidden'>
+                    {colorScheme === "dark" && (
+                        <View 
+                            className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-[40px]"
+                            pointerEvents="none"
+                        />
+                    )}
+                    <View className="flex-row items-center gap-2 mb-2">
+                        <View className="w-6 h-6 rounded-lg bg-primary/20 items-center justify-center">
+                            <Icon as={Banknote} size={12} className="text-primary" />
+                        </View>
+                        <Text className='text-[10px] font-black uppercase tracking-[3px] text-primary/80'>
+                            Outstanding with {record.name}
+                        </Text>
+                    </View>
+                    <Text className='text-4xl font-black text-foreground tracking-tighter'>
+                        {amountSummary}
+                    </Text>
+                </View>
+
+                <View>
+                    <View className="flex-row items-center gap-2 mb-3 ml-2">
+                        <Icon as={MessageSquare} size={16} className="text-muted-foreground" />
+                        <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                            Message
+                        </Text>
+                    </View>
+                    <TextInput
+                        multiline
+                        value={displayMessage}
+                        onChangeText={setCustomMessage}
+                        className='border-2 border-border/50 rounded-3xl p-6 text-lg text-foreground bg-secondary/30 font-medium'
+                        placeholder='Type a reminder...'
+                        placeholderTextColor='#666'
+                        textAlignVertical='top'
+                        numberOfLines={4}
+                    />
+                    <Text className='text-xs font-bold text-muted-foreground/60 mt-3 ml-2 italic'>
+                        Customize the note before sharing.
+                    </Text>
+                </View>
+
+                <View>
+                    <View className="flex-row items-center gap-2 mb-4 ml-2">
+                        <Icon as={Sparkles} size={16} className="text-muted-foreground" />
+                        <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
+                            Tone Presets
+                        </Text>
+                    </View>
+                    <View className='flex-row gap-3'>
+                        {(Object.keys(toneMeta) as ReminderTone[]).map(
+                            (tone) => {
+                                const isActive = selectedTone === tone;
+                                return (
+                                    <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        key={tone}
+                                        onPress={() => handleToneChange(tone)}
+                                        className={`flex-1 p-4 rounded-2xl border-2 ${isActive
+                                            ? "bg-primary border-primary shadow-lg shadow-primary/20"
+                                            : "bg-secondary/50 border-border/50"
+                                            }`}
+                                    >
+                                        <View className="items-center gap-2">
+                                            <Text className='text-xl'>{toneMeta[tone].emoji}</Text>
+                                            <Text
+                                                className={`text-[10px] font-black uppercase tracking-tighter ${isActive
+                                                    ? "text-primary-foreground"
+                                                    : "text-muted-foreground"
+                                                    }`}
+                                            >
+                                                {toneMeta[tone].label.split(' ')[0]}
+                                            </Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            }
+                        )}
+                    </View>
+                </View>
+
+                <View className='mt-auto gap-4'>
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => onSendReminder(displayMessage.trim())}
+                        disabled={!displayMessage.trim()}
+                        className={`w-full h-16 rounded-2xl flex-row items-center justify-center gap-3 ${!displayMessage.trim() ? "bg-muted/50" : "bg-primary shadow-xl shadow-primary/30"}`}
+                    >
+                        <Icon as={Send} size={20} color="#ffffff" />
+                        <Text className={`text-lg font-black tracking-tight text-white`}>
+                            Share Reminder
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        activeOpacity={0.6}
+                        onPress={() => handleToneChange("appreciative")}
+                        className='items-center py-2'
+                    >
+                        <Text className='text-xs font-black text-primary uppercase tracking-[2px]'>
+                            Reset to default
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </KeyboardAvoidingView>
+
+    );
+
+    if (isScreen) {
+        return content;
+    }
+
     return (
         <BottomModal
-            visible={visible}
+            visible={!!visible}
             onClose={onClose}
             title='Send Reminder'
             maxHeight={0.8}
         >
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-                className='h-full'
-            >
-                <View className='flex-1 gap-8'>
-                    <View className='bg-secondary/50 dark:bg-secondary border border-primary/20 rounded-[28px] p-6 relative overflow-hidden'>
-                        {colorScheme === "dark" && (
-                            <View 
-                                className="absolute -top-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-[40px]"
-                                pointerEvents="none"
-                            />
-                        )}
-                        <View className="flex-row items-center gap-2 mb-2">
-                            <View className="w-6 h-6 rounded-lg bg-primary/20 items-center justify-center">
-                                <Icon as={Banknote} size={12} className="text-primary" />
-                            </View>
-                            <Text className='text-[10px] font-black uppercase tracking-[3px] text-primary/80'>
-                                Outstanding with {record.name}
-                            </Text>
-                        </View>
-                        <Text className='text-4xl font-black text-foreground tracking-tighter'>
-                            {amountSummary}
-                        </Text>
-                    </View>
-
-                    <View>
-                        <View className="flex-row items-center gap-2 mb-3 ml-2">
-                            <Icon as={MessageSquare} size={16} className="text-muted-foreground" />
-                            <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
-                                Message
-                            </Text>
-                        </View>
-                        <TextInput
-                            multiline
-                            value={displayMessage}
-                            onChangeText={setCustomMessage}
-                            className='border-2 border-border/50 rounded-3xl p-6 text-lg text-foreground bg-secondary/30 font-medium'
-                            placeholder='Type a reminder...'
-                            placeholderTextColor='#666'
-                            textAlignVertical='top'
-                            numberOfLines={4}
-                        />
-                        <Text className='text-xs font-bold text-muted-foreground/60 mt-3 ml-2 italic'>
-                            Customize the note before sharing.
-                        </Text>
-                    </View>
-
-                    <View>
-                        <View className="flex-row items-center gap-2 mb-4 ml-2">
-                            <Icon as={Sparkles} size={16} className="text-muted-foreground" />
-                            <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px]'>
-                                Tone Presets
-                            </Text>
-                        </View>
-                        <View className='flex-row gap-3'>
-                            {(Object.keys(toneMeta) as ReminderTone[]).map(
-                                (tone) => {
-                                    const isActive = selectedTone === tone;
-                                    return (
-                                        <Pressable
-                                            key={tone}
-                                            onPress={() => handleToneChange(tone)}
-                                            className={`flex-1 p-4 rounded-2xl border-2 ${isActive
-                                                ? "bg-primary border-primary shadow-lg shadow-primary/20"
-                                                : "bg-secondary/50 border-border/50"
-                                                }`}
-                                        >
-                                            <View className="items-center gap-2">
-                                                <Text className='text-xl'>{toneMeta[tone].emoji}</Text>
-                                                <Text
-                                                    className={`text-[10px] font-black uppercase tracking-tighter ${isActive
-                                                        ? "text-primary-foreground"
-                                                        : "text-muted-foreground"
-                                                        }`}
-                                                >
-                                                    {toneMeta[tone].label.split(' ')[0]}
-                                                </Text>
-                                            </View>
-                                        </Pressable>
-                                    );
-                                }
-                            )}
-                        </View>
-                    </View>
-
-                    <View className='mt-auto gap-4'>
-                        <Pressable
-                            onPress={() => onSendReminder(displayMessage.trim())}
-                            disabled={!displayMessage.trim()}
-                            className={`w-full h-16 rounded-2xl flex-row items-center justify-center gap-3 ${!displayMessage.trim() ? "bg-muted/50" : "bg-primary shadow-xl shadow-primary/30"}`}
-                        >
-                            <Icon as={Send} size={20} color="#ffffff" />
-                            <Text className={`text-lg font-black tracking-tight text-white`}>
-                                Share Reminder
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={() => handleToneChange("appreciative")}
-                            className='items-center py-2 active:opacity-60'
-                        >
-                            <Text className='text-xs font-black text-primary uppercase tracking-[2px]'>
-                                Reset to default
-                            </Text>
-                        </Pressable>
-                    </View>
-                </View>
-            </KeyboardAvoidingView>
+            {content}
         </BottomModal>
     );
 }

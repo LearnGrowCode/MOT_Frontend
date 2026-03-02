@@ -1,4 +1,9 @@
-import { getSettlements } from "@/db/models/Book";
+import {
+    deleteSettlement,
+    getSettlements,
+    softDeleteBookEntry,
+    updateBookEntryWithPrincipal,
+} from "@/db/models/Book";
 import { getDb } from "@/db";
 import {
     RecordType,
@@ -121,6 +126,17 @@ export async function getTotalPayRemaining(): Promise<number> {
     return row?.total ?? 0;
 }
 
+export async function getPayRecordById(id: string): Promise<PaymentRecord | null> {
+    const db = await getDb();
+    const row = await db.getFirstAsync<DbBookEntry>(
+        `SELECT * FROM book_entries WHERE id = ? AND UPPER(type) = UPPER(?) AND (deleted_at IS NULL OR deleted_at = 0);`,
+        [id, RecordType.PAY]
+    );
+
+    if (!row) return null;
+    return mapDbToPaymentRecord(row);
+}
+
 export async function getCollectBookEntries(): Promise<CollectionRecord[]> {
     const db = await getDb();
     const rows = await db.getAllAsync<DbBookEntry>(
@@ -139,4 +155,59 @@ export async function getTotalCollectRemaining(): Promise<number> {
     );
 
     return row?.total ?? 0;
+}
+
+export async function getCollectionRecordById(id: string): Promise<CollectionRecord | null> {
+    const db = await getDb();
+    const row = await db.getFirstAsync<DbBookEntry>(
+        `SELECT * FROM book_entries WHERE id = ? AND UPPER(type) = UPPER(?) AND (deleted_at IS NULL OR deleted_at = 0);`,
+        [id, RecordType.COLLECT]
+    );
+
+    if (!row) return null;
+    return mapDbToCollectionRecord(row);
+}
+
+export async function deletePayRecord(id: string): Promise<void> {
+    return softDeleteBookEntry(id);
+}
+
+export async function deleteCollectionRecord(id: string): Promise<void> {
+    return softDeleteBookEntry(id);
+}
+
+export async function updatePayRecord(
+    record: PaymentRecord,
+    options?: { deleteSettlementIds?: string[] }
+): Promise<void> {
+    if (options?.deleteSettlementIds?.length) {
+        for (const id of options.deleteSettlementIds) {
+            await deleteSettlement(id);
+        }
+    }
+
+    await updateBookEntryWithPrincipal({
+        id: record.id,
+        principalAmount: record.amount,
+        counterparty: record.name,
+        description: record.purpose,
+    });
+}
+
+export async function updateCollectionRecord(
+    record: CollectionRecord,
+    options?: { deleteSettlementIds?: string[] }
+): Promise<void> {
+    if (options?.deleteSettlementIds?.length) {
+        for (const id of options.deleteSettlementIds) {
+            await deleteSettlement(id);
+        }
+    }
+
+    await updateBookEntryWithPrincipal({
+        id: record.id,
+        principalAmount: record.amount,
+        counterparty: record.name,
+        description: record.purpose,
+    });
 }

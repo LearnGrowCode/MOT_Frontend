@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Modal, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { useColorScheme } from "nativewind";
 import { X, User, Banknote, FileText, AlertTriangle, History } from "lucide-react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Input from "@/components/form/Input";
-import { PaymentRecord } from "@/modules/book.module";
+import { PaymentRecord, TransactionRecord } from "@/modules/book.module";
 import { formatAmountInput, formatCurrency, formatDate } from "@/utils/utils";
 
 interface EditPaymentRecordModalProps {
-    visible: boolean;
+    visible?: boolean;
     onClose: () => void;
     onSaveRecord: (
         record: PaymentRecord,
         options?: { deleteSettlementIds?: string[] }
     ) => void;
     record: PaymentRecord | null;
+    isScreen?: boolean;
 }
 
 export default function EditPaymentRecordModal({
@@ -22,6 +23,7 @@ export default function EditPaymentRecordModal({
     onClose,
     onSaveRecord,
     record,
+    isScreen = false,
 }: EditPaymentRecordModalProps) {
     const [formData, setFormData] = useState({
         name: "",
@@ -67,7 +69,6 @@ export default function EditPaymentRecordModal({
         if (!validateForm() || !record) return;
 
         const newAmount = parseFloat(formData.amount) || 0;
-        // Keep total paid constant: newRemaining = oldRemaining + (newAmount - oldAmount)
         const newRemaining = Math.max(
             0,
             record.remaining + (newAmount - record.amount)
@@ -88,7 +89,6 @@ export default function EditPaymentRecordModal({
                 ? { deleteSettlementIds }
                 : undefined
         );
-        onClose();
     };
 
     const formatAmount = (value: string) => {
@@ -97,36 +97,30 @@ export default function EditPaymentRecordModal({
 
     if (!record) return null;
 
-    return (
-        <Modal
-            visible={visible}
-            animationType='slide'
-            transparent={true}
-            onRequestClose={onClose}
-        >
-            <View className='flex-1 bg-black/60 justify-center items-center px-4'>
-                <View className="w-full max-w-md relative overflow-hidden">
-                    {/* Decorative Background for Dark Mode */}
-                    {colorScheme === "dark" && (
-                        <View 
-                            className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px]"
-                            pointerEvents="none"
-                        />
-                    )}
-                    <Card className='w-full rounded-[32px] bg-card border border-border/40 shadow-2xl shadow-black/40'>
-                        <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/30'>
-                            <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
-                                Edit Record
-                            </CardTitle>
-                            <Pressable 
-                                onPress={onClose} 
-                                className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
-                            >
-                                <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
-                            </Pressable>
-                        </CardHeader>
+    const content = (
+        <View className="flex-1 bg-background">
+            <View className="flex-1 max-w-none pt-12 relative overflow-hidden">
+                {/* Decorative Background for Dark Mode */}
+                {colorScheme === "dark" && (
+                    <View
+                        className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px]"
+                        pointerEvents="none"
+                    />
+                )}
+                <Card className="flex-1 border-0 shadow-none rounded-none bg-card">
+                    <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/30'>
+                        <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
+                            Edit Record
+                        </CardTitle>
+                        <Pressable
+                            onPress={onClose}
+                            className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
+                        >
+                            <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
+                        </Pressable>
+                    </CardHeader>
 
-                    <ScrollView showsVerticalScrollIndicator={true}>
+                    <ScrollView showsVerticalScrollIndicator={true} className="flex-1">
                         <CardContent className='gap-8 py-8'>
                             {/* Payer Name */}
                             <View>
@@ -150,14 +144,14 @@ export default function EditPaymentRecordModal({
                                 />
                             </View>
 
-                            {/* Amount to Collect */}
+                            {/* Amount to Pay */}
                             <View>
                                 <View className="flex-row items-center gap-2 mb-3 ml-1">
                                     <View className="w-8 h-8 rounded-xl bg-tertiary-500/10 items-center justify-center border border-tertiary-500/20">
                                         <Banknote size={16} color={colorScheme === "dark" ? "#EBC12A" : "#B58E0D"} />
                                     </View>
                                     <Text className='text-xs font-black text-muted-foreground uppercase tracking-[3px] ml-1'>
-                                        Amount to Collect
+                                        Amount to Pay
                                     </Text>
                                 </View>
                                 <Input
@@ -214,7 +208,7 @@ export default function EditPaymentRecordModal({
                                     </View>
                                 </View>
                                 {record.trx_history?.length ? (
-                                    record.trx_history.map((item) => {
+                                    record.trx_history.map((item: TransactionRecord) => {
                                         const isMarked =
                                             pendingSettlementDeletes.has(
                                                 item.id
@@ -244,20 +238,19 @@ export default function EditPaymentRecordModal({
                                                         }
                                                     )
                                                 }
-                                                className={`flex-row items-center justify-between p-4 rounded-2xl border ${
-                                                    isMarked
+                                                className={`flex-row items-center justify-between p-4 rounded-2xl border ${isMarked
                                                         ? "border-destructive/40 bg-destructive/10 shadow-sm"
                                                         : "border-border/30 bg-secondary/30"
-                                                }`}
+                                                    }`}
                                             >
                                                 <View className="flex-row items-center gap-4">
                                                     <View className={`w-10 h-10 rounded-xl items-center justify-center ${isMarked ? "bg-destructive/20" : "bg-primary/10"}`}>
-                                                        <History 
-                                                            size={18} 
-                                                            color={isMarked 
+                                                        <History
+                                                            size={18}
+                                                            color={isMarked
                                                                 ? (colorScheme === "dark" ? "#F23F3F" : "#BD1414")
                                                                 : (colorScheme === "dark" ? "#6B93F2" : "#2251D1")
-                                                            } 
+                                                            }
                                                         />
                                                     </View>
                                                     <View>
@@ -275,11 +268,10 @@ export default function EditPaymentRecordModal({
                                                 </View>
                                                 <View className={`px-3 py-1 rounded-full ${isMarked ? "bg-destructive/10" : "bg-muted"}`}>
                                                     <Text
-                                                        className={`text-[10px] font-black uppercase tracking-tighter ${
-                                                            isMarked
+                                                        className={`text-[10px] font-black uppercase tracking-tighter ${isMarked
                                                                 ? "text-destructive"
                                                                 : "text-muted-foreground"
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {isMarked
                                                             ? "Will delete"
@@ -311,7 +303,7 @@ export default function EditPaymentRecordModal({
                     </ScrollView>
 
                     {/* Action Buttons */}
-                    <View className='flex-row gap-4 p-8 pt-0'>
+                    <View className="flex-row gap-4 p-8 pt-0 pb-12">
                         <Pressable
                             onPress={onClose}
                             className='flex-1 py-5 rounded-[20px] bg-secondary/50 items-center active:bg-secondary'
@@ -332,6 +324,7 @@ export default function EditPaymentRecordModal({
                 </Card>
             </View>
         </View>
-    </Modal>
     );
+
+    return content;
 }

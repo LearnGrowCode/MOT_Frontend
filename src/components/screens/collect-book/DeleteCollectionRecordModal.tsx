@@ -1,14 +1,15 @@
 import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { formatCurrency } from "@/utils/utils";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { TouchableOpacity, Text, View } from "react-native";
 import { CollectionRecord } from "@/modules/book.module";
 import BottomModal from "@/components/ui/BottomModal";
 import { useColorScheme } from "nativewind";
 import { Trash2, User, Banknote, Bookmark } from "lucide-react-native";
 
 interface DeleteCollectionRecordModalProps {
-    visible: boolean;
+    visible?: boolean;
+    isScreen?: boolean;
     onClose: () => void;
     onDeleteRecord: (recordId: string) => void;
     record: CollectionRecord | null;
@@ -16,6 +17,7 @@ interface DeleteCollectionRecordModalProps {
 
 export default function DeleteCollectionRecordModal({
     visible,
+    isScreen = false,
     onClose,
     onDeleteRecord,
     record,
@@ -32,12 +34,8 @@ export default function DeleteCollectionRecordModal({
 
     if (!record) return null;
 
-    return (
-        <BottomModal
-            visible={visible}
-            onClose={onClose}
-            title='Delete Record'
-        >
+    const content = (
+        <View className={`${isScreen ? "flex-1 px-6 pt-12" : ""}`}>
             <View className='gap-6 py-6'>
                 <Text className='text-lg font-bold text-muted-foreground text-center px-4 leading-6'>
                     Are you sure you want to delete this collection record?
@@ -94,24 +92,40 @@ export default function DeleteCollectionRecordModal({
 
             {/* Action Buttons */}
             <View className='flex-row gap-4 pt-4'>
-                <Pressable
+                <TouchableOpacity
+                    activeOpacity={0.7}
                     onPress={onClose}
-                    className='flex-1 py-4 rounded-xl bg-secondary/50 items-center active:bg-secondary'
+                    className='flex-1 py-4 rounded-xl bg-secondary/50 items-center'
                 >
                     <Text className='text-foreground font-bold tracking-tight text-base'>
                         Cancel
                     </Text>
-                </Pressable>
-                <Pressable
+                </TouchableOpacity>
+                <TouchableOpacity
+                    activeOpacity={0.8}
                     onPress={handleDelete}
-                    className='flex-1 py-4 rounded-xl bg-destructive items-center active:opacity-90 shadow-lg shadow-destructive/20 flex-row justify-center gap-2'
+                    className='flex-1 py-4 rounded-xl bg-destructive items-center shadow-lg shadow-destructive/20 flex-row justify-center gap-2'
                 >
                     <Trash2 size={18} color="white" strokeWidth={2.5} />
                     <Text className='text-white font-bold tracking-wide text-base'>
                         Delete
                     </Text>
-                </Pressable>
+                </TouchableOpacity>
             </View>
+        </View>
+    );
+
+    if (isScreen) {
+        return content;
+    }
+
+    return (
+        <BottomModal
+            visible={!!visible}
+            onClose={onClose}
+            title='Delete Record'
+        >
+            {content}
         </BottomModal>
     );
 }

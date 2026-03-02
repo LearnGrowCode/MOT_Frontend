@@ -12,16 +12,57 @@ export default function CollectBookLayout() {
                 name='add-record'
                 options={{
                     title: "Add Record",
-                    animation: "slide_from_bottom",
-                    presentation: "modal",
+                    presentation: "formSheet",
+                    sheetAllowedDetents: [1],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
                 }}
             />
             <Stack.Screen
                 name='edit-record'
                 options={{
                     title: "Edit Record",
-                    animation: "slide_from_bottom",
-                    presentation: "modal",
+                    presentation: "formSheet",
+                    sheetAllowedDetents: [1],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="options"
+                options={{
+                    presentation: 'formSheet',
+                    sheetAllowedDetents: [0.6],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
+                }}
+
+            />
+            <Stack.Screen
+                name="filter"
+                options={{
+                    presentation: 'formSheet',
+                    sheetAllowedDetents: [1],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="delete"
+                options={{
+                    presentation: 'formSheet',
+                    sheetAllowedDetents: [0.5],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="reminder"
+                options={{
+                    presentation: 'formSheet',
+                    sheetAllowedDetents: [1],
+                    sheetInitialDetentIndex: 0,
+                    headerShown: false,
                 }}
             />
         </Stack>

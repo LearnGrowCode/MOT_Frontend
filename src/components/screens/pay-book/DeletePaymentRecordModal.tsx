@@ -7,7 +7,8 @@ import { X, Trash2 } from "lucide-react-native";
 
 
 interface DeletePaymentRecordModalProps {
-    visible: boolean;
+    visible?: boolean;
+    isScreen?: boolean;
     onClose: () => void;
     onDeleteRecord: (recordId: string) => void;
     record: PaymentRecord | null;
@@ -15,6 +16,7 @@ interface DeletePaymentRecordModalProps {
 
 export default function DeletePaymentRecordModal({
     visible,
+    isScreen = false,
     onClose,
     onDeleteRecord,
     record,
@@ -27,12 +29,8 @@ export default function DeletePaymentRecordModal({
         }
     };
 
-    return (
-        <BottomModal
-            visible={visible}
-            onClose={onClose}
-            title='Delete Record'
-        >
+    const content = (
+        <View className={`${isScreen ? "flex-1 px-6 pt-12" : ""}`}>
             <View className='items-center py-6 px-4'>
                 <View className='w-24 h-24 bg-destructive/15 rounded-full items-center justify-center mb-8 border-2 border-destructive/20 relative'>
                     <Trash2 size={40} color={colorScheme === "dark" ? "#F23F3F" : "#BD1414"} strokeWidth={2.5} />
@@ -70,6 +68,20 @@ export default function DeletePaymentRecordModal({
                     </Text>
                 </Pressable>
             </View>
+        </View>
+    );
+
+    if (isScreen) {
+        return content;
+    }
+
+    return (
+        <BottomModal
+            visible={!!visible}
+            onClose={onClose}
+            title='Delete Record'
+        >
+            {content}
         </BottomModal>
     );
 }

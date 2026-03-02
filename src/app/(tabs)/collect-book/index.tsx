@@ -5,23 +5,19 @@ import { useUserCurrency } from "@/hooks/useUserCurrency";
 import { CollectionRecord } from "@/modules/book.module";
 import { formatCurrency } from "@/utils/utils";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Share, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 // SafeAreaView import removed
 
 import CollectionConfirmation from "@/components/screens/collect-book/CollectionConfirmation";
-import CollectionOptionModal from "@/components/screens/collect-book/CollectionOptionModal";
-import DeleteCollectionRecordModal from "@/components/screens/collect-book/DeleteCollectionRecordModal";
-import FilterAndSort from "@/components/shared/modals/FilterAndSort";
-import ReminderModal from "@/components/screens/collect-book/ReminderModal";
 import Snackbar from "@/components/ui/Snackbar";
-import { addSettlement, softDeleteBookEntry } from "@/db/models/Book";
+import { addSettlement } from "@/db/models/Book";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
     getCollectBookEntries,
     getTotalCollectRemaining,
 } from "@/services/book/book-entry.service";
 import { uuidv4 } from "@/utils/uuid";
-import { Link, useFocusEffect, useRouter } from "expo-router";
+import { Link, useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 // BanknoteArrowUpIcon removed
 
 const DEFAULT_USER_ID = "1";
@@ -47,20 +43,14 @@ export default function ToCollectScreen() {
     const router = useRouter();
     const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterAndSort, setFilterAndSort] = useState<{
-        filter: string;
-        sort: string;
-    }>({
-        filter: "all",
-        sort: "date_desc",
-    });
+    const params = useLocalSearchParams<{ filter: string; sort: string }>();
+    const filterAndSort = {
+        filter: params.filter ?? "all",
+        sort: params.sort ?? "date_desc",
+    };
 
-    const [showDeleteRecord, setShowDeleteRecord] = useState(false);
     const [showCollectionConfirmation, setShowCollectionConfirmation] =
         useState(false);
-    const [showFilterAndSort, setShowFilterAndSort] = useState(false);
-    const [showOption, setShowOption] = useState(false);
-    const [showReminderModal, setShowReminderModal] = useState(false);
     const [snackbarConfig, setSnackbarConfig] = useState<{
         visible: boolean;
         message: string;
@@ -145,27 +135,6 @@ export default function ToCollectScreen() {
         }
     };
 
-    const handleDeleteRecord = async (recordId: string) => {
-        const recordName = selectedRecord?.name;
-        try {
-            await softDeleteBookEntry(recordId);
-            const { records, total } = await fetchRecords();
-            setCollectionRecords(records);
-            setTotalToCollect(total);
-            setSnackbarConfig({
-                visible: true,
-                message: `Deleted record for ${recordName}`,
-            });
-        } catch (error) {
-            console.error("Error deleting record:", error);
-            setCollectionRecords((prev) =>
-                prev.filter((record) => record.id !== recordId)
-            );
-        } finally {
-            setShowDeleteRecord(false);
-            setSelectedRecord(null);
-        }
-    };
 
     const handleConfirmCollection = async (
         amount: number,
@@ -203,67 +172,26 @@ export default function ToCollectScreen() {
         setSelectedRecord(null);
     };
 
-    const handleFilterAndSort = (filters: {
-        filter?: string;
-        sort?: string;
-    }) => {
-        if (filters) {
-            if (filters.filter) {
-                setFilterAndSort((prev) => ({
-                    ...prev,
-                    filter: filters.filter!,
-                }));
-            }
-            if (filters.sort) {
-                setFilterAndSort((prev) => ({
-                    ...prev,
-                    sort: filters.sort!,
-                }));
-            }
-        }
-        setShowFilterAndSort(false);
+    const handleFilterAndSort = () => {
+        router.push({
+            pathname: "/collect-filter",
+            params: filterAndSort,
+        } as any);
     };
 
-    const handleEdit = () => {
-        setShowOption(false);
-        if (selectedRecord) {
-            router.push({
-                pathname: "/collect-book/edit-record",
-                params: { id: selectedRecord.id },
-            } as any);
-        }
-        setSelectedRecord(null);
+    const handleRemoveFilter = () => {
+        router.setParams({ filter: "all" } as any);
     };
-    const handleDelete = () => {
-        setShowDeleteRecord(true);
-        setShowOption(false);
+
+    const handleRemoveSort = () => {
+        router.setParams({ sort: "date_desc" } as any);
     };
-    const handleSendReminderPress = () => {
-        setShowOption(false);
-        setShowReminderModal(true);
-    };
-    const handleSendReminder = async (message: string) => {
-        if (!selectedRecord || !message) {
-            setShowReminderModal(false);
-            return;
-        }
-        try {
-            await Share.share({ message });
-        } catch (error) {
-            console.error("Error sharing reminder:", error);
-            Alert.alert(
-                "Unable to share reminder",
-                "Please try again in a moment."
-            );
-        } finally {
-            setShowReminderModal(false);
-        }
-    };
+
     const handleOption = (recordId: string) => {
-        setShowOption(true);
-        setSelectedRecord(
-            collectionRecords.find((r) => r.id === recordId) as CollectionRecord
-        );
+        router.push({
+            pathname: "/collect-options",
+            params: { id: recordId },
+        } as any);
     };
     // Derived visible records based on search/filter/sort
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -329,13 +257,6 @@ export default function ToCollectScreen() {
             ? activeSortOption
             : null;
 
-    const handleRemoveFilter = () => {
-        handleFilterAndSort({ filter: "all" });
-    };
-
-    const handleRemoveSort = () => {
-        handleFilterAndSort({ sort: "date_desc" });
-    };
 
     const totalRemainingToCollect = formatCurrency(
         totalToCollect ?? 0,
@@ -404,7 +325,7 @@ export default function ToCollectScreen() {
                             totalRecords={collectionRecords.length}
                             filteredRecords={visibleRecords.length}
                             onSearch={(q) => setSearchQuery(q)}
-                            setShowFilterAndSort={setShowFilterAndSort}
+                            setShowFilterAndSort={handleFilterAndSort}
                             activeFilter={activeFilter}
                             activeSort={activeSort}
                             onRemoveFilter={handleRemoveFilter}
@@ -440,7 +361,7 @@ export default function ToCollectScreen() {
                 </View>
             </ScrollView>
             {/* Floating Action Button */}
-            <Link href='/collect-book/add-record' asChild>
+            <Link href='/collect-add' asChild>
                 <FloatingActionButton
                     icon='+'
                     size='lg'
@@ -450,37 +371,11 @@ export default function ToCollectScreen() {
                 />
             </Link>
 
-            <DeleteCollectionRecordModal
-                visible={showDeleteRecord}
-                onClose={() => setShowDeleteRecord(false)}
-                onDeleteRecord={handleDeleteRecord}
-                record={selectedRecord}
-            />
             <CollectionConfirmation
                 visible={showCollectionConfirmation}
                 onClose={() => setShowCollectionConfirmation(false)}
                 onConfirmCollection={handleConfirmCollection}
                 record={selectedRecord}
-            />
-            <FilterAndSort
-                visible={showFilterAndSort}
-                onClose={() => setShowFilterAndSort(false)}
-                onFilterAndSort={handleFilterAndSort}
-                filterAndSort={filterAndSort}
-            />
-            <CollectionOptionModal
-                visible={showOption}
-                onClose={() => setShowOption(false)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onSendReminder={handleSendReminderPress}
-                record={selectedRecord}
-            />
-            <ReminderModal
-                visible={showReminderModal}
-                onClose={() => setShowReminderModal(false)}
-                record={selectedRecord}
-                onSendReminder={handleSendReminder}
             />
             <Snackbar
                 visible={snackbarConfig.visible}

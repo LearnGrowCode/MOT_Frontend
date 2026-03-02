@@ -3,11 +3,12 @@ import { PaymentRecord } from "@/modules/book.module";
 import RecordOptionModal from "@/components/shared/modals/RecordOptionModal";
 
 interface PaymentOptionModalProps {
-    visible: boolean;
+    visible?: boolean;
     onClose: () => void;
     onEdit: () => void;
     onDelete: () => void;
     record: PaymentRecord | null;
+    isScreen?: boolean;
 }
 
 export default function PaymentOptionModal({
@@ -16,6 +17,7 @@ export default function PaymentOptionModal({
     onEdit,
     onDelete,
     record,
+    isScreen = false,
 }: PaymentOptionModalProps) {
     return (
         <RecordOptionModal
@@ -24,6 +26,7 @@ export default function PaymentOptionModal({
             onEdit={onEdit}
             onDelete={onDelete}
             record={record}
+            isScreen={isScreen}
         />
     );
 }

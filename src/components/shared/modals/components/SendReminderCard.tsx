@@ -1,6 +1,5 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
-import { useColorScheme } from "nativewind";
+import { TouchableOpacity, Text, View } from "react-native";
 import { MessageSquare, ArrowRight } from "lucide-react-native";
 import { Icon } from "@/components/ui/icon";
 
@@ -9,12 +8,11 @@ interface SendReminderCardProps {
 }
 
 export default function SendReminderCard({ onPress }: SendReminderCardProps) {
-    const { colorScheme } = useColorScheme();
-
     return (
-        <Pressable
+        <TouchableOpacity
+            activeOpacity={0.7}
             onPress={onPress}
-            className="w-full p-5 bg-primary/10 dark:bg-primary/20 rounded-[24px] border border-primary/20 flex-row items-center justify-between active:bg-primary/20"
+            className="w-full p-5 bg-primary/10 dark:bg-primary/20 rounded-[24px] border border-primary/20 flex-row items-center justify-between"
         >
             <View className="flex-row items-center gap-4 flex-1">
                 <View className="w-12 h-12 bg-primary rounded-2xl items-center justify-center shadow-lg shadow-primary/20">
@@ -32,6 +30,6 @@ export default function SendReminderCard({ onPress }: SendReminderCardProps) {
             <View className="w-8 h-8 rounded-full bg-secondary/50 items-center justify-center">
                 <Icon as={ArrowRight} size={14} className="text-primary" />
             </View>
-        </Pressable>
+        </TouchableOpacity>
     );
 }
