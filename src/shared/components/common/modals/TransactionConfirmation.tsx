@@ -2,23 +2,23 @@ import { useUserCurrency } from "@/shared/hooks/useUserCurrency";
 import { BaseBookRecord } from "@/features/books/types";
 import { formatAmountInput, getAmountInWords } from "@/shared/utils/utils";
 import React, { useState } from "react";
-import { Pressable, Text, View, ScrollView, SafeAreaView } from "react-native";
+import { Pressable, Text, View, ScrollView } from "react-native";
 import { useColorScheme } from "nativewind";
 import { Banknote } from "lucide-react-native";
 import RecordInfoCard from "@/shared/components/cards/RecordInfoCard";
 import Input from "@/shared/components/form/Input";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 type TransactionType = "collection" | "payment";
 
 interface TransactionConfirmationProps {
-    onClose: () => void;
     onConfirm: (amount: number, personName: string) => void;
     record: BaseBookRecord | null;
     type: TransactionType;
 }
 
 export default function TransactionConfirmation({
-    onClose,
     onConfirm,
     record,
     type,
@@ -26,7 +26,9 @@ export default function TransactionConfirmation({
     const [amount, setAmount] = useState("");
     const personName = record?.name || "";
     const { currency } = useUserCurrency();
-    const { colorScheme } = useColorScheme();
+    const colorSchemeData = useColorScheme() || { colorScheme: "light" };
+    const colorScheme = colorSchemeData.colorScheme;
+    const router = useRouter();
 
     const formatAmount = (value: string) => {
         return formatAmountInput(value);
@@ -36,7 +38,7 @@ export default function TransactionConfirmation({
         const parsedAmount = parseFloat(amount) || 0;
         onConfirm(parsedAmount, personName);
         setAmount("");
-        onClose();
+        router.dismiss();
     };
 
     const isCollection = type === "collection";
@@ -92,14 +94,6 @@ export default function TransactionConfirmation({
                         >
                             <Text className={`${isCollection ? 'text-white' : 'text-primary-foreground'} font-black tracking-widest text-lg uppercase`}>
                                 Confirm
-                            </Text>
-                        </Pressable>
-                        <Pressable
-                            onPress={onClose}
-                            className='py-5 rounded-[24px] bg-secondary/50 items-center active:bg-secondary'
-                        >
-                            <Text className='text-foreground font-black tracking-widest text-lg uppercase'>
-                                Cancel
                             </Text>
                         </Pressable>
                     </View>

@@ -24,10 +24,6 @@ export default function CollectBookConfirmScreen() {
         }
     }, [id]);
 
-    const handleClose = () => {
-        router.back();
-    };
-
     const handleConfirm = async (amount: number, collector: string) => {
         if (record && amount > 0) {
             try {
@@ -38,8 +34,6 @@ export default function CollectBookConfirmScreen() {
                     date: Date.now(),
                     description: `Collection from ${collector}`,
                 });
-                // Go back after success
-                router.back();
             } catch (error) {
                 console.error("Error adding settlement:", error);
             }
@@ -56,7 +50,6 @@ export default function CollectBookConfirmScreen() {
 
     return (
         <TransactionConfirmation
-            onClose={handleClose}
             onConfirm={handleConfirm}
             record={record}
             type='collection'

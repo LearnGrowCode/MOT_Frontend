@@ -24,7 +24,8 @@ export default function RecordOptionModal({
     extraActions,
 }: RecordOptionModalProps) {
     const { currency } = useUserCurrency();
-    const { colorScheme } = useColorScheme();
+    const colorSchemeData = useColorScheme() || { colorScheme: "light" };
+    const colorScheme = colorSchemeData.colorScheme;
     
     const handleEdit = () => {
         onEdit();

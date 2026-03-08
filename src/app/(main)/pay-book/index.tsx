@@ -46,7 +46,7 @@ export default function ToPayScreen() {
     };
 
     const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
-    const [snackbarConfig, setSnackbarConfig] = useState<{
+    const [pageSnackbar, setPageSnackbar] = useState<{
         visible: boolean;
         message: string;
     }>({ visible: false, message: "" });
@@ -306,9 +306,9 @@ export default function ToPayScreen() {
             </Link>
 
             <Snackbar
-                visible={snackbarConfig.visible}
-                message={snackbarConfig.message}
-                onDismiss={() => setSnackbarConfig({ ...snackbarConfig, visible: false })}
+                visible={pageSnackbar.visible}
+                message={pageSnackbar.message}
+                onDismiss={() => setPageSnackbar({ ...pageSnackbar, visible: false })}
             />
         </View>
     );

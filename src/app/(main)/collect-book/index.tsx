@@ -46,7 +46,7 @@ export default function ToCollectScreen() {
         sort: params.sort ?? "date_desc",
     };
 
-    const [snackbarConfig, setSnackbarConfig] = useState<{
+    const [pageSnackbar, setPageSnackbar] = useState<{
         visible: boolean;
         message: string;
     }>({ visible: false, message: "" });
@@ -331,9 +331,9 @@ export default function ToCollectScreen() {
 
 
             <Snackbar
-                visible={snackbarConfig.visible}
-                message={snackbarConfig.message}
-                onDismiss={() => setSnackbarConfig({ ...snackbarConfig, visible: false })}
+                visible={pageSnackbar.visible}
+                message={pageSnackbar.message}
+                onDismiss={() => setPageSnackbar({ ...pageSnackbar, visible: false })}
             />
         </View>
     );

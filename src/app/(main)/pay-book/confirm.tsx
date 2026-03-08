@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import TransactionConfirmation from "@/shared/components/common/modals/TransactionConfirmation";
 import { getPayRecordById } from "@/features/books/api/book-entry.service";
 import { PaymentRecord } from "@/features/books/types";
@@ -9,7 +9,6 @@ import { uuidv4 } from "@/shared/utils/uuid";
 
 export default function PayBookConfirmScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
-    const router = useRouter();
     const [record, setRecord] = useState<PaymentRecord | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -24,10 +23,6 @@ export default function PayBookConfirmScreen() {
         }
     }, [id]);
 
-    const handleClose = () => {
-        router.back();
-    };
-
     const handleConfirm = async (amount: number, payer: string) => {
         if (record && amount > 0) {
             try {
@@ -38,8 +33,6 @@ export default function PayBookConfirmScreen() {
                     date: Date.now(),
                     description: `Payment from ${payer}`,
                 });
-                // Go back after success
-                router.back();
             } catch (error) {
                 console.error("Error adding settlement:", error);
             }
@@ -56,7 +49,6 @@ export default function PayBookConfirmScreen() {
 
     return (
         <TransactionConfirmation
-            onClose={handleClose}
             onConfirm={handleConfirm}
             record={record}
             type='payment'
