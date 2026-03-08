@@ -2,8 +2,8 @@ import { getDb, nowTs } from "@/db";
 import {
   cancelNotification,
   schedulePaymentReminder,
-} from "@/services/notification-service";
-import { uuidv4 } from "@/utils/uuid";
+} from "@/shared/services/notification-service";
+import { uuidv4 } from "@/shared/utils/uuid";
 
 export type BookEntryType = "PAY" | "COLLECT";
 export type BookEntryStatus = "PENDING" | "PARTIALLY_SETTLED" | "SETTLED";
@@ -397,6 +397,8 @@ export async function updateBookEntryWithPrincipal(params: {
   currency?: string;
   description?: string | null;
   dueDate?: number | null;
+  date?: number | null;
+  mobileNumber?: string | null;
   reminderInterval?: string | null;
   notificationsEnabled?: boolean;
   notificationId?: string | null;
@@ -442,6 +444,14 @@ export async function updateBookEntryWithPrincipal(params: {
   if (params.dueDate !== undefined) {
     updates.unshift("due_date = ?");
     values.unshift(params.dueDate);
+  }
+  if (params.date !== undefined) {
+    updates.unshift("date = ?");
+    values.unshift(params.date);
+  }
+  if (params.mobileNumber !== undefined) {
+    updates.unshift("mobile_number = ?");
+    values.unshift(params.mobileNumber);
   }
   if (params.reminderInterval !== undefined) {
     updates.unshift("reminder_interval = ?");

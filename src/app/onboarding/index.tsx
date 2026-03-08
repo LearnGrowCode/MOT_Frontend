@@ -1,8 +1,8 @@
-import Input from "@/components/form/Input";
-import BottomModal from "@/components/ui/BottomModal";
-import { Card, CardContent } from "@/components/ui/card";
+import Input from "@/shared/components/form/Input";
+import BottomModal from "@/shared/components/ui/BottomModal";
+import { Card, CardContent } from "@/shared/components/ui/card";
 import { upsertUser, upsertUserPreferences } from "@/db/models/User";
-import { uuidv4 } from "@/utils/uuid";
+import { uuidv4 } from "@/shared/utils/uuid";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -25,7 +25,6 @@ import {
     Text,
     View,
 } from "react-native";
-// SafeAreaView import removed
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 interface FormData {

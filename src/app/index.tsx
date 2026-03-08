@@ -36,13 +36,13 @@ export default function HomeScreen() {
 
                     // If onboarding is not complete, redirect to onboarding
                     if (onboardingComplete !== "true") {
-                        router.replace("/onboarding" as any);
+                        router.push("/onboarding" as any);
                         return;
                     }
                 } catch (error) {
                     console.error("Error checking onboarding status:", error);
                     // On error, redirect to onboarding to be safe
-                    router.replace("/onboarding" as any);
+                    router.push("/onboarding" as any);
                     return;
                 } finally {
                     setIsCheckingOnboarding(false);

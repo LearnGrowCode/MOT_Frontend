@@ -2,9 +2,9 @@ import {
     PermissionResult,
     requestContacts,
     requestContactsPermission,
-} from "@/utils/permissions";
+} from "@/shared/utils/permissions";
 import { create } from "zustand";
-import { SimpleContact } from "@/modules/common.module";
+import { SimpleContact } from "@/shared/types/common.module";
 
 type PermissionStore = {
     contactsGranted: PermissionResult;
