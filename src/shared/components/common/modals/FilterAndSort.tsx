@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, ScrollView, SafeAreaView } from "react-native";
 import { useColorScheme } from "nativewind";
 import { X } from "lucide-react-native";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -83,22 +83,26 @@ export default function FilterAndSort({
     };
 
     return (
-        <Card className="w-full border-0 bg-card border-border/40 shadow-2xl">
-            <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/30'>
-                <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
-                    Filter & Sort
-                </CardTitle>
-                <Pressable 
-                    onPress={onClose} 
-                    className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
-                >
-                    <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
-                </Pressable>
-            </CardHeader>
+        <View className="flex-1 bg-white dark:bg-zinc-950">
+            <Card className="flex-1 border-0 bg-transparent shadow-none">
+                <CardHeader className='flex-row items-center justify-between py-6 px-8 border-b border-border/10'>
+                    <CardTitle className='text-2xl font-black tracking-tight text-foreground'>
+                        Filter & Sort
+                    </CardTitle>
+                    <Pressable 
+                        onPress={onClose} 
+                        className='p-3 bg-secondary/50 rounded-2xl active:bg-secondary'
+                    >
+                        <X size={20} color={colorScheme === "dark" ? "#94a3b8" : "#64748b"} strokeWidth={3} />
+                    </Pressable>
+                </CardHeader>
 
-            <View>
-             
-                    <CardContent className='flex flex-col justify-between gap-4'>
+                <ScrollView 
+                    className="flex-1" 
+                    contentContainerStyle={{ paddingBottom: 40 }}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <CardContent className='flex flex-col justify-between gap-6 pt-6 px-8'>
                         <View className='flex flex-col gap-2'>
                             <Text className='text-lg font-semibold text-foreground'>
                                 Filter
@@ -235,8 +239,9 @@ export default function FilterAndSort({
                             </Accordion>
                         </View>
                     </CardContent>
-             
-            </View>
-        </Card>
+                </ScrollView>
+            </Card>
+            <SafeAreaView />
+        </View>
     );
 }

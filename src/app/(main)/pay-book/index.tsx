@@ -7,17 +7,12 @@ import { formatCurrency } from "@/shared/utils/utils";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
-import PaymentConfirmation from "@/features/books/components/pay-book/PaymentConfirmation";
 import Snackbar from "@/shared/components/ui/Snackbar";
-import {
-    addSettlement
-} from "@/db/models/Book";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
     getPayBookEntries,
     getTotalPayRemaining,
 } from "@/features/books/api/book-entry.service";
-import { uuidv4 } from "@/shared/utils/uuid";
 import { Link, useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 // BanknoteArrowDownIcon removed
 
@@ -51,15 +46,10 @@ export default function ToPayScreen() {
     };
 
     const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
-    const [showPaymentConfirmation, setShowPaymentConfirmation] =
-        useState(false);
     const [snackbarConfig, setSnackbarConfig] = useState<{
         visible: boolean;
         message: string;
     }>({ visible: false, message: "" });
-    const [selectedRecord, setSelectedRecord] = useState<PaymentRecord | null>(
-        null
-    );
 
     // Payment records state (loaded from DB)
     const [totalToPay, setTotalToPay] = useState<number>(0);
@@ -113,42 +103,18 @@ export default function ToPayScreen() {
     );
 
     const handleMarkPayment = (recordId: string) => {
-        const record = paymentRecords.find((r) => r.id === recordId);
-        if (record) {
-            setSelectedRecord(record);
-            setShowPaymentConfirmation(true);
-        }
+        router.push({
+            pathname: "/(main)/pay-book/confirm",
+            params: { id: recordId },
+        } as any);
     };
 
 
-    const handleConfirmPayment = async (amount: number, payer: string) => {
-        if (selectedRecord && amount > 0) {
-            try {
-                // Create settlement in database
-                await addSettlement({
-                    id: uuidv4(),
-                    bookEntryId: selectedRecord.id,
-                    amount: amount,
-                    date: Date.now(),
-                    description: `Payment from ${payer}`,
-                });
 
-                const { records, total } = await fetchRecords();
-                setPaymentRecords(records);
-                setTotalToPay(total);
-            } catch (error) {
-                console.error("Error adding settlement:", error);
-                // On error, let the user know (could add an alert here)
-                console.error("Failed to save settlement to DB");
-            }
-        }
-        setShowPaymentConfirmation(false);
-        setSelectedRecord(null);
-    };
 
     const handleFilterAndSort = () => {
         router.push({
-            pathname: "/(screen)/pay-book/filter",
+            pathname: "/(main)/pay-book/filter",
             params: filterAndSort,
         } as any);
     };
@@ -163,7 +129,7 @@ export default function ToPayScreen() {
 
     const handleOption = (recordId: string) => {
         router.push({
-            pathname: "/(screen)/pay-book/options",
+            pathname: "/(main)/pay-book/options",
             params: { id: recordId },
         } as any);
     };
@@ -339,12 +305,6 @@ export default function ToPayScreen() {
                 />
             </Link>
 
-            <PaymentConfirmation
-                visible={showPaymentConfirmation}
-                onClose={() => setShowPaymentConfirmation(false)}
-                onConfirmPayment={handleConfirmPayment}
-                record={selectedRecord}
-            />
             <Snackbar
                 visible={snackbarConfig.visible}
                 message={snackbarConfig.message}

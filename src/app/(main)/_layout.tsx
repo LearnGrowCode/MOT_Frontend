@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 import { NAV_THEME } from "@/shared/lib/theme";
 import React, { useMemo } from "react";
 import { View } from "react-native";
@@ -15,9 +15,13 @@ import {
 function LayoutContent() {
   const { colorScheme } = useColorScheme();
   const theme = NAV_THEME[colorScheme as "light" | "dark"];
+  const segments = useSegments();
+
+  // Check if we are on a filter or options screen
+  const isModalOpen = (segments as any).includes("filter") || (segments as any).includes("options") || (segments as any).includes("confirm");
 
   const tabBarStyle = useMemo(() => ({
-    display: "flex" as any,
+    display: isModalOpen ? ("none" as any) : ("flex" as any),
     position: "absolute" as const,
     left: 20,
     right: 20,
@@ -33,7 +37,7 @@ function LayoutContent() {
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 12,
-  }), [colorScheme]);
+  }), [colorScheme, isModalOpen]);
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-background">

@@ -8,15 +8,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 
 
-import CollectionConfirmation from "@/features/books/components/collect-book/CollectionConfirmation";
 import Snackbar from "@/shared/components/ui/Snackbar";
-import { addSettlement } from "@/db/models/Book";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
 import {
     getCollectBookEntries,
     getTotalCollectRemaining,
 } from "@/features/books/api/book-entry.service";
-import { uuidv4 } from "@/shared/utils/uuid";
 import { Link, useFocusEffect, useRouter, useLocalSearchParams } from "expo-router";
 // BanknoteArrowUpIcon removed
 
@@ -49,14 +46,10 @@ export default function ToCollectScreen() {
         sort: params.sort ?? "date_desc",
     };
 
-    const [showCollectionConfirmation, setShowCollectionConfirmation] =
-        useState(false);
     const [snackbarConfig, setSnackbarConfig] = useState<{
         visible: boolean;
         message: string;
     }>({ visible: false, message: "" });
-    const [selectedRecord, setSelectedRecord] =
-        useState<CollectionRecord | null>(null);
 
     // Collection records state (loaded from DB)
     const [collectionRecords, setCollectionRecords] = useState<
@@ -128,53 +121,18 @@ export default function ToCollectScreen() {
     );
 
     const handleMarkCollection = (recordId: string) => {
-        const record = collectionRecords.find((r) => r.id === recordId);
-        if (record) {
-            setSelectedRecord(record);
-            setShowCollectionConfirmation(true);
-        }
+        router.push({
+            pathname: "/(main)/collect-book/confirm",
+            params: { id: recordId },
+        } as any);
     };
 
 
-    const handleConfirmCollection = async (
-        amount: number,
-        collector: string
-    ) => {
-        if (selectedRecord && amount > 0) {
-            try {
-                await addSettlement({
-                    id: uuidv4(),
-                    bookEntryId: selectedRecord.id,
-                    amount: amount,
-                    date: Date.now(),
-                    description: `Collection from ${collector}`,
-                });
-                const { records, total } = await fetchRecords();
-                setCollectionRecords(records);
-                setTotalToCollect(total);
-            } catch {
-                const updatedRecord: CollectionRecord = {
-                    ...selectedRecord,
-                    remaining: Math.max(0, selectedRecord.remaining - amount),
-                    status:
-                        selectedRecord.remaining - amount <= 0
-                            ? "collected"
-                            : "partial",
-                };
-                setCollectionRecords((prev) =>
-                    prev.map((record) =>
-                        record.id === selectedRecord.id ? updatedRecord : record
-                    )
-                );
-            }
-        }
-        setShowCollectionConfirmation(false);
-        setSelectedRecord(null);
-    };
+
 
     const handleFilterAndSort = () => {
         router.push({
-            pathname: "/(screen)/collect-book/filter",
+            pathname: "/(main)/collect-book/filter",
             params: filterAndSort,
         } as any);
     };
@@ -189,7 +147,7 @@ export default function ToCollectScreen() {
 
     const handleOption = (recordId: string) => {
         router.push({
-            pathname: "/(screen)/collect-book/options",
+            pathname: "/(main)/collect-book/options",
             params: { id: recordId },
         } as any);
     };
@@ -371,12 +329,7 @@ export default function ToCollectScreen() {
                 />
             </Link>
 
-            <CollectionConfirmation
-                visible={showCollectionConfirmation}
-                onClose={() => setShowCollectionConfirmation(false)}
-                onConfirmCollection={handleConfirmCollection}
-                record={selectedRecord}
-            />
+
             <Snackbar
                 visible={snackbarConfig.visible}
                 message={snackbarConfig.message}

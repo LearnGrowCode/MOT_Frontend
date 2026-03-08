@@ -17,28 +17,12 @@ export default function CollectBookScreenLayout() {
   animation: "slide_from_left"
 }} />
 
-<Stack.Screen name="filter" options={{
-  presentation: "formSheet",
-  animation: "slide_from_bottom",
-  // @ts-ignore
-  sheetAllowedDetents: ["content", 0.9],
-  sheetGrabberVisible: true,
-  sheetExpandsWhenScrolledToEdge: false,
-}} />
 
 <Stack.Screen name="delete" options={{
   presentation: "modal",
   animation: "slide_from_right",
 }} />
 
-<Stack.Screen name="options" options={{
-  presentation: "formSheet",
-  animation: "slide_from_bottom",
-  // @ts-ignore
-  sheetAllowedDetents: ["content"],
-  sheetGrabberVisible: true,
-  sheetExpandsWhenScrolledToEdge: false,
-}} />
     </Stack>
   );
 }
