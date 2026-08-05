@@ -6,16 +6,17 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-   "scheme": "motreactnative",
+    "scheme": "motreactnative",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.akshay.moneyontrack"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-         "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -51,7 +52,16 @@
       ],
       "expo-secure-store",
       "expo-localization",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

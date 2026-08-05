@@ -5,7 +5,8 @@ import { useUserCurrency } from "@/shared/hooks/useUserCurrency";
 import { CollectionRecord } from "@/features/books/types";
 import { formatCurrency } from "@/shared/utils/utils";
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 
 import Snackbar from "@/shared/components/ui/Snackbar";
@@ -40,6 +41,7 @@ export default function ToCollectScreen() {
     const router = useRouter();
     const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
+    const [showPaid, setShowPaid] = useState(true);
     const params = useLocalSearchParams<{ filter: string; sort: string }>();
     const filterAndSort = {
         filter: params.filter ?? "all",
@@ -166,7 +168,8 @@ export default function ToCollectScreen() {
         const matchesStatus =
             filterAndSort.filter === "all" ||
             record.status === (statusToMatch as any);
-        return matchesQuery && matchesStatus;
+        const matchesShowPaid = showPaid || record.status !== "collected";
+        return matchesQuery && matchesStatus && matchesShowPaid;
     });
 
     const visibleRecords = [...filtered].sort((a, b) => {
@@ -268,13 +271,28 @@ export default function ToCollectScreen() {
 
                 {/* Collection Records Section */}
                 <View className='px-4 pb-6'>
-                    <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-primary-600/70 dark:text-primary-400/70 mb-2'>
-                            Records
-                        </Text>
-                        <Text className='text-xl font-bold text-foreground'>
-                            Collection Entries
-                        </Text>
+                    <View className='mb-4 flex-row items-center justify-between'>
+                        <View>
+                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-primary-600/70 dark:text-primary-400/70 mb-2'>
+                                Records
+                            </Text>
+                            <Text className='text-xl font-bold text-foreground'>
+                                Collection Entries
+                            </Text>
+                        </View>
+                        <TouchableOpacity 
+                            onPress={() => setShowPaid(!showPaid)}
+                            className='py-2 px-3 rounded-full bg-primary-100 dark:bg-primary-900 flex-row items-center gap-2'
+                        >
+                            <Text className="text-xs font-medium text-primary-700 dark:text-primary-300">
+                                {showPaid ? 'Hide Collected' : 'Show Collected'}
+                            </Text>
+                            {showPaid ? (
+                                <Eye size={20} className='text-primary-700 dark:text-primary-300' color="currentColor" />
+                            ) : (
+                                <EyeOff size={20} className='text-primary-700 dark:text-primary-300' color="currentColor" />
+                            )}
+                        </TouchableOpacity>
                     </View>
 
                     <View className='rounded-2xl border border-border px-4 py-4 mb-4'>

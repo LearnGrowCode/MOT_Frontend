@@ -5,7 +5,8 @@ import { useUserCurrency } from "@/shared/hooks/useUserCurrency";
 import { PaymentRecord } from "@/features/books/types";
 import { formatCurrency } from "@/shared/utils/utils";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View, TouchableOpacity } from "react-native";
+import { Eye, EyeOff } from "lucide-react-native";
 
 import Snackbar from "@/shared/components/ui/Snackbar";
 import { getUser, getUserPreferences, User } from "@/db/models/User";
@@ -39,6 +40,7 @@ export default function ToPayScreen() {
     const router = useRouter();
     const { currency } = useUserCurrency();
     const [searchQuery, setSearchQuery] = useState("");
+    const [showPaid, setShowPaid] = useState(true);
     const params = useLocalSearchParams<{ filter: string; sort: string }>();
     const filterAndSort = {
         filter: params.filter ?? "all",
@@ -144,7 +146,8 @@ export default function ToPayScreen() {
         const matchesStatus =
             filterAndSort.filter === "all" ||
             record.status === (filterAndSort.filter as any);
-        return matchesQuery && matchesStatus;
+        const matchesShowPaid = showPaid || record.status !== "paid";
+        return matchesQuery && matchesStatus && matchesShowPaid;
     });
 
     const visibleRecords = [...filtered].sort((a, b) => {
@@ -244,13 +247,28 @@ export default function ToPayScreen() {
 
                 {/* Payment Records Section */}
                 <View className='px-4 pb-6'>
-                    <View className='mb-4'>
-                        <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600/70 dark:text-tertiary-400/70 mb-2'>
-                            Records
-                        </Text>
-                        <Text className='text-xl font-bold text-foreground'>
-                            Payment Entries
-                        </Text>
+                    <View className='mb-4 flex-row items-center justify-between'>
+                        <View>
+                            <Text className='text-xs font-semibold uppercase tracking-[1px] text-tertiary-600/70 dark:text-tertiary-400/70 mb-2'>
+                                Records
+                            </Text>
+                            <Text className='text-xl font-bold text-foreground'>
+                                Payment Entries
+                            </Text>
+                        </View>
+                        <TouchableOpacity 
+                            onPress={() => setShowPaid(!showPaid)}
+                            className='py-2 px-3 rounded-full bg-tertiary-100 dark:bg-tertiary-900 flex-row items-center gap-2'
+                        >
+                            <Text className="text-xs font-medium text-tertiary-700 dark:text-tertiary-300">
+                                {showPaid ? 'Hide Paid' : 'Show Paid'}
+                            </Text>
+                            {showPaid ? (
+                                <Eye size={20} className='text-tertiary-700 dark:text-tertiary-300' color="currentColor" />
+                            ) : (
+                                <EyeOff size={20} className='text-tertiary-700 dark:text-tertiary-300' color="currentColor" />
+                            )}
+                        </TouchableOpacity>
                     </View>
 
                     <View className='rounded-2xl border border-border px-4 py-4 mb-4'>

@@ -304,59 +304,6 @@ export default function AnalysisScreen() {
         },
     };
 
-    const CategoryTable = ({ data, type }: { data: Record<string, number>; type: "PAY" | "COLLECT" }) => {
-        const rows = Object.entries(data).sort((a, b) => b[1] - a[1]);
-        const total = rows.reduce((sum, [, amount]) => sum + amount, 0);
-        const isCollect = type === "COLLECT";
-        const accentColor = isCollect ? "bg-primary" : "bg-tertiary-500";
-        const textColor =  "text-primary-foreground" ;
-
-        return (
-            <View className='rounded-2xl border border-border overflow-hidden bg-card'>
-                <View className={`flex-row items-center ${accentColor} px-4 py-3`}>
-                    <Text className={`flex-1 font-bold ${textColor} text-xs uppercase tracking-wider`}>
-                        Category
-                    </Text>
-                    <Text className={`w-24 text-right font-bold ${textColor} text-xs uppercase tracking-wider`}>
-                        Amount
-                    </Text>
-                    <Text className={`w-14 text-right font-bold ${textColor} text-xs uppercase tracking-wider`}>
-                        %
-                    </Text>
-                </View>
-                {rows.map(([category, amount], index) => (
-                    <View
-                        key={category}
-                        className={`flex-row items-center px-4 py-4 border-b border-border/50 ${index % 2 === 1 ? "bg-muted/30" : "bg-card"}`}
-                    >
-                        <Text className='flex-1 text-foreground font-semibold'>{category}</Text>
-                        <Text className='w-24 text-right text-foreground font-bold'>
-                            {formatCurrency(amount, currency, 2)}
-                        </Text>
-                        <View className='w-14 items-end'>
-                            <View className={`rounded-full px-2 py-0.5 ${isCollect ? "bg-primary/10" : "bg-tertiary-500/10"}`}>
-                                <Text className={`text-[10px] font-black ${isCollect ? "text-primary" : "text-tertiary-600 dark:text-tertiary-400"}`}>
-                                    {total ? Math.round((amount / total) * 100) : 0}%
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-                ))}
-                <View className='flex-row items-center px-4 py-4 bg-muted/50'>
-                    <Text className='flex-1 font-black text-foreground uppercase text-xs tracking-tighter'>
-                        Total Distribution
-                    </Text>
-                    <Text className='w-24 text-right font-black text-foreground'>
-                        {formatCurrency(total, currency, 2)}
-                    </Text>
-                    <Text className='w-14 text-right font-black text-foreground text-xs'>
-                        100%
-                    </Text>
-                </View>
-            </View>
-        );
-    };
-
     const StatCard = ({
         title,
         value,
@@ -588,13 +535,7 @@ export default function AnalysisScreen() {
                     </View>
                 </View>
 
-                {/* Category Breakdown */}
-                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
-                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
-                        Amount by Category
-                    </Text>
-                    <CategoryTable data={payAnalysis.categoryData} type="PAY" />
-                </View>
+
             </View>
         );
     };
@@ -647,13 +588,7 @@ export default function AnalysisScreen() {
                     </View>
                 </View>
 
-                {/* Category Breakdown */}
-                <View className='bg-card p-6 rounded-3xl border border-border shadow-sm'>
-                    <Text className='text-lg font-bold text-foreground mb-6 uppercase tracking-wider'>
-                        Amount by Category
-                    </Text>
-                    <CategoryTable data={collectAnalysis.categoryData} type="COLLECT" />
-                </View>
+
             </View>
         );
     };
@@ -733,8 +668,9 @@ export default function AnalysisScreen() {
                         className='flex-1'
                         showsVerticalScrollIndicator={false}
                         style={{ width: screenWidth }}
+                        contentContainerStyle={{ paddingBottom: 70 }}
                     >
-                        <View className='px-6 py-4'>{renderOverviewTab()}</View>
+                        <View className='px-6 pt-4'>{renderOverviewTab()}</View>
                     </ScrollView>
 
                     {/* Pay Book Tab */}
@@ -742,8 +678,9 @@ export default function AnalysisScreen() {
                         className='flex-1'
                         showsVerticalScrollIndicator={false}
                         style={{ width: screenWidth }}
+                        contentContainerStyle={{ paddingBottom: 70 }}
                     >
-                        <View className='px-6 py-4'>{renderPayTab()}</View>
+                        <View className='px-6 pt-4'>{renderPayTab()}</View>
                     </ScrollView>
 
                     {/* Collect Book Tab */}
@@ -751,8 +688,9 @@ export default function AnalysisScreen() {
                         className='flex-1'
                         showsVerticalScrollIndicator={false}
                         style={{ width: screenWidth }}
+                        contentContainerStyle={{ paddingBottom: 70 }}
                     >
-                        <View className='px-6 py-4'>{renderCollectTab()}</View>
+                        <View className='px-6 pt-4'>{renderCollectTab()}</View>
                     </ScrollView>
                 </ScrollView>
             </View>
