@@ -76,8 +76,12 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/1dedc209-df9b-41bb-99d2-b885cd5deb5a"
     },
-    "owner": "aksh2003"
+    "owner": "aksh2003",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

@@ -1,30 +1,33 @@
 {
-    "cli": {
-        "version": ">= 16.23.1",
-        "appVersionSource": "remote"
+  "cli": {
+    "version": ">= 16.23.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
+      },
+      "channel": "development"
     },
-    "build": {
-        "development": {
-            "developmentClient": true,
-            "distribution": "internal",
-            "env": {
-                "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
-            }
-        },
-        "preview": {
-            "distribution": "internal",
-            "env": {
-                "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
-            }
-        },
-        "production": {
-            "autoIncrement": true,
-            "env": {
-                "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
-            }
-        }
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
+      },
+      "channel": "preview"
     },
-    "submit": {
-        "production": {}
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "${EXPO_PUBLIC_API_URL}"
+      },
+      "channel": "production"
     }
+  },
+  "submit": {
+    "production": {}
+  }
 }
