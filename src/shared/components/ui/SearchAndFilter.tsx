@@ -63,77 +63,78 @@ export default function SearchAndFilter({
     };
 
     return (
-        <View className='flex flex-row flex-wrap gap-3 pb-3'>
-            <View className='flex-row  items-center bg-card rounded-2xl shadow-sm border border-border w-full h-fit px-4 py-2'>
-                <Search size={20} color={isDarkMode ? "#94a3b8" : "#64748b"} />
-                <TextInput
-                    placeholder='Search records...'
-                    value={search}
-                    onChangeText={setSearch}
-                    className='flex-1 text-base text-foreground ml-3'
-                    placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
-                    returnKeyType='search'
-                />
-                {search.length > 0 && (
-                    <Pressable
-                        onPress={handleClearSearch}
-                        className='flex-row items-center gap-1 bg-muted px-3 py-1.5 rounded-full'
-                        accessibilityLabel='Clear search'
-                    >
-                        <XCircle size={16} color={isDarkMode ? "#94a3b8" : "#64748b"} />
-                        <Text className='text-sm font-medium text-muted-foreground'>
-                            Clear
-                        </Text>
-                    </Pressable>
-                )}
+        <View className='flex flex-col gap-3 pb-3'>
+            <View className='flex-row items-center gap-2'>
+                <View className='flex-1 flex-row items-center bg-card rounded-2xl shadow-sm border border-border h-fit px-4 py-2'>
+                    <Search size={20} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                    <TextInput
+                        placeholder='Search records...'
+                        value={search}
+                        onChangeText={setSearch}
+                        className='flex-1 text-base text-foreground ml-3'
+                        placeholderTextColor={isDarkMode ? "#64748b" : "#94a3b8"}
+                        returnKeyType='search'
+                    />
+                    {search.length > 0 && (
+                        <Pressable
+                            onPress={handleClearSearch}
+                            className='flex-row items-center gap-1 bg-muted px-3 py-1.5 rounded-full'
+                            accessibilityLabel='Clear search'
+                        >
+                            <XCircle size={16} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                            <Text className='text-sm font-medium text-muted-foreground'>
+                                Clear
+                            </Text>
+                        </Pressable>
+                    )}
+                </View>
+
+                <Pressable
+                    key={"filter-and-sort"}
+                    onPress={() => setShowFilterAndSort(true)}
+                    className='bg-card border border-border rounded-2xl p-3 h-fit items-center justify-center active:bg-accent'
+                >
+                    <ListFilter size={24} color={isDarkMode ? "#f8fafc" : "#1e293b"} />
+                </Pressable>
             </View>
 
-            <View className='flex gap-2'>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                    }}
-                >
-                    <Pressable
-                        key={"filter-and-sort"}
-                        onPress={() => setShowFilterAndSort(true)}
-                        className='bg-card border border-border rounded-lg px-4 py-2 flex-row items-center gap-2 active:bg-accent'
+            {(activeFilter || activeSort) && (
+                <View className='flex gap-2'>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                        }}
                     >
-                        <ListFilter size={24} color={isDarkMode ? "#f8fafc" : "#1e293b"} />
-                        <Text className='text-sm text-foreground'>
-                            Filter and sort
-                        </Text>
-                    </Pressable>
-                    
-                    {activeFilter && onRemoveFilter && (
-                        <Pressable
-                            onPress={onRemoveFilter}
-                            className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
-                        >
-                            <Text className='text-sm font-semibold tracking-tight text-primary'>
-                                {activeFilter.label}
-                            </Text>
-                            <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
-                        </Pressable>
-                    )}
-                    
-                    {activeSort && onRemoveSort && (
-                        <Pressable
-                            onPress={onRemoveSort}
-                            className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
-                        >
-                            <Text className='text-sm font-semibold tracking-tight text-primary'>
-                                {activeSort.label}
-                            </Text>
-                            <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
-                        </Pressable>
-                    )}
-                </ScrollView>
-            </View>
+                        {activeFilter && onRemoveFilter && (
+                            <Pressable
+                                onPress={onRemoveFilter}
+                                className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
+                            >
+                                <Text className='text-sm font-semibold tracking-tight text-primary'>
+                                    {activeFilter.label}
+                                </Text>
+                                <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
+                            </Pressable>
+                        )}
+                        
+                        {activeSort && onRemoveSort && (
+                            <Pressable
+                                onPress={onRemoveSort}
+                                className='bg-primary/10 border border-primary/20 rounded-lg px-3 py-2 flex-row items-center gap-1.5 active:bg-primary/20'
+                            >
+                                <Text className='text-sm font-semibold tracking-tight text-primary'>
+                                    {activeSort.label}
+                                </Text>
+                                <XCircle size={14} color={isDarkMode ? "#cbd5e1" : "#475569"} />
+                            </Pressable>
+                        )}
+                    </ScrollView>
+                </View>
+            )}
         </View>
     );
 }

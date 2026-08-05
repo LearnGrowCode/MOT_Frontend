@@ -271,7 +271,7 @@ export default function ToPayScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    <View className='rounded-2xl border border-border px-4 py-4 mb-4'>
+                    <View className='mb-4'>
                         <SearchAndFilter
                             searchQuery={searchQuery}
                             totalRecords={paymentRecords.length}
